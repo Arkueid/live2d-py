@@ -17,12 +17,6 @@ find_package(Python REQUIRED COMPONENTS Development)
 
 add_subdirectory(Main)
 
-
-
-add_executable(main main.cpp)
-
-target_link_libraries(main PRIVATE live2d)
-
 # 创建Python扩展模块
 add_library(LAppModelWrapper MODULE LAppModelWrapper.cpp)
 target_link_libraries(LAppModelWrapper PRIVATE Python::Python live2d)
@@ -33,10 +27,6 @@ add_custom_command(
   POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy_directory ${RES_PATH} $<TARGET_FILE_DIR:main>/Resources
-  # move dynamic link lib of cubism core to runtime dir
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/lib${LIB_NAME}.so ${CMAKE_CURRENT_SOURCE_DIR}/live2d.so
+      copy $<TARGET_FILE_DIR:${LIB_NAME}>/lib${LIB_NAME}.so ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d.so
 )
 

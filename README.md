@@ -1,29 +1,24 @@
 # live2d-python
 
-使用 CPython API 实现的 python 第三方库。基于 OpenGL。
+使用 CPython API 对 Live2D Native (C++) 进行了封装。
 
 ## 使用实例
 
-需要文件：`live2d.so`, `live2d.pyi`
+文件：
+* `live2d.so`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，编译器在同文件目录下寻找 `live2d.so` 并载入内存
+* `live2d.pyi`：python 接口提示文件，仅用于ide编写时的提示
 
 目录结构
 
 ```
-├── Core
-├── dirs
-├── Framework
-├── LAppModelWrapper.cpp
+example
+├── __init__.py
 ├── live2d.pyi
 ├── live2d.so
-├── Main
-├── main.cpp
-├── main.py
-├── README.md
-├── Resources
-├── setup.py
-├── thirdParty
-└── venv
+└── main.py
 ```
+
+使用示例：
 
 main.py
 
@@ -50,23 +45,21 @@ class Win(QOpenGLWidget):
 
         live2d.InitializeGlew()
 
-        # テクスチャサンプリング設定
+        # 使用Live2D时需要对 OpenGL 进行设置
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        # 透過設定
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glViewport(0, 0, self.width(), self.height());
 
         self.model = live2d.LAppModel()
-        self.model.LoadAssets("./Resources/Hiyori/", "Hiyori.model3.json")
+        self.model.LoadAssets("../Resources/Hiyori/", "Hiyori.model3.json")
 
         self.timer = self.startTimer(int(1000 / 30))
 
     def resizeGL(self, w: int, h: int) -> None:
-        return super().resizeGL(w, h)
+        glViewport(0, 0, w, h);
     
     def paintGL(self) -> None:
         
