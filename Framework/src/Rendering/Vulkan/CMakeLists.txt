@@ -1,0 +1,9 @@
+target_sources(${LIB_NAME}
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/CubismClass_Vulkan.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CubismClass_Vulkan.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CubismOffscreenSurface_Vulkan.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CubismOffscreenSurface_Vulkan.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CubismRenderer_Vulkan.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CubismRenderer_Vulkan.hpp
+)
