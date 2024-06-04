@@ -5,7 +5,7 @@
 ## 使用实例
 
 文件：
-* `live2d.so`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，编译器在同文件目录下寻找 `live2d.so` 并载入内存
+* `live2d.so`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so` 并载入内存
 * `live2d.pyi`：python 接口提示文件，仅用于ide编写时的提示
 
 目录结构
