@@ -7,5 +7,5 @@ setup(
     package_data={
         '': ['*.pyd', '*.so', '*.pyi'],
     },
-    author='Arkueid'
+    author='Arkueid',
 )

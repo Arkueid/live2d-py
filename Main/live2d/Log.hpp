@@ -10,9 +10,9 @@ void _DebugF(const char *file, const char *fmt, ...);
 #ifdef LOG_MODE_RELEASE
 #define Debug(fmt, ...) ((void)0)
 #define Info(fmt, ...) ((void)0)
-#define Error(fmt, ...) _ErrorF("error.log", fmt, __VA_ARGS__)
+#define Error(fmt, ...) _ErrorF("error.log", fmt, ##__VA_ARGS__)
 #else
-#define Debug(fmt, ...) _Debug(fmt, __VA_ARGS__)
-#define Info(fmt, ...) _Info(fmt, __VA_ARGS__)
-#define Error(fmt, ...) _Error(fmt, __VA_ARGS__)
+#define Debug(fmt, ...) _Debug(fmt, ##__VA_ARGS__)
+#define Info(fmt, ...) _Info(fmt, ##__VA_ARGS__)
+#define Error(fmt, ...) _Error(fmt, ##__VA_ARGS__)
 #endif
