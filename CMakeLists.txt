@@ -5,7 +5,7 @@ project(LAppModelWrapper)
 set(LIB_NAME LAppModelWrapper)
 
 # 关闭 log 输出
-add_compile_definitions(LOG_MODE_RELEASE)
+# add_compile_definitions(LOG_MODE_RELEASE)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -49,9 +49,9 @@ add_custom_command(
   POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/example/${OUTPUT_NAME}
+      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/${OUTPUT_NAME}
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/${OUTPUT_NAME}
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d
 )
 

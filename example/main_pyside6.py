@@ -4,7 +4,6 @@ import live2d
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from OpenGL.GL import *
 
 def callback():
     print("motion end")
@@ -52,7 +51,7 @@ class Win(QOpenGLWidget):
         self.update() 
 
         if self.a == 0: # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, 3, callback)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value, callback)
             self.a += 1
 
     def mousePressEvent(self, event: QMouseEvent) -> None:

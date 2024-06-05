@@ -239,7 +239,7 @@ static PyObject *PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject *self, 
     Py_RETURN_FALSE;
 }
 
-static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject* args)
+static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args)
 {
     int mx, my;
     if (!(PyArg_ParseTuple(args, "ii", &mx, &my)))
@@ -247,22 +247,23 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject* args)
         return NULL;
     }
 
-    float xf = (float) mx;
-    float yf = (float) my;
+    float xf = (float)mx;
+    float yf = (float)my;
     self->matrixManager.ScreenToScene(&xf, &yf);
-    
+
     csmString hitArea = self->model->HitTest(xf, yf);
     if (strlen(hitArea.GetRawString()) != 0)
     {
         Info("hit area: [%s]", hitArea.GetRawString());
-        if (strcmp(hitArea.GetRawString(), HIT_AREA_HEAD) == 0) self->model->SetRandomExpression();
+        if (strcmp(hitArea.GetRawString(), HIT_AREA_HEAD) == 0)
+            self->model->SetRandomExpression();
         self->model->StartRandomMotion(hitArea.GetRawString(), MOTION_PRIORITY_FORCE);
     }
 
     Py_RETURN_NONE;
 }
 
-static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject* args)
+static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
 {
     int mx, my;
     if (!(PyArg_ParseTuple(args, "ii", &mx, &my)))
@@ -270,10 +271,10 @@ static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject* args)
         return NULL;
     }
 
-    float xf = (float) mx;
-    float yf = (float) my;
+    float xf = (float)mx;
+    float yf = (float)my;
     self->matrixManager.ScreenToScene(&xf, &yf);
-    
+
     self->model->SetDragging(xf, yf);
 
     Py_RETURN_NONE;

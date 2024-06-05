@@ -7,10 +7,8 @@
 * 鼠标点击触发动作
 * 鼠标拖拽视线
 
-在 Python 中使用 OpenGL: `pip install PyOpenGL`。
-
 ## 使用说明
-使用接口见 [example/live2d.pyi](./example/live2d.pyi)。
+使用接口见 [example/live2d/live2d.pyi](./example/live2d/live2d.pyi)。
 
 详细使用示例见 [example](./example/) 文件夹。
 
@@ -22,13 +20,15 @@
 
 #### 无 pip 安装
 
-将 `live2d.pyi` 和 `live2d.so` / `live2d.pyd` 放置在使用者 `main.py` 同目录下，在 `main.py` 中使用 `import live2d` 时，解释器会自动在当前目录下寻找动态库（.so 或 .pyd）。 
+将 `example/live2d` 文件夹放置在使用者 `main.py` 同目录下，在 `main.py` 中使用 `import live2d`。 
 
 ```
 example
-├── live2d.pyi
-├── live2d.so
-├── live2d.pyd
+├── live2d
+│   ├── __init__.py
+│   ├── live2d.pyd
+│   ├── live2d.pyi
+│   └── live2d.so
 └── main.py
 ```
 
@@ -107,7 +107,7 @@ live2d.ReleaseCubism()
 
 ### PySide6 示例：
 
-main.py
+[main_pyside6.py](./example/main_pyside6.py)
 
 ```python
 from PySide6.QtGui import QMouseEvent
@@ -116,7 +116,6 @@ import live2d
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from OpenGL.GL import *
 
 def callback():
     print("motion end")
@@ -164,12 +163,15 @@ class Win(QOpenGLWidget):
         self.update() 
 
         if self.a == 0: # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, 3, callback)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value, callback)
             self.a += 1
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         # 传入鼠标点击位置的窗口坐标
         self.model.Touch(event.pos().x(), event.pos().y());
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        self.model.Drag(event.pos().x(), event.pos().y())
 
 
 if __name__ == "__main__":
