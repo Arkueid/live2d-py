@@ -26,15 +26,16 @@ using namespace Live2D::Cubism::Framework;
 using namespace Live2D::Cubism::Framework::DefaultParameterId;
 using namespace LAppDefine;
 
-namespace {
-    csmByte* CreateBuffer(const csmChar* path, csmSizeInt* size)
+namespace
+{
+    csmByte *CreateBuffer(const csmChar *path, csmSizeInt *size)
     {
 
         Info("create buffer: %s ", path);
         return LAppPal::LoadFileAsBytes(path, size);
     }
 
-    void DeleteBuffer(csmByte* buffer, const csmChar* path = "")
+    void DeleteBuffer(csmByte *buffer, const csmChar *path = "")
     {
         Info("delete buffer: %s", path);
         LAppPal::ReleaseBytes(buffer);
@@ -42,9 +43,7 @@ namespace {
 }
 
 LAppModel::LAppModel()
-    : CubismUserModel()
-    , _modelSetting(NULL)
-    , _userTimeSeconds(0.0f)
+    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f)
 {
     if (MocConsistencyValidationEnable)
     {
@@ -71,19 +70,22 @@ LAppModel::~LAppModel()
     ReleaseMotions();
     ReleaseExpressions();
 
-    if (_modelSetting == nullptr) return;
+    if (_modelSetting == nullptr)
+        return;
 
     for (csmInt32 i = 0; i < _modelSetting->GetMotionGroupCount(); i++)
     {
-        const csmChar* group = _modelSetting->GetMotionGroupName(i);
+        const csmChar *group = _modelSetting->GetMotionGroupName(i);
         ReleaseMotionGroup(group);
     }
-    delete(_modelSetting);
+    delete (_modelSetting);
 }
 
-void LAppModel::LoadAssets(const csmChar* dir, const csmChar* fileName)
+void LAppModel::LoadAssets(const csmChar *dir, const csmChar *fileName)
 {
     _modelHomeDir = dir;
+    if (_modelHomeDir.GetRawString()[_modelHomeDir.GetLength() - 1] != '/')
+        _modelHomeDir += "/";
 
     if (_debugMode)
     {
@@ -91,10 +93,12 @@ void LAppModel::LoadAssets(const csmChar* dir, const csmChar* fileName)
     }
 
     csmSizeInt size;
-    const csmString path = csmString(dir) + fileName;
+    const csmString path = _modelHomeDir + fileName;
 
-    csmByte* buffer = CreateBuffer(path.GetRawString(), &size);
-    ICubismModelSetting* setting = new CubismModelSettingJson(buffer, size);
+    printf("shit %s\n", path.GetRawString());
+
+    csmByte *buffer = CreateBuffer(path.GetRawString(), &size);
+    ICubismModelSetting *setting = new CubismModelSettingJson(buffer, size);
     DeleteBuffer(buffer, path.GetRawString());
 
     SetupModel(setting);
@@ -110,17 +114,17 @@ void LAppModel::LoadAssets(const csmChar* dir, const csmChar* fileName)
     SetupTextures();
 }
 
-void LAppModel::SetupModel(ICubismModelSetting* setting)
+void LAppModel::SetupModel(ICubismModelSetting *setting)
 {
     _updating = true;
     _initialized = false;
 
     _modelSetting = setting;
 
-    csmByte* buffer;
+    csmByte *buffer;
     csmSizeInt size;
 
-    //Cubism Model
+    // Cubism Model
     if (strcmp(_modelSetting->GetModelFileName(), "") != 0)
     {
         csmString path = _modelSetting->GetModelFileName();
@@ -136,7 +140,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
         DeleteBuffer(buffer, path.GetRawString());
     }
 
-    //Expression
+    // Expression
     if (_modelSetting->GetExpressionCount() > 0)
     {
         const csmInt32 count = _modelSetting->GetExpressionCount();
@@ -147,7 +151,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
             path = _modelHomeDir + path;
 
             buffer = CreateBuffer(path.GetRawString(), &size);
-            ACubismMotion* motion = LoadExpression(buffer, size, name.GetRawString());
+            ACubismMotion *motion = LoadExpression(buffer, size, name.GetRawString());
 
             if (motion)
             {
@@ -163,7 +167,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
         }
     }
 
-    //Physics
+    // Physics
     if (strcmp(_modelSetting->GetPhysicsFileName(), "") != 0)
     {
         csmString path = _modelSetting->GetPhysicsFileName();
@@ -174,7 +178,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
         DeleteBuffer(buffer, path.GetRawString());
     }
 
-    //Pose
+    // Pose
     if (strcmp(_modelSetting->GetPoseFileName(), "") != 0)
     {
         csmString path = _modelSetting->GetPoseFileName();
@@ -185,13 +189,13 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
         DeleteBuffer(buffer, path.GetRawString());
     }
 
-    //EyeBlink
+    // EyeBlink
     if (_modelSetting->GetEyeBlinkParameterCount() > 0)
     {
         _eyeBlink = CubismEyeBlink::Create(_modelSetting);
     }
 
-    //Breath
+    // Breath
     {
         _breath = CubismBreath::Create();
 
@@ -206,7 +210,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
         _breath->SetParameters(breathParameters);
     }
 
-    //UserData
+    // UserData
     if (strcmp(_modelSetting->GetUserDataFile(), "") != 0)
     {
         csmString path = _modelSetting->GetUserDataFile();
@@ -240,7 +244,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
         return;
     }
 
-    //Layout
+    // Layout
     csmMap<csmString, csmFloat32> layout;
     _modelSetting->GetLayoutMap(layout);
     _modelMatrix->SetupFromLayout(layout);
@@ -249,7 +253,7 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
 
     for (csmInt32 i = 0; i < _modelSetting->GetMotionGroupCount(); i++)
     {
-        const csmChar* group = _modelSetting->GetMotionGroupName(i);
+        const csmChar *group = _modelSetting->GetMotionGroupName(i);
         PreloadMotionGroup(group);
     }
 
@@ -259,13 +263,13 @@ void LAppModel::SetupModel(ICubismModelSetting* setting)
     _initialized = true;
 }
 
-void LAppModel::PreloadMotionGroup(const csmChar* group)
+void LAppModel::PreloadMotionGroup(const csmChar *group)
 {
     const csmInt32 count = _modelSetting->GetMotionCount(group);
 
     for (csmInt32 i = 0; i < count; i++)
     {
-        //ex) idle_0
+        // ex) idle_0
         csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, i);
         csmString path = _modelSetting->GetMotionFileName(group, i);
         path = _modelHomeDir + path;
@@ -275,10 +279,10 @@ void LAppModel::PreloadMotionGroup(const csmChar* group)
             Info("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
         }
 
-        csmByte* buffer;
+        csmByte *buffer;
         csmSizeInt size;
         buffer = CreateBuffer(path.GetRawString(), &size);
-        CubismMotion* tmpMotion = static_cast<CubismMotion*>(LoadMotion(buffer, size, name.GetRawString()));
+        CubismMotion *tmpMotion = static_cast<CubismMotion *>(LoadMotion(buffer, size, name.GetRawString()));
 
         if (tmpMotion)
         {
@@ -306,7 +310,7 @@ void LAppModel::PreloadMotionGroup(const csmChar* group)
     }
 }
 
-void LAppModel::ReleaseMotionGroup(const csmChar* group) const
+void LAppModel::ReleaseMotionGroup(const csmChar *group) const
 {
     const csmInt32 count = _modelSetting->GetMotionCount(group);
     for (csmInt32 i = 0; i < count; i++)
@@ -321,13 +325,13 @@ void LAppModel::ReleaseMotionGroup(const csmChar* group) const
 }
 
 /**
-* @brief すべてのモーションデータの解放
-*
-* すべてのモーションデータを解放する。
-*/
+ * @brief すべてのモーションデータの解放
+ *
+ * すべてのモーションデータを解放する。
+ */
 void LAppModel::ReleaseMotions()
 {
-    for (csmMap<csmString, ACubismMotion*>::const_iterator iter = _motions.Begin(); iter != _motions.End(); ++iter)
+    for (csmMap<csmString, ACubismMotion *>::const_iterator iter = _motions.Begin(); iter != _motions.End(); ++iter)
     {
         ACubismMotion::Delete(iter->Second);
     }
@@ -336,13 +340,13 @@ void LAppModel::ReleaseMotions()
 }
 
 /**
-* @brief すべての表情データの解放
-*
-* すべての表情データを解放する。
-*/
+ * @brief すべての表情データの解放
+ *
+ * すべての表情データを解放する。
+ */
 void LAppModel::ReleaseExpressions()
 {
-    for (csmMap<csmString, ACubismMotion*>::const_iterator iter = _expressions.Begin(); iter != _expressions.End(); ++iter)
+    for (csmMap<csmString, ACubismMotion *>::const_iterator iter = _expressions.Begin(); iter != _expressions.End(); ++iter)
     {
         ACubismMotion::Delete(iter->Second);
     }
@@ -394,16 +398,16 @@ void LAppModel::Update()
         _expressionManager->UpdateMotion(_model, deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
     }
 
-    //ドラッグによる変化
-    //ドラッグによる顔の向きの調整
+    // ドラッグによる変化
+    // ドラッグによる顔の向きの調整
     _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
     _model->AddParameterValue(_idParamAngleY, _dragY * 30);
     _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
 
-    //ドラッグによる体の向きの調整
+    // ドラッグによる体の向きの調整
     _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
 
-    //ドラッグによる目の向きの調整
+    // ドラッグによる目の向きの調整
     _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
     _model->AddParameterValue(_idParamEyeBallY, _dragY);
 
@@ -442,10 +446,9 @@ void LAppModel::Update()
     }
 
     _model->Update();
-
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt32 no, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
 {
     if (priority == PriorityForce)
     {
@@ -462,9 +465,9 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt
 
     const csmString fileName = _modelSetting->GetMotionFileName(group, no);
 
-    //ex) idle_0
+    // ex) idle_0
     csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, no);
-    CubismMotion* motion = static_cast<CubismMotion*>(_motions[name.GetRawString()]);
+    CubismMotion *motion = static_cast<CubismMotion *>(_motions[name.GetRawString()]);
     csmBool autoDelete = false;
 
     if (motion == NULL)
@@ -472,12 +475,12 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt
         csmString path = fileName;
         path = _modelHomeDir + path;
 
-        csmByte* buffer;
+        csmByte *buffer;
         csmSizeInt size;
         buffer = CreateBuffer(path.GetRawString(), &size);
-        motion = static_cast<CubismMotion*>(LoadMotion(buffer, size, NULL, onFinishedMotionHandler));
+        motion = static_cast<CubismMotion *>(LoadMotion(buffer, size, NULL, onFinishedMotionHandler));
 
-        if  (motion)
+        if (motion)
         {
             csmFloat32 fadeTime = _modelSetting->GetMotionFadeInTimeValue(group, no);
             if (fadeTime >= 0.0f)
@@ -501,7 +504,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
     }
 
-    //voice
+    // voice
     csmString voice = _modelSetting->GetMotionSoundFileName(group, no);
     if (strcmp(voice.GetRawString(), "") != 0)
     {
@@ -514,10 +517,10 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt
     {
         Info("start motion: [%s_%d]", group, no);
     }
-    return  _motionManager->StartMotionPriority(motion, autoDelete, priority);
+    return _motionManager->StartMotionPriority(motion, autoDelete, priority);
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar* group, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
 {
     if (_modelSetting->GetMotionCount(group) == 0)
     {
@@ -539,7 +542,7 @@ void LAppModel::DoDraw()
     GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->DrawModel();
 }
 
-void LAppModel::Draw(CubismMatrix44& matrix)
+void LAppModel::Draw(CubismMatrix44 &matrix)
 {
     if (_model == NULL)
     {
@@ -553,7 +556,7 @@ void LAppModel::Draw(CubismMatrix44& matrix)
     DoDraw();
 }
 
-csmBool LAppModel::HitTest(const csmChar* hitAreaName, csmFloat32 x, csmFloat32 y)
+csmBool LAppModel::HitTest(const csmChar *hitAreaName, csmFloat32 x, csmFloat32 y)
 {
     // 透明時は当たり判定なし。
     if (_opacity < 1)
@@ -591,9 +594,9 @@ Csm::csmString LAppModel::HitTest(Csm::csmFloat32 x, Csm::csmFloat32 y)
     return "";
 }
 
-void LAppModel::SetExpression(const csmChar* expressionID)
+void LAppModel::SetExpression(const csmChar *expressionID)
 {
-    ACubismMotion* motion = _expressions[expressionID];
+    ACubismMotion *motion = _expressions[expressionID];
     if (_debugMode)
     {
         Info("expression: [%s]", expressionID);
@@ -605,7 +608,8 @@ void LAppModel::SetExpression(const csmChar* expressionID)
     }
     else
     {
-        if (_debugMode) Info("expression[%s] is null ", expressionID);
+        if (_debugMode)
+            Info("expression[%s] is null ", expressionID);
     }
 }
 
@@ -617,7 +621,7 @@ void LAppModel::SetRandomExpression()
     }
 
     csmInt32 no = rand() % _expressions.GetSize();
-    csmMap<csmString, ACubismMotion*>::const_iterator map_ite;
+    csmMap<csmString, ACubismMotion *>::const_iterator map_ite;
     csmInt32 i = 0;
     for (map_ite = _expressions.Begin(); map_ite != _expressions.End(); map_ite++)
     {
@@ -650,14 +654,14 @@ void LAppModel::SetupTextures()
             continue;
         }
 
-        //OpenGLのテクスチャユニットにテクスチャをロードする
+        // OpenGLのテクスチャユニットにテクスチャをロードする
         csmString texturePath = _modelSetting->GetTextureFileName(modelTextureNumber);
         texturePath = _modelHomeDir + texturePath;
 
-        LAppTextureManager::TextureInfo* texture =  _textureManager.CreateTextureFromPngFile(texturePath.GetRawString());
+        LAppTextureManager::TextureInfo *texture = _textureManager.CreateTextureFromPngFile(texturePath.GetRawString());
         const csmInt32 glTextueNumber = texture->id;
 
-        //OpenGL
+        // OpenGL
         GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->BindTexture(modelTextureNumber, glTextueNumber);
     }
 
@@ -666,24 +670,23 @@ void LAppModel::SetupTextures()
 #else
     GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(false);
 #endif
-
 }
 
-void LAppModel::MotionEventFired(const csmString& eventValue)
+void LAppModel::MotionEventFired(const csmString &eventValue)
 {
     CubismLogInfo("%s is fired on LAppModel!!", eventValue.GetRawString());
 }
 
-Csm::Rendering::CubismOffscreenSurface_OpenGLES2& LAppModel::GetRenderBuffer()
+Csm::Rendering::CubismOffscreenSurface_OpenGLES2 &LAppModel::GetRenderBuffer()
 {
     return _renderBuffer;
 }
 
-csmBool LAppModel::HasMocConsistencyFromFile(const csmChar* mocFileName)
+csmBool LAppModel::HasMocConsistencyFromFile(const csmChar *mocFileName)
 {
     CSM_ASSERT(strcmp(mocFileName, ""));
 
-    csmByte* buffer;
+    csmByte *buffer;
     csmSizeInt size;
 
     csmString path = mocFileName;

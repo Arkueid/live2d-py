@@ -1,3 +1,21 @@
+from enum import Enum
+
+class MotionPriority(Enum):
+    NONE = 0
+    IDLE = 1
+    NORMAL = 2
+    FORCE = 3
+
+
+class MotionGroup(Enum):
+    IDLE = "Idle"
+    TAP_HEAD = "TapHead"
+
+
+class HitArea(Enum):
+    HEAD = MotionGroup.TAP_HEAD.value
+
+
 def InitializeCubism() -> None:
     """
     初始化 Cubism Framework
@@ -44,37 +62,102 @@ def ClearBuffer() -> None:
 
 
 class LAppModel:
+    """
+    The LAppModel class provides a structured way to interact with Live2D models, 
+    enabling you to load assets, update the model per frame, manage motions, set 
+    expressions, and perform hit testing. 
+    """
+    
     def __init__(self):
         pass
     
     def LoadAssets(self, dir: str, fileName: str) -> None:
         """
-        加载 live2d 模型
-        :param: dir 模型文件夹
-        :param: fileName 模型json文件
+        Load Live2D model assets.
+        
+        :param dir: Directory where the model files are located.
+        :param fileName: Name of the model's JSON configuration file.
         """
         pass
+
+    def Resize(self, ww: int, wh: int) -> None:
+        """
+        """
     
     def Update(self, ww: int, wh: int) -> None:
         """
-        每帧调用，更新模型
+        Update the model, typically called once per frame.
+        
+        :param ww: Width of the window or rendering context.
+        :param wh: Height of the window or rendering context.
         """
         pass
     
     def StartMotion(self, group: str, no: int, priority: int, onFinishedMotionHandler=None) -> None:
+        """
+        Start a specific motion for the model.
+        
+        :param group: The group name of the motion.
+        :param no: The motion number within the group.
+        :param priority: Priority of the motion. Higher priority motions can interrupt lower priority ones.
+        :param onFinishedMotionHandler: Optional callback function that gets called when the motion finishes.
+        """
         pass
     
     def StartRandomMotion(self, group: str, priority: int, onFinishedMotionHandler=None) -> None:
+        """
+        Start a random motion from a specified group.
+        
+        :param group: The group name of the motion.
+        :param priority: Priority of the motion. Higher priority motions can interrupt lower priority ones.
+        :param onFinishedMotionHandler: Optional callback function that gets called when the motion finishes.
+        """
         pass
     
     def SetExpression(self, expressionID: str) -> None:
+        """
+        Set a specific expression for the model.
+        
+        :param expressionID: Identifier for the expression to be set.
+        """
         pass
     
     def SetRandomExpression(self) -> None:
+        """
+        Set a random expression for the model.
+        """
         pass
     
     def HitTest(self, hitAreaName: str, x: float, y: float) -> str:
+        """
+        Perform a hit test to determine if a specific area of the model has been clicked.
+        
+        :param hitAreaName: Name of the hit area to be tested.
+        :param x: X coordinate of the click.
+        :param y: Y coordinate of the click.
+        :return: The hit area name if a hit is detected, otherwise an empty string.
+        """
         pass
     
     def HasMocConsistencyFromFile(self, mocFileName: str) -> bool:
+        """
+        Check if the model's MOC file is consistent.
+        
+        :param mocFileName: Name of the MOC file to check.
+        :return: True if the MOC file is consistent, otherwise False.
+        """
+        pass
+
+    def Touch(self, x: int, y: int) -> None:
+        """
+        :param x: global_mouse_x - window_x
+        :param y: global_mouse_y - window_y
+        """
+        pass
+
+    def Drag(self, x: int, y: int) -> None:
+        """
+        :param x: global_mouse_x - window_x
+        :param y: global_mouse_y - window_y
+        """
         pass

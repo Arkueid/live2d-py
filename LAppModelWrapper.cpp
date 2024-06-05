@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "LAppModel.hpp"
+#include <LAppModel.hpp>
 #include <CubismFramework.hpp>
 #include <LAppPal.hpp>
 #include <LAppAllocator.hpp>
@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 #include <mutex>
+#include <MatrixManager.hpp>
+#include <Default.hpp>
 
 static LAppAllocator _cubismAllocator;
 static Csm::CubismFramework::Option _cubismOption;
@@ -15,9 +17,12 @@ struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
     std::vector<PyLAppModelObject *>::iterator _vid;
+    MatrixManager matrixManager;
 };
 
+// 所有创建的模型
 static std::vector<PyLAppModelObject *> models;
+// 模型数组锁
 static std::mutex mutex_models;
 
 static void PyLAppModel_dealloc(PyLAppModelObject *self)
@@ -46,7 +51,7 @@ static int PyLAppModel_init(PyLAppModelObject *self)
 }
 
 // LAppModel->LoadAssets
-static PyObject *PyLAppModel_load_assets(PyLAppModelObject *self, PyObject *args)
+static PyObject *PyLAppModel_LoadAssets(PyLAppModelObject *self, PyObject *args)
 {
     const char *dir;
     const char *fileName;
@@ -60,8 +65,22 @@ static PyObject *PyLAppModel_load_assets(PyLAppModelObject *self, PyObject *args
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_Resize(PyLAppModelObject *self, PyObject *args)
+{
+    int ww, wh;
+    if (!PyArg_ParseTuple(args, "ii", &ww, &wh))
+    {
+        PyErr_SetString(PyExc_TypeError, "invalid params.");
+        return NULL;
+    }
+
+    self->matrixManager.UpdateScreenToScene(ww, wh);
+
+    Py_RETURN_NONE;
+}
+
 // LAppModel->Update
-static PyObject *PyLAppModel_update(PyLAppModelObject *self, PyObject *args)
+static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
 {
     LAppPal::UpdateTime();
 
@@ -72,24 +91,10 @@ static PyObject *PyLAppModel_update(PyLAppModelObject *self, PyObject *args)
         return NULL;
     }
 
-    // 自适应窗口/画布大小
-    Csm::CubismMatrix44 projection;
-    // 念のため単位行列に初期化
-    projection.LoadIdentity();
-
-    if (self->model->GetModel()->GetCanvasWidth() > 1.0f && winWidth < winHeight)
-    {
-        // 横に長いモデルを縦長ウィンドウに表示する際モデルの横サイズでscaleを算出する
-        self->model->GetModelMatrix()->SetWidth(2.0f);
-        projection.Scale(1.0f, static_cast<float>(winWidth) / static_cast<float>(winHeight));
-    }
-    else
-    {
-        projection.Scale(static_cast<float>(winHeight) / static_cast<float>(winWidth), 1.0f);
-    }
+    self->matrixManager.UpdateProjection(self->model, winWidth, winHeight);
 
     self->model->Update();
-    self->model->Draw(projection);
+    self->model->Draw(self->matrixManager.GetProjection());
     Py_RETURN_NONE;
 }
 
@@ -227,16 +232,59 @@ static PyObject *PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject *self, 
     Py_RETURN_FALSE;
 }
 
+static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject* args)
+{
+    int mx, my;
+    if (!(PyArg_ParseTuple(args, "ii", &mx, &my)))
+    {
+        return NULL;
+    }
+
+    float xf = (float) mx;
+    float yf = (float) my;
+    self->matrixManager.ScreenToScene(&xf, &yf);
+    
+    csmString hitArea = self->model->HitTest(xf, yf);
+    if (strlen(hitArea.GetRawString()) != 0)
+    {
+        Info("hit area: [%s]", hitArea.GetRawString());
+        if (strcmp(hitArea.GetRawString(), HIT_AREA_HEAD) == 0) self->model->SetRandomExpression();
+        self->model->StartRandomMotion(hitArea.GetRawString(), MOTION_PRIORITY_FORCE);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject* args)
+{
+    int mx, my;
+    if (!(PyArg_ParseTuple(args, "ii", &mx, &my)))
+    {
+        return NULL;
+    }
+
+    float xf = (float) mx;
+    float yf = (float) my;
+    self->matrixManager.ScreenToScene(&xf, &yf);
+    
+    self->model->SetDragging(xf, yf);
+
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
-    {"LoadAssets", (PyCFunction)PyLAppModel_load_assets, METH_VARARGS, "Load model assets."},
-    {"Update", (PyCFunction)PyLAppModel_update, METH_VARARGS, "update model buffer."},
-    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS, "start motion by its groupname and idx."},
-    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS, "start random motion."},
-    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, "set expression by name."},
-    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, "set random expression."},
+    {"LoadAssets", (PyCFunction)PyLAppModel_LoadAssets, METH_VARARGS, "Load model assets."},
+    {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, "Update matrix."},
+    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, "Update model buffer."},
+    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS, "Start motion by its groupname and idx."},
+    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS, "Start random motion."},
+    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, "Set expression by name."},
+    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, "Set random expression."},
     {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, "Get the name of the area being hit."},
-    {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, "start random motion."},
+    {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, "Start random motion."},
+    {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS, "Click at (x, y)."},
+    {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, "Drag to (x, y)."},
     {NULL} // 方法列表结束的标志
 };
 

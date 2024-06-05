@@ -21,7 +21,9 @@ def main():
     live2d.SetGLProperties()
 
     model = live2d.LAppModel()
-    model.LoadAssets("./Resources/Hiyori/", "Hiyori.model3.json")
+    model.LoadAssets("./Resources/Haru/", "Haru.model3.json")
+
+    model.Resize(*display)
 
     running = True
 
@@ -30,6 +32,9 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
                 break
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                model.Touch(x, y)
 
         if not running: break
 
