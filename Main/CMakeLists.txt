@@ -13,11 +13,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(CSM_TARGET CSM_TARGET_LINUX_GL)
   # select cubism core platform support
   set(CORE_LIB_NAME libLive2DCubismCore.a)
+  add_definitions(-fPIC)
 else(CMAKE_SYSTEM_NAME MATCHES "Windows")
   # select cubism framework platform support
   set(CSM_TARGET CSM_TARGET_WIN_GL)
   # select cubism core platform support
-  set(CORE_LIB_NAME Live2DCubismCore.dll)
+  set(CORE_LIB_NAME Live2DCubismCore_MT.lib)
 endif()
 
 # Specify version of compiler.
@@ -25,7 +26,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_definitions(-fPIC)
 
 # ---Configure OpenGL---
 # Add GLEW ,GLFW.
@@ -39,7 +39,7 @@ add_subdirectory(${FRAMEWORK_PATH} ${CMAKE_BINARY_DIR}/Framework)
 # Add rendering definition to framework.
 target_compile_definitions(Framework PRIVATE ${CSM_TARGET})
 # Add include path of GLEW to framework.
-target_include_directories(Framework PRIVATE ${GLEW_PATH}/include)
+target_include_directories(Framework PUBLIC ${GLEW_PATH}/include)
 # If current compiler is mingw, add some options
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   # extra compile options for mingw on Windows

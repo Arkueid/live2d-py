@@ -95,8 +95,6 @@ void LAppModel::LoadAssets(const csmChar *dir, const csmChar *fileName)
     csmSizeInt size;
     const csmString path = _modelHomeDir + fileName;
 
-    printf("shit %s\n", path.GetRawString());
-
     csmByte *buffer = CreateBuffer(path.GetRawString(), &size);
     ICubismModelSetting *setting = new CubismModelSettingJson(buffer, size);
     DeleteBuffer(buffer, path.GetRawString());

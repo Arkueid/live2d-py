@@ -7,22 +7,25 @@
 * 鼠标点击触发动作
 * 鼠标拖拽视线
 
+在 Python 中使用 OpenGL: `pip install PyOpenGL`。
+
 ## 使用说明
 使用接口见 [example/live2d.pyi](./example/live2d.pyi)。
 
 详细使用示例见 [example](./example/) 文件夹。
 
 文件：
-* `live2d.so`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so` 并载入内存
+* `live2d.so` 和 `live2d.pyd`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so`/`live2d.so` 并载入内存。其中 .pyd 在 windows 下使用，.so 在 linux 下使用。
 * `live2d.pyi`：python 接口提示文件，仅用于ide编写时的提示
 
 使用流程：
 
-0. 将 live2d.pyi 和 live2d.so 放置在使用者同目录下
+0. 将 live2d.pyi 和 live2d.so / live2d.pyd 放置在使用者同目录下
 ```
 example
 ├── live2d.pyi
 ├── live2d.so
+├── live2d.pyd
 └── main.py
 ```
 

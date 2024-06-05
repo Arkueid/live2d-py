@@ -18,3 +18,4 @@ add_library(${APP_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Default.hpp
 )
+

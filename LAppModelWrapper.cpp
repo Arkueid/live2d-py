@@ -1,4 +1,3 @@
-#include <Python.h>
 #include <LAppModel.hpp>
 #include <CubismFramework.hpp>
 #include <LAppPal.hpp>
@@ -9,6 +8,14 @@
 #include <mutex>
 #include <MatrixManager.hpp>
 #include <Default.hpp>
+
+#ifdef _DEBUG
+#undef _DEBUG
+#include <Python.h>
+#define _DEBUG
+#else
+#include <Python.h>
+#endif
 
 static LAppAllocator _cubismAllocator;
 static Csm::CubismFramework::Option _cubismOption;
@@ -332,7 +339,11 @@ static PyTypeObject PyLAppModelType = {
 static PyObject *live2d_initialize_cubism()
 {
     _cubismOption.LogFunction = LAppPal::PrintLn;
+#ifdef LOG_MODE_RELEASE
+    _cubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Off;
+#else
     _cubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Verbose;
+#endif
     Csm::CubismFramework::StartUp(&_cubismAllocator, &_cubismOption);
     Csm::CubismFramework::Initialize();
     Py_RETURN_NONE;
@@ -341,15 +352,18 @@ static PyObject *live2d_initialize_cubism()
 static PyObject *live2d_release_cubism()
 {
     mutex_models.lock();
-    int last = models.size() - 1;
-    for (; last >= 0; last--)
+    while (models.size())
     {
         PyLAppModelObject *model = models.back();
         models.pop_back();
+        delete model->model;
+        model->model = nullptr;
         Py_TYPE(model)->tp_free((PyObject *)model);
         model = nullptr;
+        Info("delete model(_at=%ld)", &model);
     }
     mutex_models.unlock();
+
     Csm::CubismFramework::Dispose();
 
     Py_RETURN_NONE;

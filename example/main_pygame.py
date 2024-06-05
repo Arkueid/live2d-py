@@ -44,6 +44,7 @@ def main():
 
     live2d.ReleaseCubism()
     pygame.quit()
+    quit()
 
 if __name__ == "__main__":
     main()

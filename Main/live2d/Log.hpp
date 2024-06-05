@@ -7,15 +7,12 @@ void _ErrorF(const char *file, const char *fmt, ...);
 void _Debug(const char *fmt, ...);
 void _DebugF(const char *file, const char *fmt, ...);
 
-#ifdef APP_MODE_RELEASE
-#define Debug(fmt, args...)
-#define Info(fmt, args...)
-#define Error(fmt, args...) _ErrorF("error.log", fmt, ##args)
+#ifdef LOG_MODE_RELEASE
+#define Debug(fmt, ...) ((void)0)
+#define Info(fmt, ...) ((void)0)
+#define Error(fmt, ...) _ErrorF("error.log", fmt, __VA_ARGS__)
 #else
-#define Debug(fmt, args...) _Debug(fmt, ##args)
-#define Info(fmt, args...) _Info(fmt, ##args)
-#define Error(fmt, args...) _Error(fmt, ##args)
+#define Debug(fmt, ...) _Debug(fmt, __VA_ARGS__)
+#define Info(fmt, ...) _Info(fmt, __VA_ARGS__)
+#define Error(fmt, ...) _Error(fmt, __VA_ARGS__)
 #endif
-// #define Debug(fmt, args...) _DebugF("debug.log", fmt, ##args)
-// #define Info(fmt, args...) _InfoF("info.log", fmt, ##args)
-// #define Error(fmt, args...) _ErrorF("error.log", fmt, ##args)
