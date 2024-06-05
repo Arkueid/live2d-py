@@ -18,9 +18,12 @@
 * `live2d.so` 和 `live2d.pyd`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so`/`live2d.so` 并载入内存。其中 .pyd 在 windows 下使用，.so 在 linux 下使用。
 * `live2d.pyi`：python 接口提示文件，仅用于ide编写时的提示
 
-使用流程：
+### 导入库
 
-0. 将 live2d.pyi 和 live2d.so / live2d.pyd 放置在使用者同目录下
+#### 无 pip 安装
+
+将 `live2d.pyi` 和 `live2d.so` / `live2d.pyd` 放置在使用者 `main.py` 同目录下，在 `main.py` 中使用 `import live2d` 时，解释器会自动在当前目录下寻找动态库（.so 或 .pyd）。 
+
 ```
 example
 ├── live2d.pyi
@@ -29,6 +32,18 @@ example
 └── main.py
 ```
 
+#### pip 安装
+
+```
+pip install live2d-py-0.1.tar.gz
+```
+
+卸载
+```
+pip uninstall live2d-py
+```
+
+### 绘制流程
 1. 导入 live2d
 ```python
 import live2d
@@ -90,7 +105,7 @@ model.Update(800, 600)
 live2d.ReleaseCubism()
 ```
 
-PySide6 示例：
+### PySide6 示例：
 
 main.py
 

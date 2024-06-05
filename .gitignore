@@ -1,5 +1,6 @@
 build
 venv
 .venv
-
+*.egg-info
+dist
 !thirdParty/glew/build

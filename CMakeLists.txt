@@ -50,5 +50,8 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E
       copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/example/${OUTPUT_NAME}
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/${OUTPUT_NAME}
 )
 
