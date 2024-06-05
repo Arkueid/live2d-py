@@ -19,6 +19,30 @@ def InitializeGlew() -> None:
     pass
 
 
+def SetGLProperties() -> None:
+    """
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+    glEnable(GL_BLEND);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    """
+    pass
+
+
+def ClearBuffer() -> None:
+    """
+    glClearColor(0.0, 0.0, 0.0, 0.0)
+        
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    
+    glClearDepth(1.0)
+    """
+    pass
+
+
 class LAppModel:
     def __init__(self):
         pass
@@ -32,9 +56,9 @@ class LAppModel:
         pass
     
     def Update(self, ww: int, wh: int) -> None:
-        pass
-    
-    def Draw(self, matrix) -> None:
+        """
+        每帧调用，更新模型
+        """
         pass
     
     def StartMotion(self, group: str, no: int, priority: int, onFinishedMotionHandler=None) -> None:
@@ -49,10 +73,7 @@ class LAppModel:
     def SetRandomExpression(self) -> None:
         pass
     
-    def MotionEventFired(self, eventValue: str) -> None:
-        pass
-    
-    def HitTest(self, hitAreaName: str, x: float, y: float) -> bool:
+    def HitTest(self, hitAreaName: str, x: float, y: float) -> str:
         pass
     
     def HasMocConsistencyFromFile(self, mocFileName: str) -> bool:

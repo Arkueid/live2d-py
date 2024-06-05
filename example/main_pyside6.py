@@ -5,6 +5,9 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from OpenGL.GL import *
 
+def callback():
+    print("motion end")
+
 
 class Win(QOpenGLWidget):
     timer: int = -1
@@ -14,6 +17,7 @@ class Win(QOpenGLWidget):
         super().__init__()
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.a = 0
 
     def initializeGL(self) -> None:
 
@@ -21,19 +25,13 @@ class Win(QOpenGLWidget):
 
 
         live2d.InitializeGlew()
-
-        # テクスチャサンプリング設定
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        # 透過設定
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glViewport(0, 0, self.width(), self.height());
+        live2d.SetGLProperties()
 
         self.model = live2d.LAppModel()
-        self.model.LoadAssets("../Resources/Hiyori/", "Hiyori.model3.json")
+        # 测试模型文件是否被修改过
+        print("moc consistency: ", self.model.HasMocConsistencyFromFile('./Resources/Hiyori/Hiyori.moc3'));
+        # 加载模型参数
+        self.model.LoadAssets("./Resources/Hiyori/", "Hiyori.model3.json")
 
         self.timer = self.startTimer(int(1000 / 30))
 
@@ -42,14 +40,17 @@ class Win(QOpenGLWidget):
     
     def paintGL(self) -> None:
         
-        glClearColor(0.0, 0.0, 0.0, 0.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glClearDepth(1.0)
+        live2d.ClearBuffer()
 
         self.model.Update(self.width(), self.height())
     
     def timerEvent(self, a0: QTimerEvent | None) -> None:
         self.update() 
+        if self.a == 0:
+            self.model.StartMotion("TapBody", 0, 3, callback)
+
+            self.a += 1
+
 
 
 if __name__ == "__main__":

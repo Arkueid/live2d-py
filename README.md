@@ -1,8 +1,8 @@
 # live2d-python
 
-使用 CPython API 对 Live2D Native (C++) 进行了封装。
+使用 CPython API 对 Live2D Native (C++) 进行了封装。理论上，可将 live2d 绘制在任何基于 OpenGL 的窗口。
 
-## 使用实例
+## 使用说明
 
 文件：
 * `live2d.so`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so` 并载入内存
@@ -12,7 +12,6 @@
 
 ```
 example
-├── __init__.py
 ├── live2d.pyi
 ├── live2d.so
 └── main.py

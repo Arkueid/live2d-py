@@ -1,1 +1,0 @@
-from .live2d import *
