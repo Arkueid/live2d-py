@@ -2,6 +2,13 @@
 
 Python 的 Live2D 拓展库。基于 Cython API 对 Live2D Native (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
+支持：
+* PyQt5
+* PySide2 / PySide6
+* GLFW
+* FreeGlut
+* ...
+
 功能：
 * 加载模型
 * 鼠标点击触发动作
