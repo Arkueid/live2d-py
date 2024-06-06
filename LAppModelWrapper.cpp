@@ -280,6 +280,21 @@ static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_SetLipSyncN(PyLAppModelObject *self, PyObject *args)
+{
+    float n;
+
+    if (PyArg_ParseTuple(args, "f", &n) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param n (float)");
+        return NULL;
+    }
+
+    self->model->SetLipSyncN(n);
+
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadAssets", (PyCFunction)PyLAppModel_LoadAssets, METH_VARARGS, "Load model assets."},
@@ -293,7 +308,8 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, "Start random motion."},
     {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS, "Click at (x, y)."},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, "Drag to (x, y)."},
-    {NULL} // 方法列表结束的标志
+    {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, "Set magnitude for lip sync."},
+    {NULL} // 方法列表结束的标志 
 };
 
 // 定义Rectangle类的类型对象

@@ -161,3 +161,6 @@ class LAppModel:
         :param y: global_mouse_y - window_y
         """
         pass
+
+    def SetLipSyncN(self, n: float) -> None:
+        pass

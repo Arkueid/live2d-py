@@ -15,7 +15,7 @@ class Win(QOpenGLWidget):
     def __init__(self) -> None:
         super().__init__()
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
 
     def initializeGL(self) -> None:
@@ -33,6 +33,8 @@ class Win(QOpenGLWidget):
         print("moc consistency: ", self.model.HasMocConsistencyFromFile('./Resources/Hiyori/Hiyori.moc3'));
         # 加载模型参数
         self.model.LoadAssets("./Resources/Haru/", "Haru.model3.json")
+        # 设置口型同步幅度
+        self.model.SetLipSyncN(5)
 
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))

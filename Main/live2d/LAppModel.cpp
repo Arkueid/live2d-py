@@ -43,7 +43,7 @@ namespace
 }
 
 LAppModel::LAppModel()
-    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f)
+    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f)
 {
     if (MocConsistencyValidationEnable)
     {
@@ -429,7 +429,7 @@ void LAppModel::Update()
 
         // 状態更新/RMS値取得
         _wavFileHandler.Update(deltaTimeSeconds);
-        value = _wavFileHandler.GetRms();
+        value = _wavFileHandler.GetRms() * _lipSyncN;
 
         for (csmUint32 i = 0; i < _lipSyncIds.GetSize(); ++i)
         {
@@ -705,4 +705,9 @@ csmBool LAppModel::HasMocConsistencyFromFile(const csmChar *mocFileName)
     DeleteBuffer(buffer);
 
     return consistency;
+}
+
+void LAppModel::SetLipSyncN(float n)
+{
+    _lipSyncN = n;
 }
