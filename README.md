@@ -1,6 +1,6 @@
-# live2d-python
+# live2d-py
 
-使用 CPython API 对 Live2D Native (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可将 live2d 绘制在任何基于 OpenGL 的窗口。
+Python 的 Live2D 拓展库。基于 Cython API 对 Live2D Native (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
 功能：
 * 加载模型
