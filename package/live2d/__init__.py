@@ -16,3 +16,4 @@ class MotionGroup(Enum):
 
 class HitArea(Enum):
     HEAD = MotionGroup.TAP_HEAD.value
+

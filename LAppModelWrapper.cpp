@@ -4,10 +4,10 @@
 #include <LAppAllocator.hpp>
 #include <Log.hpp>
 #include <unordered_map>
-#include <vector>
 #include <mutex>
 #include <MatrixManager.hpp>
 #include <Default.hpp>
+#include <List.hpp>
 
 #ifdef _DEBUG
 #undef _DEBUG
@@ -23,19 +23,22 @@ static Csm::CubismFramework::Option _cubismOption;
 struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
-    std::vector<PyLAppModelObject *>::iterator _vid;
+    list_node_t node;
     MatrixManager matrixManager;
 };
 
+
 // 所有创建的模型
-static std::vector<PyLAppModelObject *> models;
+static list_t model_list;
 // 模型数组锁
 static std::mutex mutex_models;
 
 static void PyLAppModel_dealloc(PyLAppModelObject *self)
 {
     mutex_models.lock();
-    models.erase(self->_vid);
+    if (!self) return;
+    Info("deallocate: model(at=%ld)", self);
+    list_remove(&self->node);
     mutex_models.unlock();
 
     delete self->model;
@@ -50,8 +53,7 @@ static int PyLAppModel_init(PyLAppModelObject *self)
     self->model = new LAppModel();
 
     mutex_models.lock();
-    models.push_back(self);
-    self->_vid = models.end() - 1;
+    list_pushback(&model_list, &self->node);
     mutex_models.unlock();
 
     return 0;
@@ -368,16 +370,15 @@ static PyObject *live2d_initialize_cubism()
 
 static PyObject *live2d_release_cubism()
 {
+
     mutex_models.lock();
-    while (models.size())
+    while (!list_empty(&model_list))
     {
-        PyLAppModelObject *model = models.back();
-        models.pop_back();
-        delete model->model;
-        model->model = nullptr;
+        list_node_t* node = list_popback(&model_list);
+        PyLAppModelObject *model = element_entry(PyLAppModelObject, node, node);
+        Info("release: model(at=%ld)", model);
         Py_TYPE(model)->tp_free((PyObject *)model);
         model = nullptr;
-        Info("delete model(_at=%ld)", &model);
     }
     mutex_models.unlock();
 
@@ -453,6 +454,8 @@ PyMODINIT_FUNC PyInit_live2d(void)
         Py_DECREF(m);
         return NULL;
     }
+
+    list_init(&model_list);
 
     return m;
 }

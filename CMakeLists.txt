@@ -4,8 +4,6 @@ project(LAppModelWrapper)
 
 set(LIB_NAME LAppModelWrapper)
 
-# 关闭 log 输出
-# add_compile_definitions(LOG_MODE_RELEASE)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -18,6 +16,15 @@ else()
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/static/${CMAKE_BUILD_TYPE})
 endif()  
+
+# Post build commands
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+message("Runtime log: off")
+# 关闭 log 输出
+add_compile_definitions(LOG_MODE_RELEASE)
+elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
+message("Runtime log: on")
+endif()
 
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -43,7 +50,13 @@ else(CMAKE_SYSTEM_NAME MATCHES "Windows")
   set(OUTPUT_NAME live2d.pyd)
 endif()
 
+
+
 # Post build commands
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+message("Log off")
+# 关闭 log 输出
+add_compile_definitions(LOG_MODE_RELEASE)
 add_custom_command(
   TARGET ${LIB_NAME}
   POST_BUILD
@@ -53,5 +66,36 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E
       copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d
 )
+elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
+add_custom_command(
+  TARGET ${LIB_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/live2d.pyi ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/__init__.py ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug/${OUTPUT_NAME}
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d
+)
+endif()
 
+add_custom_command(
+  TARGET ${LIB_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
+)

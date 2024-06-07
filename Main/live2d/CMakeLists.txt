@@ -16,6 +16,8 @@ add_library(${APP_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/Log.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/List.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/List.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Default.hpp
 )
 
