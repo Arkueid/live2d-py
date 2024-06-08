@@ -127,6 +127,8 @@ public:
 
     void SetLipSyncN(float n);
 
+    bool IsMotionFinished();
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。

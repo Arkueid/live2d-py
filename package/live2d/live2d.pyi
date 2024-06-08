@@ -164,3 +164,12 @@ class LAppModel:
 
     def SetLipSyncN(self, n: float) -> None:
         pass
+
+    def IsMotionFinished(self) -> bool:
+        pass
+
+    def SetOffset(self, dx: float, dy: float) -> None:
+        pass
+
+    def SetScale(self, scale: float) -> None:
+        pass

@@ -3,6 +3,8 @@
 
 void MatrixManager::Initialize()
 {
+    _offset.LoadIdentity();
+    _scale = 1.0f;
 }
 
 // call when scene is resized
@@ -54,5 +56,18 @@ void MatrixManager::ScreenToScene(float *x, float *y)
 
 Csm::CubismMatrix44 &MatrixManager::GetProjection()
 {
+    _projection.ScaleRelative(_scale, _scale);
+    _projection.MultiplyByMatrix(&_offset);
     return _projection;
+}
+
+void MatrixManager::SetOffset(float dx, float dy)
+{
+    _offset.LoadIdentity();
+    _offset.Translate(dx, dy);
+}
+
+void MatrixManager::SetScale(float scale)
+{
+    _scale = scale;
 }

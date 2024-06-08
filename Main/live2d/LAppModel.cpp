@@ -366,12 +366,7 @@ void LAppModel::Update()
 
     //-----------------------------------------------------------------
     _model->LoadParameters(); // 前回セーブされた状態をロード
-    if (_motionManager->IsFinished())
-    {
-        // モーションの再生がない場合、待機モーションの中からランダムで再生する
-        StartRandomMotion(MotionGroupIdle, PriorityIdle);
-    }
-    else
+    if (!_motionManager->IsFinished())
     {
         motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
     }
@@ -710,4 +705,9 @@ csmBool LAppModel::HasMocConsistencyFromFile(const csmChar *mocFileName)
 void LAppModel::SetLipSyncN(float n)
 {
     _lipSyncN = n;
+}
+
+bool LAppModel::IsMotionFinished()
+{
+    return _motionManager->IsFinished();
 }

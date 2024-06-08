@@ -297,6 +297,49 @@ static PyObject *PyLAppModel_SetLipSyncN(PyLAppModelObject *self, PyObject *args
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_IsMotionFinished(PyLAppModelObject *self, PyObject *args)
+{
+
+    if (self->model->IsMotionFinished())
+    {
+        Py_RETURN_TRUE;
+    }
+    else
+    {
+        Py_RETURN_FALSE;
+    }
+}
+
+static PyObject *PyLAppModel_SetOffset(PyLAppModelObject *self, PyObject *args)
+{
+    float dx, dy;
+
+    if (PyArg_ParseTuple(args, "ff", &dx, &dy) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float dx, float dy'");
+        return NULL;
+    }
+
+    self->matrixManager.SetOffset(dx, dy);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
+{
+    float scale;
+
+    if (PyArg_ParseTuple(args, "f", &scale) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float scale'");
+        return NULL;
+    }
+
+    self->matrixManager.SetScale(scale);
+
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadAssets", (PyCFunction)PyLAppModel_LoadAssets, METH_VARARGS, "Load model assets."},
@@ -311,6 +354,9 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS, "Click at (x, y)."},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, "Drag to (x, y)."},
     {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, "Set magnitude for lip sync."},
+    {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, "Test if current motion is finished."},
+    {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, "Set offset of the drawing center."},
+    {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, "Set model scale."},
     {NULL} // 方法列表结束的标志 
 };
 

@@ -1,0 +1,32 @@
+{
+    "model": {
+        "name": "Hiyori",
+        "resource_dir": "./Resources",
+        "motion_interval": 5,
+        "auto_repair": false,
+        "drawX": 0.0,
+        "drawY": 0.0,
+        "lip_sync": 1.0,
+        "scale": 1.0
+    },
+    "mouse": {
+        "click_transparent": false,
+        "track_enable": true,
+        "enable": true
+    },
+    "scene": {
+        "width": 400,
+        "height": 500,
+        "stay_on_top": false,
+        "visible": true,
+        "fps": 30,
+        "lastX": 0,
+        "lastY": 0
+    },
+    "systray": {
+        "icon_path": "Resources/icon.png"
+    },
+    "app_name": "live2d",
+    "user_name": "nina",
+    "volume": 100
+}
