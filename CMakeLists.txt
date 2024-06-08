@@ -99,3 +99,7 @@ add_custom_command(
     ${CMAKE_COMMAND} -E
       copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
 )
+
+# add_executable(test main.cpp)
+# add_subdirectory(thirdParty/glfw)
+# target_link_libraries(test PRIVATE Python::Python live2d glfw)

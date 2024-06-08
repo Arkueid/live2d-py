@@ -1,7 +1,8 @@
 import pygame
 from pygame.locals import *
 
-import live2d
+import live2d.debug as live2d
+# import live2d
 
 def draw():
     pygame.display.flip()
@@ -16,6 +17,12 @@ def main():
 
     live2d.InitializeGlew()
     live2d.SetGLProperties()
+
+    model = live2d.LAppModel()
+
+    model2 = live2d.LAppModel()
+
+    del model
 
     model = live2d.LAppModel()
     model.LoadAssets("./Resources/Haru/", "Haru.model3.json")
@@ -63,7 +70,12 @@ def main():
         model.Update(*display)
         draw()
 
+    # del model
     live2d.ReleaseCubism()
+
+    del model2
+    del model
+
     pygame.quit()
     quit()
 

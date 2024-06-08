@@ -3,8 +3,9 @@
 
 void MatrixManager::Initialize()
 {
-    _offset.LoadIdentity();
     _scale = 1.0f;
+    _offsetX = 0.0f;
+    _offsetY = 0.0f;
 }
 
 // call when scene is resized
@@ -29,10 +30,15 @@ void MatrixManager::UpdateScreenToScene(int width, int height)
         _screenToScene.ScaleRelative(screenH / height, -screenH / height);
     }
     _screenToScene.TranslateRelative(-width * 0.5f, -height * 0.5f);
-    
 }
 
-void MatrixManager::UpdateProjection(LAppModel *model, int ww, int wh)
+void MatrixManager::ScreenToScene(float *x, float *y)
+{
+    *x = _screenToScene.TransformX(*x);
+    *y = _screenToScene.TransformY(*y);
+}
+
+Csm::CubismMatrix44 &MatrixManager::GetProjection(LAppModel *model, int ww, int wh)
 {
     _projection.LoadIdentity();
 
@@ -46,25 +52,18 @@ void MatrixManager::UpdateProjection(LAppModel *model, int ww, int wh)
     {
         _projection.Scale(static_cast<float>(wh) / static_cast<float>(ww), 1.0f);
     }
-}
 
-void MatrixManager::ScreenToScene(float *x, float *y)
-{
-    *x = _screenToScene.TransformX(*x);
-    *y = _screenToScene.TransformY(*y);
-}
-
-Csm::CubismMatrix44 &MatrixManager::GetProjection()
-{
     _projection.ScaleRelative(_scale, _scale);
-    _projection.MultiplyByMatrix(&_offset);
+
+    _projection.Translate(_offsetX, _offsetY);
+
     return _projection;
 }
 
-void MatrixManager::SetOffset(float dx, float dy)
+void MatrixManager::SetOffset(float x, float y)
 {
-    _offset.LoadIdentity();
-    _offset.Translate(dx, dy);
+    _offsetX = x;
+    _offsetY = y;
 }
 
 void MatrixManager::SetScale(float scale)

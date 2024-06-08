@@ -7,7 +7,6 @@
 #include <mutex>
 #include <MatrixManager.hpp>
 #include <Default.hpp>
-#include <List.hpp>
 
 #ifdef _DEBUG
 #undef _DEBUG
@@ -23,40 +22,43 @@ static Csm::CubismFramework::Option _cubismOption;
 struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
-    list_node_t node;
     MatrixManager matrixManager;
+    time_t key;
 };
 
+static std::mutex mutex_g_model;
+static std::unordered_map<size_t, LAppModel *> g_model;
 
-// 所有创建的模型
-static list_t model_list;
-// 模型数组锁
-static std::mutex mutex_models;
+// LAppModel()
+static int PyLAppModel_init(PyLAppModelObject *self, PyObject *args, PyObject *kwds)
+{
+
+    self->model = new LAppModel();
+
+    mutex_g_model.lock();
+    self->key = (size_t)self->model;
+    g_model[self->key] = self->model;
+    mutex_g_model.unlock();
+
+    self->matrixManager.Initialize();
+
+    return 0;
+}
 
 static void PyLAppModel_dealloc(PyLAppModelObject *self)
 {
-    mutex_models.lock();
-    if (!self) return;
-    Info("deallocate: model(at=%ld)", self);
-    list_remove(&self->node);
-    mutex_models.unlock();
 
-    delete self->model;
-    self->model = nullptr;
+    mutex_g_model.lock();
+    if (g_model.find(self->key) != g_model.end())
+    {
+        g_model.erase(self->key);
+        delete self->model;
+    }
+    mutex_g_model.unlock();
+
+    Info("deallocate: PyLAppModelObject(at=%ld)", self);
 
     Py_TYPE(self)->tp_free((PyObject *)self);
-}
-
-// LAppModel()
-static int PyLAppModel_init(PyLAppModelObject *self)
-{
-    self->model = new LAppModel();
-
-    mutex_models.lock();
-    list_pushback(&model_list, &self->node);
-    mutex_models.unlock();
-
-    return 0;
 }
 
 // LAppModel->LoadAssets
@@ -100,10 +102,8 @@ static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
         return NULL;
     }
 
-    self->matrixManager.UpdateProjection(self->model, winWidth, winHeight);
-
     self->model->Update();
-    self->model->Draw(self->matrixManager.GetProjection());
+    self->model->Draw(self->matrixManager.GetProjection(self->model, winWidth, winHeight));
     Py_RETURN_NONE;
 }
 
@@ -357,7 +357,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, "Test if current motion is finished."},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, "Set offset of the drawing center."},
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, "Set model scale."},
-    {NULL} // 方法列表结束的标志 
+    {NULL} // 方法列表结束的标志
 };
 
 // 定义Rectangle类的类型对象
@@ -417,19 +417,25 @@ static PyObject *live2d_initialize_cubism()
 static PyObject *live2d_release_cubism()
 {
 
-    mutex_models.lock();
-    while (!list_empty(&model_list))
+    mutex_g_model.lock();
+    while (g_model.size())
     {
-        list_node_t* node = list_popback(&model_list);
-        PyLAppModelObject *model = element_entry(PyLAppModelObject, node, node);
-        Info("release: model(at=%ld)", model);
-        Py_TYPE(model)->tp_free((PyObject *)model);
-        model = nullptr;
+        for (auto &pair : g_model)
+        {
+
+            g_model.erase(pair.first);
+
+            Info("release: LAppModel(at=%ld)", pair.second);
+
+            delete pair.second;
+
+            break;
+        }
     }
-    mutex_models.unlock();
+
+    mutex_g_model.unlock();
 
     Csm::CubismFramework::Dispose();
-
     Py_RETURN_NONE;
 }
 
@@ -500,8 +506,6 @@ PyMODINIT_FUNC PyInit_live2d(void)
         Py_DECREF(m);
         return NULL;
     }
-
-    list_init(&model_list);
 
     return m;
 }
