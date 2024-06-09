@@ -116,12 +116,11 @@ static PyObject *g_py_callback;
 
 static void default_call_back(ACubismMotion *self)
 {
-    // Call the Python callback function.
-    PyGILState_STATE gstate = PyGILState_Ensure(); // Ensure GIL
     PyObject *result = PyObject_CallFunction(g_py_callback, NULL);
 
     Py_DECREF(result);          // Decrease reference count of the result
-    PyGILState_Release(gstate); // Release GIL
+
+    Py_XDECREF(g_py_callback);
     g_py_callback = nullptr;
 };
 
@@ -129,8 +128,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
 {
     const char *group;
     int no, priority;
-    PyObject *py_callback;
-    FinishedMotionCallback callback;
+    PyObject *py_callback = nullptr;
+    FinishedMotionCallback callback = nullptr;
 
     if (!(PyArg_ParseTuple(args, "sii|O", &group, &no, &priority, &py_callback)))
     {
@@ -148,10 +147,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         g_py_callback = py_callback;
         callback = default_call_back;
     }
-    else
-    {
-        callback = nullptr;
-    }
+
+    Py_XINCREF(g_py_callback);
 
     Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority, callback);
 
@@ -162,8 +159,8 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 {
     const char *group;
     int priority;
-    PyObject *py_callback;
-    FinishedMotionCallback callback;
+    PyObject *py_callback = nullptr;
+    FinishedMotionCallback callback = nullptr;
 
     if (!(PyArg_ParseTuple(args, "si|O", &group, &priority, &py_callback)))
     {
@@ -180,10 +177,8 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
         g_py_callback = py_callback;
         callback = default_call_back;
     }
-    else
-    {
-        callback = nullptr;
-    }
+
+    Py_XINCREF(g_py_callback);
 
     self->model->StartRandomMotion(group, priority, callback);
 

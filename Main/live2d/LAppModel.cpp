@@ -272,7 +272,16 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
         csmString path = _modelSetting->GetMotionFileName(group, i);
         path = _modelHomeDir + path;
 
-        if (_debugMode)
+        // 定义了动作但是没有动作路径
+        if (strlen(path.GetRawString()) == 0)
+        {
+            if (_debugMode)
+            {
+                Info("load motion without file: %s => [%s_%d] ", path.GetRawString(), group, i);
+            }
+            continue;
+        }
+        else if (_debugMode)
         {
             Info("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
         }
@@ -463,9 +472,19 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
     CubismMotion *motion = static_cast<CubismMotion *>(_motions[name.GetRawString()]);
     csmBool autoDelete = false;
 
+    csmBool hasMotion = true;
+
+    if (fileName.GetLength() <= 0)
+    {
+        hasMotion = false;
+        Info("motion(%s) has no file attached", name.GetRawString());
+        goto handle_sound;
+    }
+
     if (motion == NULL)
     {
         csmString path = fileName;
+
         path = _modelHomeDir + path;
 
         csmByte *buffer;
@@ -497,6 +516,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
     }
 
+handle_sound:
     // voice
     csmString voice = _modelSetting->GetMotionSoundFileName(group, no);
     if (strcmp(voice.GetRawString(), "") != 0)
@@ -510,7 +530,11 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
     {
         Info("start motion: [%s_%d]", group, no);
     }
-    return _motionManager->StartMotionPriority(motion, autoDelete, priority);
+
+    if (hasMotion)
+        return _motionManager->StartMotionPriority(motion, autoDelete, priority);
+    else
+        return InvalidMotionQueueEntryHandleValue;
 }
 
 CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)

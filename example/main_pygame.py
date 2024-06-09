@@ -25,7 +25,7 @@ def main():
     del model
 
     model = live2d.LAppModel()
-    model.LoadAssets("./Resources/Haru/", "Haru.model3.json")
+    model.LoadAssets("./live2d-desktop/Resources/Haru/", "Haru.model3.json")
 
     model.Resize(*display)
 
@@ -34,6 +34,8 @@ def main():
     dx: float = 0.0
     dy: float = 0.0
     scale: float = 1.0
+
+    cnt = 0
 
     while True:
         for event in pygame.event.get():
@@ -63,6 +65,10 @@ def main():
                     scale -= 0.01
 
         if not running: break
+
+        if cnt == 0:
+            cnt += 1
+            model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value)
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)

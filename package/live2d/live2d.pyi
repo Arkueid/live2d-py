@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any
 
 class MotionPriority(Enum):
     NONE = 0
@@ -71,7 +72,7 @@ class LAppModel:
     def __init__(self):
         pass
     
-    def LoadAssets(self, dir: str, fileName: str) -> None:
+    def LoadAssets(self, dir: str | Any, fileName: str | Any) -> None:
         """
         Load Live2D model assets.
         
@@ -80,11 +81,11 @@ class LAppModel:
         """
         pass
 
-    def Resize(self, ww: int, wh: int) -> None:
+    def Resize(self, ww: int | Any, wh: int | Any) -> None:
         """
         """
     
-    def Update(self, ww: int, wh: int) -> None:
+    def Update(self, ww: int | Any, wh: int | Any) -> None:
         """
         Update the model, typically called once per frame.
         
@@ -93,7 +94,7 @@ class LAppModel:
         """
         pass
     
-    def StartMotion(self, group: str, no: int, priority: int, onFinishedMotionHandler=None) -> None:
+    def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onFinishedMotionHandler=None) -> None:
         """
         Start a specific motion for the model.
         
@@ -104,7 +105,7 @@ class LAppModel:
         """
         pass
     
-    def StartRandomMotion(self, group: str, priority: int, onFinishedMotionHandler=None) -> None:
+    def StartRandomMotion(self, group: str | Any, priority: int | Any, onFinishedMotionHandler=None) -> None:
         """
         Start a random motion from a specified group.
         
@@ -114,7 +115,7 @@ class LAppModel:
         """
         pass
     
-    def SetExpression(self, expressionID: str) -> None:
+    def SetExpression(self, expressionID: str | Any) -> None:
         """
         Set a specific expression for the model.
         
@@ -128,7 +129,7 @@ class LAppModel:
         """
         pass
     
-    def HitTest(self, hitAreaName: str, x: float, y: float) -> str:
+    def HitTest(self, hitAreaName: str | Any, x: float | Any, y: float | Any) -> str:
         """
         Perform a hit test to determine if a specific area of the model has been clicked.
         
@@ -139,7 +140,7 @@ class LAppModel:
         """
         pass
     
-    def HasMocConsistencyFromFile(self, mocFileName: str) -> bool:
+    def HasMocConsistencyFromFile(self, mocFileName: str | Any) -> bool:
         """
         Check if the model's MOC file is consistent.
         
@@ -148,28 +149,28 @@ class LAppModel:
         """
         pass
 
-    def Touch(self, x: int, y: int) -> None:
+    def Touch(self, x: int | Any, y: int | Any) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y
         """
         pass
 
-    def Drag(self, x: int, y: int) -> None:
+    def Drag(self, x: int | Any, y: int | Any) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y
         """
         pass
 
-    def SetLipSyncN(self, n: float) -> None:
+    def SetLipSyncN(self, n: float | Any) -> None:
         pass
 
     def IsMotionFinished(self) -> bool:
         pass
 
-    def SetOffset(self, dx: float, dy: float) -> None:
+    def SetOffset(self, dx: float | Any, dy: float | Any) -> None:
         pass
 
-    def SetScale(self, scale: float) -> None:
+    def SetScale(self, scale: float | Any) -> None:
         pass

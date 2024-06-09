@@ -2,6 +2,7 @@ from .live2d import *
 
 from enum import Enum
 
+
 class MotionPriority(Enum):
     NONE = 0
     IDLE = 1
