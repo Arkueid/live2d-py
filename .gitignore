@@ -5,4 +5,5 @@ thirdParty/glfw
 *.egg-info
 dist
 !thirdParty/glew/build
-live2d-desktop
+.idea
+.vscode

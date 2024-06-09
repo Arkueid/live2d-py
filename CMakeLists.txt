@@ -4,6 +4,7 @@ project(LAppModelWrapper)
 
 set(LIB_NAME LAppModelWrapper)
 
+# set(CMAKE_BUILD_TYPE "Debug")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -50,11 +51,8 @@ else(CMAKE_SYSTEM_NAME MATCHES "Windows")
   set(OUTPUT_NAME live2d.pyd)
 endif()
 
-
-
 # Post build commands
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-message("Log off")
 # 关闭 log 输出
 add_compile_definitions(LOG_MODE_RELEASE)
 add_custom_command(

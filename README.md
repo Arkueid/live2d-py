@@ -14,6 +14,17 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * 鼠标点击触发动作
 * 鼠标拖拽视线
 
+## 基于 live2d-py + qfluentwidgets 实现的桌面应用
+
+见 [live2d-desktop](./live2d-desktop/)
+
+![alt](./docs/1.png)
+
+![alt](./docs/2.png)
+
+![alt](./docs/3.png)
+
+
 ## 使用说明
 使用接口见 [example/live2d/live2d.pyi](./example/live2d/live2d.pyi)。
 

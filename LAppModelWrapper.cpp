@@ -413,20 +413,18 @@ static PyObject *live2d_release_cubism()
 {
 
     mutex_g_model.lock();
-    while (g_model.size())
+
+    for (auto &pair : g_model)
     {
-        for (auto &pair : g_model)
-        {
 
-            g_model.erase(pair.first);
+        Info("release: LAppModel(at=%ld)", pair.second);
 
-            Info("release: LAppModel(at=%ld)", pair.second);
+        delete pair.second;
 
-            delete pair.second;
-
-            break;
-        }
+        break;
     }
+
+    g_model.clear();
 
     mutex_g_model.unlock();
 

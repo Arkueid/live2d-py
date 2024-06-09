@@ -80,7 +80,6 @@ def main():
     live2d.ReleaseCubism()
 
     del model2
-    del model
 
     pygame.quit()
     quit()
