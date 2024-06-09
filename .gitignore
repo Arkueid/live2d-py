@@ -1,6 +1,8 @@
 build
 venv
 .venv
+thirdParty/glfw
 *.egg-info
 dist
 !thirdParty/glew/build
+live2d-desktop

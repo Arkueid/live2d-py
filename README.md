@@ -1,6 +1,13 @@
-# live2d-python
+# live2d-py
 
-使用 CPython API 对 Live2D Native (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可将 live2d 绘制在任何基于 OpenGL 的窗口。
+Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
+
+支持：
+* PyQt5
+* PySide2 / PySide6
+* GLFW
+* FreeGlut
+* ...
 
 功能：
 * 加载模型
@@ -13,7 +20,7 @@
 详细使用示例见 [example](./example/) 文件夹。
 
 文件：
-* `live2d.so` 和 `live2d.pyd`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so`/`live2d.so` 并载入内存。其中 .pyd 在 windows 下使用，.so 在 linux 下使用。
+* `live2d.so` 和 `live2d.pyd`：封装了 c++ 类的动态库，供 python 调用，在 `import live2d` 时，解释器在同文件目录下寻找 `live2d.so`/`live2d.pyd` 并载入内存。其中 .pyd 在 windows 下使用，.so 在 linux 下使用。
 * `live2d.pyi`：python 接口提示文件，仅用于ide编写时的提示
 
 ### 导入库

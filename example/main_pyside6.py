@@ -1,9 +1,10 @@
 from PySide6.QtGui import QMouseEvent
-import live2d
+import live2d.debug as live2d
 
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
+
 
 def callback():
     print("motion end")
@@ -15,8 +16,9 @@ class Win(QOpenGLWidget):
     def __init__(self) -> None:
         super().__init__()
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
+        self.resize(800, 600)
 
     def initializeGL(self) -> None:
         # 将当前窗口作为 OpenGL 的上下文
@@ -33,6 +35,8 @@ class Win(QOpenGLWidget):
         print("moc consistency: ", self.model.HasMocConsistencyFromFile('./Resources/Hiyori/Hiyori.moc3'));
         # 加载模型参数
         self.model.LoadAssets("./Resources/Haru/", "Haru.model3.json")
+        # 设置口型同步幅度
+        self.model.SetLipSyncN(5)
 
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))

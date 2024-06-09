@@ -4,7 +4,6 @@
 #include <LAppAllocator.hpp>
 #include <Log.hpp>
 #include <unordered_map>
-#include <vector>
 #include <mutex>
 #include <MatrixManager.hpp>
 #include <Default.hpp>
@@ -23,38 +22,43 @@ static Csm::CubismFramework::Option _cubismOption;
 struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
-    std::vector<PyLAppModelObject *>::iterator _vid;
     MatrixManager matrixManager;
+    time_t key;
 };
 
-// 所有创建的模型
-static std::vector<PyLAppModelObject *> models;
-// 模型数组锁
-static std::mutex mutex_models;
+static std::mutex mutex_g_model;
+static std::unordered_map<size_t, LAppModel *> g_model;
+
+// LAppModel()
+static int PyLAppModel_init(PyLAppModelObject *self, PyObject *args, PyObject *kwds)
+{
+
+    self->model = new LAppModel();
+
+    mutex_g_model.lock();
+    self->key = (size_t)self->model;
+    g_model[self->key] = self->model;
+    mutex_g_model.unlock();
+
+    self->matrixManager.Initialize();
+
+    return 0;
+}
 
 static void PyLAppModel_dealloc(PyLAppModelObject *self)
 {
-    mutex_models.lock();
-    models.erase(self->_vid);
-    mutex_models.unlock();
 
-    delete self->model;
-    self->model = nullptr;
+    mutex_g_model.lock();
+    if (g_model.find(self->key) != g_model.end())
+    {
+        g_model.erase(self->key);
+        delete self->model;
+    }
+    mutex_g_model.unlock();
+
+    Info("deallocate: PyLAppModelObject(at=%ld)", self);
 
     Py_TYPE(self)->tp_free((PyObject *)self);
-}
-
-// LAppModel()
-static int PyLAppModel_init(PyLAppModelObject *self)
-{
-    self->model = new LAppModel();
-
-    mutex_models.lock();
-    models.push_back(self);
-    self->_vid = models.end() - 1;
-    mutex_models.unlock();
-
-    return 0;
 }
 
 // LAppModel->LoadAssets
@@ -98,10 +102,8 @@ static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
         return NULL;
     }
 
-    self->matrixManager.UpdateProjection(self->model, winWidth, winHeight);
-
     self->model->Update();
-    self->model->Draw(self->matrixManager.GetProjection());
+    self->model->Draw(self->matrixManager.GetProjection(self->model, winWidth, winHeight));
     Py_RETURN_NONE;
 }
 
@@ -114,12 +116,11 @@ static PyObject *g_py_callback;
 
 static void default_call_back(ACubismMotion *self)
 {
-    // Call the Python callback function.
-    PyGILState_STATE gstate = PyGILState_Ensure(); // Ensure GIL
     PyObject *result = PyObject_CallFunction(g_py_callback, NULL);
 
     Py_DECREF(result);          // Decrease reference count of the result
-    PyGILState_Release(gstate); // Release GIL
+
+    Py_XDECREF(g_py_callback);
     g_py_callback = nullptr;
 };
 
@@ -127,8 +128,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
 {
     const char *group;
     int no, priority;
-    PyObject *py_callback;
-    FinishedMotionCallback callback;
+    PyObject *py_callback = nullptr;
+    FinishedMotionCallback callback = nullptr;
 
     if (!(PyArg_ParseTuple(args, "sii|O", &group, &no, &priority, &py_callback)))
     {
@@ -146,10 +147,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         g_py_callback = py_callback;
         callback = default_call_back;
     }
-    else
-    {
-        callback = nullptr;
-    }
+
+    Py_XINCREF(g_py_callback);
 
     Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority, callback);
 
@@ -160,8 +159,8 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 {
     const char *group;
     int priority;
-    PyObject *py_callback;
-    FinishedMotionCallback callback;
+    PyObject *py_callback = nullptr;
+    FinishedMotionCallback callback = nullptr;
 
     if (!(PyArg_ParseTuple(args, "si|O", &group, &priority, &py_callback)))
     {
@@ -178,10 +177,8 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
         g_py_callback = py_callback;
         callback = default_call_back;
     }
-    else
-    {
-        callback = nullptr;
-    }
+
+    Py_XINCREF(g_py_callback);
 
     self->model->StartRandomMotion(group, priority, callback);
 
@@ -280,6 +277,64 @@ static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_SetLipSyncN(PyLAppModelObject *self, PyObject *args)
+{
+    float n;
+
+    if (PyArg_ParseTuple(args, "f", &n) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param n (float)");
+        return NULL;
+    }
+
+    self->model->SetLipSyncN(n);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *PyLAppModel_IsMotionFinished(PyLAppModelObject *self, PyObject *args)
+{
+
+    if (self->model->IsMotionFinished())
+    {
+        Py_RETURN_TRUE;
+    }
+    else
+    {
+        Py_RETURN_FALSE;
+    }
+}
+
+static PyObject *PyLAppModel_SetOffset(PyLAppModelObject *self, PyObject *args)
+{
+    float dx, dy;
+
+    if (PyArg_ParseTuple(args, "ff", &dx, &dy) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float dx, float dy'");
+        return NULL;
+    }
+
+    self->matrixManager.SetOffset(dx, dy);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
+{
+    float scale;
+
+    if (PyArg_ParseTuple(args, "f", &scale) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float scale'");
+        return NULL;
+    }
+
+    self->matrixManager.SetScale(scale);
+
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadAssets", (PyCFunction)PyLAppModel_LoadAssets, METH_VARARGS, "Load model assets."},
@@ -293,6 +348,10 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, "Start random motion."},
     {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS, "Click at (x, y)."},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, "Drag to (x, y)."},
+    {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, "Set magnitude for lip sync."},
+    {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, "Test if current motion is finished."},
+    {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, "Set offset of the drawing center."},
+    {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, "Set model scale."},
     {NULL} // 方法列表结束的标志
 };
 
@@ -352,21 +411,26 @@ static PyObject *live2d_initialize_cubism()
 
 static PyObject *live2d_release_cubism()
 {
-    mutex_models.lock();
-    while (models.size())
+
+    mutex_g_model.lock();
+    while (g_model.size())
     {
-        PyLAppModelObject *model = models.back();
-        models.pop_back();
-        delete model->model;
-        model->model = nullptr;
-        Py_TYPE(model)->tp_free((PyObject *)model);
-        model = nullptr;
-        Info("delete model(_at=%ld)", &model);
+        for (auto &pair : g_model)
+        {
+
+            g_model.erase(pair.first);
+
+            Info("release: LAppModel(at=%ld)", pair.second);
+
+            delete pair.second;
+
+            break;
+        }
     }
-    mutex_models.unlock();
+
+    mutex_g_model.unlock();
 
     Csm::CubismFramework::Dispose();
-
     Py_RETURN_NONE;
 }
 

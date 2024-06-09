@@ -39,7 +39,7 @@ public:
      * @brief model3.jsonが置かれたディレクトリとファイルパスからモデルを生成する
      *
      */
-    void LoadAssets(const Csm::csmChar* dir, const  Csm::csmChar* fileName);
+    void LoadAssets(const Csm::csmChar *dir, const Csm::csmChar *fileName);
 
     /**
      * @brief レンダラを再構築する
@@ -58,7 +58,7 @@ public:
      *
      * @param[in]  matrix  View-Projection行列
      */
-    void Draw(Csm::CubismMatrix44& matrix);
+    void Draw(Csm::CubismMatrix44 &matrix);
 
     /**
      * @brief   引数で指定したモーションの再生を開始する。
@@ -69,7 +69,7 @@ public:
      * @param[in]   onFinishedMotionHandler     モーション再生終了時に呼び出されるコールバック関数。NULLの場合、呼び出されない。
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
-    Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar* group, Csm::csmInt32 no, Csm::csmInt32 priority, Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
+    Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar *group, Csm::csmInt32 no, Csm::csmInt32 priority, Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
 
     /**
      * @brief   ランダムに選ばれたモーションの再生を開始する。
@@ -79,14 +79,14 @@ public:
      * @param[in]   onFinishedMotionHandler     モーション再生終了時に呼び出されるコールバック関数。NULLの場合、呼び出されない。
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
-    Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar* group, Csm::csmInt32 priority, Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
+    Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar *group, Csm::csmInt32 priority, Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
 
     /**
      * @brief   引数で指定した表情モーションをセットする
      *
      * @param   expressionID    表情モーションのID
      */
-    void SetExpression(const Csm::csmChar* expressionID);
+    void SetExpression(const Csm::csmChar *expressionID);
 
     /**
      * @brief   ランダムに選ばれた表情モーションをセットする
@@ -95,10 +95,10 @@ public:
     void SetRandomExpression();
 
     /**
-    * @brief   イベントの発火を受け取る
-    *
-    */
-    virtual void MotionEventFired(const Live2D::Cubism::Framework::csmString& eventValue);
+     * @brief   イベントの発火を受け取る
+     *
+     */
+    virtual void MotionEventFired(const Live2D::Cubism::Framework::csmString &eventValue);
 
     /**
      * @brief    当たり判定テスト。<br>
@@ -108,14 +108,14 @@ public:
      * @param[in]   x               判定を行うX座標
      * @param[in]   y               判定を行うY座標
      */
-    virtual Csm::csmBool HitTest(const Csm::csmChar* hitAreaName, Csm::csmFloat32 x, Csm::csmFloat32 y);
+    virtual Csm::csmBool HitTest(const Csm::csmChar *hitAreaName, Csm::csmFloat32 x, Csm::csmFloat32 y);
 
     virtual Csm::csmString HitTest(Csm::csmFloat32 x, Csm::csmFloat32 y);
 
     /**
      * @brief   別ターゲットに描画する際に使用するバッファの取得
      */
-    Csm::Rendering::CubismOffscreenSurface_OpenGLES2& GetRenderBuffer();
+    Csm::Rendering::CubismOffscreenSurface_OpenGLES2 &GetRenderBuffer();
 
     /**
      * @brief   .moc3ファイルの整合性をチェックする
@@ -123,7 +123,11 @@ public:
      * @param[in]   mocName MOC3ファイル名
      * @return      MOC3に整合性があれば'true'、そうでなければ'false'。
      */
-    Csm::csmBool HasMocConsistencyFromFile(const Csm::csmChar* mocFileName);
+    Csm::csmBool HasMocConsistencyFromFile(const Csm::csmChar *mocFileName);
+
+    void SetLipSyncN(float n);
+
+    bool IsMotionFinished();
 
 protected:
     /**
@@ -140,7 +144,7 @@ private:
      * @param[in]   setting     ICubismModelSettingのインスタンス
      *
      */
-    void SetupModel(Csm::ICubismModelSetting* setting);
+    void SetupModel(Csm::ICubismModelSetting *setting);
 
     /**
      * @brief OpenGLのテクスチャユニットにテクスチャをロードする
@@ -154,7 +158,7 @@ private:
      *
      * @param[in]   group  モーションデータのグループ名
      */
-    void PreloadMotionGroup(const Csm::csmChar* group);
+    void PreloadMotionGroup(const Csm::csmChar *group);
 
     /**
      * @brief   モーションデータをグループ名から一括で解放する。<br>
@@ -162,40 +166,42 @@ private:
      *
      * @param[in]   group  モーションデータのグループ名
      */
-    void ReleaseMotionGroup(const Csm::csmChar* group) const;
+    void ReleaseMotionGroup(const Csm::csmChar *group) const;
 
     /**
-    * @brief すべてのモーションデータの解放
-    *
-    * すべてのモーションデータを解放する。
-    */
+     * @brief すべてのモーションデータの解放
+     *
+     * すべてのモーションデータを解放する。
+     */
     void ReleaseMotions();
 
     /**
-    * @brief すべての表情データの解放
-    *
-    * すべての表情データを解放する。
-    */
+     * @brief すべての表情データの解放
+     *
+     * すべての表情データを解放する。
+     */
     void ReleaseExpressions();
 
-    Csm::ICubismModelSetting* _modelSetting; ///< モデルセッティング情報
-    Csm::csmString _modelHomeDir; ///< モデルセッティングが置かれたディレクトリ
-    Csm::csmFloat32 _userTimeSeconds; ///< デルタ時間の積算値[秒]
-    Csm::csmVector<Csm::CubismIdHandle> _eyeBlinkIds; ///< モデルに設定されたまばたき機能用パラメータID
-    Csm::csmVector<Csm::CubismIdHandle> _lipSyncIds; ///< モデルに設定されたリップシンク機能用パラメータID
-    Csm::csmMap<Csm::csmString, Csm::ACubismMotion*>   _motions; ///< 読み込まれているモーションのリスト
-    Csm::csmMap<Csm::csmString, Csm::ACubismMotion*>   _expressions; ///< 読み込まれている表情のリスト
+    Csm::ICubismModelSetting *_modelSetting;                        ///< モデルセッティング情報
+    Csm::csmString _modelHomeDir;                                   ///< モデルセッティングが置かれたディレクトリ
+    Csm::csmFloat32 _userTimeSeconds;                               ///< デルタ時間の積算値[秒]
+    Csm::csmVector<Csm::CubismIdHandle> _eyeBlinkIds;               ///< モデルに設定されたまばたき機能用パラメータID
+    Csm::csmVector<Csm::CubismIdHandle> _lipSyncIds;                ///< モデルに設定されたリップシンク機能用パラメータID
+    Csm::csmMap<Csm::csmString, Csm::ACubismMotion *> _motions;     ///< 読み込まれているモーションのリスト
+    Csm::csmMap<Csm::csmString, Csm::ACubismMotion *> _expressions; ///< 読み込まれている表情のリスト
     Csm::csmVector<Csm::csmRectF> _hitArea;
     Csm::csmVector<Csm::csmRectF> _userArea;
-    const Csm::CubismId* _idParamAngleX; ///< パラメータID: ParamAngleX
-    const Csm::CubismId* _idParamAngleY; ///< パラメータID: ParamAngleX
-    const Csm::CubismId* _idParamAngleZ; ///< パラメータID: ParamAngleX
-    const Csm::CubismId* _idParamBodyAngleX; ///< パラメータID: ParamBodyAngleX
-    const Csm::CubismId* _idParamEyeBallX; ///< パラメータID: ParamEyeBallX
-    const Csm::CubismId* _idParamEyeBallY; ///< パラメータID: ParamEyeBallXY
+    const Csm::CubismId *_idParamAngleX;     ///< パラメータID: ParamAngleX
+    const Csm::CubismId *_idParamAngleY;     ///< パラメータID: ParamAngleX
+    const Csm::CubismId *_idParamAngleZ;     ///< パラメータID: ParamAngleX
+    const Csm::CubismId *_idParamBodyAngleX; ///< パラメータID: ParamBodyAngleX
+    const Csm::CubismId *_idParamEyeBallX;   ///< パラメータID: ParamEyeBallX
+    const Csm::CubismId *_idParamEyeBallY;   ///< パラメータID: ParamEyeBallXY
 
     LAppWavFileHandler _wavFileHandler; ///< wavファイルハンドラ
     LAppTextureManager _textureManager; ///< 纹理管理器
 
-    Csm::Rendering::CubismOffscreenSurface_OpenGLES2  _renderBuffer;   ///< フレームバッファ以外の描画先
+    Csm::Rendering::CubismOffscreenSurface_OpenGLES2 _renderBuffer; ///< フレームバッファ以外の描画先
+
+    Csm::csmFloat32 _lipSyncN;
 };

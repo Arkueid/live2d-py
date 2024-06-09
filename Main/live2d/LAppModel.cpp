@@ -43,7 +43,7 @@ namespace
 }
 
 LAppModel::LAppModel()
-    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f)
+    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f)
 {
     if (MocConsistencyValidationEnable)
     {
@@ -272,7 +272,16 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
         csmString path = _modelSetting->GetMotionFileName(group, i);
         path = _modelHomeDir + path;
 
-        if (_debugMode)
+        // 定义了动作但是没有动作路径
+        if (strlen(path.GetRawString()) == 0)
+        {
+            if (_debugMode)
+            {
+                Info("load motion without file: %s => [%s_%d] ", path.GetRawString(), group, i);
+            }
+            continue;
+        }
+        else if (_debugMode)
         {
             Info("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
         }
@@ -366,12 +375,7 @@ void LAppModel::Update()
 
     //-----------------------------------------------------------------
     _model->LoadParameters(); // 前回セーブされた状態をロード
-    if (_motionManager->IsFinished())
-    {
-        // モーションの再生がない場合、待機モーションの中からランダムで再生する
-        StartRandomMotion(MotionGroupIdle, PriorityIdle);
-    }
-    else
+    if (!_motionManager->IsFinished())
     {
         motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
     }
@@ -429,7 +433,7 @@ void LAppModel::Update()
 
         // 状態更新/RMS値取得
         _wavFileHandler.Update(deltaTimeSeconds);
-        value = _wavFileHandler.GetRms();
+        value = _wavFileHandler.GetRms() * _lipSyncN;
 
         for (csmUint32 i = 0; i < _lipSyncIds.GetSize(); ++i)
         {
@@ -468,9 +472,19 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
     CubismMotion *motion = static_cast<CubismMotion *>(_motions[name.GetRawString()]);
     csmBool autoDelete = false;
 
+    csmBool hasMotion = true;
+
+    if (fileName.GetLength() <= 0)
+    {
+        hasMotion = false;
+        Info("motion(%s) has no file attached", name.GetRawString());
+        goto handle_sound;
+    }
+
     if (motion == NULL)
     {
         csmString path = fileName;
+
         path = _modelHomeDir + path;
 
         csmByte *buffer;
@@ -502,6 +516,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
     }
 
+handle_sound:
     // voice
     csmString voice = _modelSetting->GetMotionSoundFileName(group, no);
     if (strcmp(voice.GetRawString(), "") != 0)
@@ -515,7 +530,11 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
     {
         Info("start motion: [%s_%d]", group, no);
     }
-    return _motionManager->StartMotionPriority(motion, autoDelete, priority);
+
+    if (hasMotion)
+        return _motionManager->StartMotionPriority(motion, autoDelete, priority);
+    else
+        return InvalidMotionQueueEntryHandleValue;
 }
 
 CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
@@ -705,4 +724,14 @@ csmBool LAppModel::HasMocConsistencyFromFile(const csmChar *mocFileName)
     DeleteBuffer(buffer);
 
     return consistency;
+}
+
+void LAppModel::SetLipSyncN(float n)
+{
+    _lipSyncN = n;
+}
+
+bool LAppModel::IsMotionFinished()
+{
+    return _motionManager->IsFinished();
 }
