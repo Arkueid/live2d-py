@@ -81,22 +81,22 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E
       copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug/${OUTPUT_NAME}
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d
+  # COMMAND
+  #   ${CMAKE_COMMAND} -E
+  #     copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
+  # COMMAND
+  #   ${CMAKE_COMMAND} -E
+  #     copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d
 )
 endif()
 
-add_custom_command(
-  TARGET ${LIB_NAME}
-  POST_BUILD
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
-)
+# add_custom_command(
+#   TARGET ${LIB_NAME}
+#   POST_BUILD
+#   COMMAND
+#     ${CMAKE_COMMAND} -E
+#       copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
+# )
 
 # add_executable(test main.cpp)
 # add_subdirectory(thirdParty/glfw)

@@ -93,6 +93,11 @@
                     "File": "",
                     "Sound": "sounds/haru_normal_6.wav",
                     "Text": "233232323"
+                },
+                {
+                    "File": "",
+                    "Sound": "",
+                    "Text": ""
                 }
             ]
         },

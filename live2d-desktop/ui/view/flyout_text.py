@@ -66,26 +66,3 @@ class FlyoutText(QWidget):
         self.fadeOutAni.setEndValue(0)
         self.fadeOutAni.setDuration(120)
         self.fadeOutAni.start()
-
-
-class Demo(QWidget):
-
-    def __init__(self):
-        super().__init__()
-        self.button = PushButton("Click Me", self)
-        self.button.clicked.connect(self.showFlyout)
-        self.ft = FlyoutText(self)
-
-        self.hBoxLayout = QHBoxLayout(self)
-        self.hBoxLayout.addWidget(self.button, 0, Qt.AlignCenter)
-        self.resize(600, 500)
-
-    def showFlyout(self):
-        self.ft.showText("33333333333333333333333333333333333")
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    win = Demo()
-    win.show()
-    app.exec()

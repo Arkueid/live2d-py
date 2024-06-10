@@ -22,7 +22,7 @@ class MotionEditorDesign(QWidget):
         self.data = model3Json.motion_groups()
         self.model_dir = model3Json.src_dir()
 
-        self.setMinimumHeight(300)
+        self.setMinimumHeight(250)
 
         splitter = QSplitter(self)
         splitter.setOrientation(Qt.Orientation.Horizontal)

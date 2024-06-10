@@ -1,13 +1,15 @@
-from abc import ABC, abstractmethod
+import os
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
-from qfluentwidgets import FluentWindow, FluentIcon
 
 from config import Configuration
 from ui.components.api_settings import ApiSettings
 from ui.components.app_settings import AppSettings
 from ui.components.model_settings import ModelSettings
+
+from qfluentwidgets import FluentWindow
 
 
 class Settings(FluentWindow):
@@ -19,11 +21,12 @@ class Settings(FluentWindow):
 
     def __init__(self, config: Configuration):
         super().__init__()
+        self.resource_dir = config.resource_dir.value
         self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
         self.appSettings = AppSettings(config)
         self.modelSettings = ModelSettings(config)
-        self.addSubInterface(self.appSettings, FluentIcon.APPLICATION, "应用设置")
-        self.addSubInterface(self.modelSettings, FluentIcon.APPLICATION, "模型设置")
+        self.addSubInterface(self.appSettings, self.icon("app_settings.svg"), "应用设置")
+        self.addSubInterface(self.modelSettings, self.icon("model_settings.svg"), "模型设置")
         self.setMinimumSize(700, 500)
 
     def setup(self,
@@ -43,3 +46,6 @@ class Settings(FluentWindow):
         self.move(size.width() // 2 - self.width() // 2, size.height() // 2 - self.height() // 2)
         self.setVisible(True)
         self.adjustSize()
+
+    def icon(self, path):
+        return QIcon(os.path.join(self.resource_dir, path))

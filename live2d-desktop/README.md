@@ -1,2 +1,0 @@
-# Live2D-Mascot
-
