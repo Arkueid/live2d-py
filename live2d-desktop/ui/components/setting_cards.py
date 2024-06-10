@@ -40,6 +40,7 @@ class DoubleSpinSettingCard(StyledSettingCard):
         dsb.setRange(*configItem.range)
         dsb.setValue(configItem.value)
         self.hBoxLayout.addWidget(dsb)
+        dsb.setMinimumWidth(150)
 
         dsb.valueChanged.connect(self.setValue)
 
@@ -55,9 +56,10 @@ class GroupItemDoubleSpin(QWidget):
         self.configItem = configItem
 
         hBoxLayout = QHBoxLayout()
-        hBoxLayout.setContentsMargins(48, 12, 48, 12)
+        # hBoxLayout.setContentsMargins(48, 12, 48, 12)
 
         dsb = DoubleSpinBox()
+        dsb.setMinimumWidth(150)
         dsb.setSingleStep(0.01)
         dsb.setRange(*configItem.range)
         dsb.setValue(configItem.value)

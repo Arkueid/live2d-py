@@ -450,7 +450,9 @@ void LAppModel::Update()
     _model->Update();
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority, 
+    LAppModel::OnStartMotionHandler onStartMotionHandler,
+    ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
 {
     if (priority == PriorityForce)
     {
@@ -526,6 +528,11 @@ handle_sound:
         _wavFileHandler.Start(path);
     }
 
+    if (onStartMotionHandler)
+    {
+        onStartMotionHandler(group, no);
+    }
+
     if (_debugMode)
     {
         Info("start motion: [%s_%d]", group, no);
@@ -537,7 +544,7 @@ handle_sound:
         return InvalidMotionQueueEntryHandleValue;
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, OnStartMotionHandler onStartMotionHandler, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
 {
     if (_modelSetting->GetMotionCount(group) == 0)
     {
@@ -546,7 +553,7 @@ CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, 
 
     csmInt32 no = rand() % _modelSetting->GetMotionCount(group);
 
-    return StartMotion(group, no, priority, onFinishedMotionHandler);
+    return StartMotion(group, no, priority, onStartMotionHandler, onFinishedMotionHandler);
 }
 
 void LAppModel::DoDraw()

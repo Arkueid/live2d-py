@@ -48,6 +48,7 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
 
     def save_config(self) -> None:
         self.config.save()
+        self.config.model3Json.save()
 
     def start(self) -> None:
         self.systray.start()

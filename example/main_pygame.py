@@ -8,6 +8,12 @@ def draw():
     pygame.display.flip()
     pygame.time.wait(10)
 
+def s_call(group, no):
+    print(group, no)
+
+def f_call():
+    print("it[]")
+
 def main():
     pygame.init()
     live2d.InitializeCubism()
@@ -44,7 +50,7 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                model.Touch(x, y)
+                model.Touch(x, y, s_call, f_call)
             if event.type == pygame.KEYDOWN:
                 print(event.key)
                 if event.key == pygame.K_LEFT:

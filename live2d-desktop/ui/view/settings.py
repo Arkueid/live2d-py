@@ -38,6 +38,7 @@ class Settings(FluentWindow):
         self.modelSettings.setup(ms_callback_set)
 
     def show(self):
+        self.hide()
         size = QApplication.primaryScreen().size()
         self.move(size.width() // 2 - self.width() // 2, size.height() // 2 - self.height() // 2)
         self.setVisible(True)

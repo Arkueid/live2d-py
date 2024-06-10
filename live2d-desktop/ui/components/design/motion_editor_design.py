@@ -5,13 +5,12 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QTreeWidgetItem, QFormLayout, QSplitter, QVBoxLayout, QFileDialog
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
-
+from PySide6.QtGui import QColor
 from ui.components.dialogs import InputDialog
 from utils.model3json import MotionGroups, Model3Json, Motion, MotionGroup
 
 from qfluentwidgets import TreeWidget, TextEdit, BodyLabel, RoundMenu, Dialog, \
-    FluentIcon, Action, SplitPushButton
+    FluentIcon, Action, SplitPushButton, CheckableMenu
 
 
 class MotionEditorDesign(QWidget):
@@ -23,8 +22,6 @@ class MotionEditorDesign(QWidget):
         super().__init__()
         self.data = model3Json.motion_groups()
         self.model_dir = model3Json.src_dir()
-
-        self.setWindowTitle("Tree Editor Example")
 
         self.setMinimumHeight(300)
 
@@ -124,34 +121,35 @@ class MotionEditorDesign(QWidget):
     def open_menu(self, position):
         item = self.tree.itemAt(position)
         menu = RoundMenu()
+        menu.setShadowEffect(offset=(0,0))
 
         if not item:  # container
-            add_action = QAction("添加组", self)
+            add_action = Action("添加组", self)
             add_action.triggered.connect(lambda: self.add_group())
             menu.addAction(add_action)
         else:
             if item.parent() is None:  # Group
-                add_action = QAction("添加动作", self)
+                add_action = Action("添加动作", self)
                 add_action.triggered.connect(lambda: self.add_motion(item))
                 menu.addAction(add_action)
 
-                rename_action = QAction("重命名组", self)
+                rename_action = Action("重命名组", self)
                 rename_action.triggered.connect(lambda: self.rename_group(item))
                 menu.addAction(rename_action)
 
-                delete_action = QAction("删除组", self)
+                delete_action = Action("删除组", self)
                 delete_action.triggered.connect(lambda: self.delete_group(item))
                 menu.addAction(delete_action)
             else:  # Motion
-                add_action = QAction("添加动作", self)
+                add_action = Action("添加动作", self)
                 add_action.triggered.connect(lambda: self.add_motion(item.parent()))
                 menu.addAction(add_action)
 
-                play_action = QAction("播放动作", self)
+                play_action = Action("播放动作", self)
                 play_action.triggered.connect(lambda: self.playMotionFunc(item.parent().text(0), item.parent().indexOfChild(item)))
                 menu.addAction(play_action)
 
-                delete_action = QAction("删除动作", self)
+                delete_action = Action("删除动作", self)
                 delete_action.triggered.connect(lambda: self.delete_motion(item))
                 menu.addAction(delete_action)
 
