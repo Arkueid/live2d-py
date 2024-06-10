@@ -14,7 +14,25 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * 鼠标点击触发动作
 * 鼠标拖拽视线
 
-## 基于 live2d-py + qfluentwidgets 实现的桌面应用
+## 文件说明
+
+```shell
+.
+├── CMakeLists.txt  # CMake 配置文件，用于生成 live2d-py 
+├── Core  # Cubism Live2D Core 头文件和库文件，详情见 Cubism 官方
+├── docs  
+├── example  # live2d-py 使用示例，包含结合 python 各种窗口库的使用方法
+├── Framework  # Cubism Live2D Framework 源码，详情见 Cubism 官方
+├── LAppModelWrapper.cpp  # 使用 CPython API 对 live2d C++ 进行的封装，用于生成 Python 可直接调用的动态库
+├── live2d-desktop  # 基于 live2d-py 的 Python 桌面应用
+├── Main  # Cubism Live2D LAppModel 相关代码，用于加载 Live2D 模型，详情见 Cubism Live2D Native Sample
+├── package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
+├── README.md 
+├── Resources  # live2d 模型及图标资源
+└── thirdParty  # live2d 的第三方依赖
+```
+
+## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览
 
 见 [live2d-desktop](./live2d-desktop/)
 
@@ -26,7 +44,7 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 
 ## 使用说明
-使用接口见 [example/live2d/live2d.pyi](./example/live2d/live2d.pyi)。
+使用接口见 [package/live2d/live2d.pyi](./package/live2d/live2d.pyi)。
 
 详细使用示例见 [example](./example/) 文件夹。
 
@@ -38,16 +56,23 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 #### 无 pip 安装
 
-将 `example/live2d` 文件夹放置在使用者 `main.py` 同目录下，在 `main.py` 中使用 `import live2d`。 
+将 `example/live2d` 文件夹放置在使用者 `main.py` 同目录下，在 `main.py` 中使用 `import live2d`。
 
 ```
-example
-├── live2d
+example/
+├── live2d -> ../package/live2d
+└── main.py
+
+package/live2d
+├── debug
 │   ├── __init__.py
 │   ├── live2d.pyd
 │   ├── live2d.pyi
 │   └── live2d.so
-└── main.py
+├── __init__.py
+├── live2d.pyd
+├── live2d.pyi
+└── live2d.so
 ```
 
 #### pip 安装
@@ -63,6 +88,13 @@ pip uninstall live2d-py
 
 ### 绘制流程
 1. 导入 live2d
+
+包含日志输出：
+```python
+import live2d.debug as live2d
+```
+
+不包含日志输出
 ```python
 import live2d
 ```
