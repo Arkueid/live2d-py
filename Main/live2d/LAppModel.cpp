@@ -538,10 +538,7 @@ handle_sound:
         Info("start motion: [%s_%d]", group, no);
     }
 
-    if (hasMotion)
-        return _motionManager->StartMotionPriority(motion, autoDelete, priority);
-    else
-        return InvalidMotionQueueEntryHandleValue;
+    return _motionManager->StartMotionPriority(motion, autoDelete, priority);
 }
 
 CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, OnStartMotionHandler onStartMotionHandler, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
