@@ -270,10 +270,9 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
         // ex) idle_0
         csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, i);
         csmString path = _modelSetting->GetMotionFileName(group, i);
-        path = _modelHomeDir + path;
 
         // 定义了动作但是没有动作路径
-        if (strlen(path.GetRawString()) == 0)
+        if (path.GetLength() == 0)
         {
             if (_debugMode)
             {
@@ -285,6 +284,8 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
         {
             Info("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
         }
+
+        path = _modelHomeDir + path;
 
         csmByte *buffer;
         csmSizeInt size;
@@ -538,6 +539,12 @@ handle_sound:
         Info("start motion: [%s_%d]", group, no);
     }
 
+    if (!hasMotion) {
+        onFinishedMotionHandler(NULL);
+        _motionManager->SetReservePriority(PriorityNone);
+        return InvalidMotionQueueEntryHandleValue;
+    }
+    
     return _motionManager->StartMotionPriority(motion, autoDelete, priority);
 }
 
