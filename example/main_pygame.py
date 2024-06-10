@@ -12,7 +12,7 @@ def s_call(group, no):
     print(group, no)
 
 def f_call():
-    print("it[]")
+    print("end")
 
 def main():
     pygame.init()
@@ -50,7 +50,11 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                model.Touch(x, y, s_call, f_call)
+                try:
+                    model.Touch(x, y, s_call, f_call)
+                except Exception as e:
+                    print(e)
+
             if event.type == pygame.KEYDOWN:
                 print(event.key)
                 if event.key == pygame.K_LEFT:

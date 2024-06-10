@@ -17,8 +17,8 @@
     "scene": {
         "fps": 30,
         "height": 500,
-        "lastX": 730,
-        "lastY": 0,
+        "lastX": 867,
+        "lastY": 310,
         "stay_on_top": false,
         "visible": true,
         "width": 400
@@ -31,6 +31,6 @@
         "ThemeMode": "Light"
     },
     "audio": {
-        "volume": 48
+        "volume": 46
     }
 }

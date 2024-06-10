@@ -2,20 +2,19 @@ import os
 import sys
 
 from PySide6.QtWidgets import QApplication
+from qfluentwidgets import qconfig, Flyout
 
 import app.settings as settings
 from app import define
+from app import live2d
 from config.configuration import Configuration
 from ui.components.app_settings import AppSettings
-from utils.model import Model, find_model_dir
+from ui.components.model_settings import ModelSettings
+from ui.view.flyout_text import FlyoutText
 from ui.view.scene import Scene
 from ui.view.settings import Settings
 from ui.view.systray import Systray
-from ui.components.model_settings import ModelSettings
-
-from app import live2d
-
-from qfluentwidgets import qconfig
+from utils.model import Model, find_model_dir
 
 
 class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.CallbackSet):
@@ -31,6 +30,8 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
     config: Configuration
 
     settings: Settings
+
+    flyoutText: FlyoutText
 
     def __init__(self) -> None:
         self.app = QApplication(sys.argv)
@@ -69,11 +70,12 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.scene = Scene()
         self.settings = Settings(self.config)
         self.model = Model()
+        self.flyoutText = FlyoutText(self.config, self.scene)
 
         live2d.InitializeCubism()
 
         self.systray.setup(self.config, self)
-        self.model.setup(self.config)
+        self.model.setup(self.config, self.flyoutText)
         self.scene.setup(self.config, self.model)
         self.settings.setup(self.config, self, self)
 
@@ -116,5 +118,13 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.model.load_model()
 
     def onPlayMotion(self, group, no):
-        self.model.model.StartMotion(group, no, live2d.MotionPriority.FORCE.value)
-
+        if self.config.visible.value:
+            self.model.start_motion(group, no, live2d.MotionPriority.FORCE.value)
+        else:
+            Flyout.create(
+                title="播放动作",
+                content="角色未显示，无法播放动作",
+                target=self.settings,
+                parent=self.settings,
+                isClosable=True
+            )

@@ -20,6 +20,3 @@ class AppSettings(AppSettingsDesign):
     def setup(self, callbackSet: CallBackSet):
         self.callbackSet = callbackSet
 
-    def SetVolume(self):
-        # todo:
-        pass

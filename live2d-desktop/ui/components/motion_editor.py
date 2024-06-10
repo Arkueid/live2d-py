@@ -1,5 +1,5 @@
 from ui.components.design.motion_editor_design import MotionEditorDesign
-from utils.model3json import MotionGroups, Model3Json
+from utils.model3json import Model3Json
 
 
 class MotionEditor(MotionEditorDesign):

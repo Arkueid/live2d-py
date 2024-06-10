@@ -5,12 +5,11 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QTreeWidgetItem, QFormLayout, QSplitter, QVBoxLayout, QFileDialog
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 from ui.components.dialogs import InputDialog
 from utils.model3json import MotionGroups, Model3Json, Motion, MotionGroup
 
 from qfluentwidgets import TreeWidget, TextEdit, BodyLabel, RoundMenu, Dialog, \
-    FluentIcon, Action, SplitPushButton, CheckableMenu
+    FluentIcon, Action, SplitPushButton
 
 
 class MotionEditorDesign(QWidget):

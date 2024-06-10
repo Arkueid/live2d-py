@@ -4,7 +4,7 @@
         "drawX": 0.0,
         "drawY": 0.0,
         "lip_sync": 1.0,
-        "name": "Hiyori",
+        "name": "Haru",
         "motion_interval": 10,
         "resource_dir": "Resources",
         "scale": 1.0
@@ -17,8 +17,8 @@
     "scene": {
         "fps": 30,
         "height": 500,
-        "lastX": 0,
-        "lastY": 0,
+        "lastX": 1632,
+        "lastY": 309,
         "stay_on_top": false,
         "visible": true,
         "width": 400

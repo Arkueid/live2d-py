@@ -116,8 +116,8 @@ class Scene(QOpenGLWidget):
     def mouseMoveEvent(self, event):
         if self.config.enable and event.buttons() & Qt.MouseButton.LeftButton:
             self.move(event.globalX() - self.lastX, event.globalY() - self.lastY)
-            self.config.lastX = self.x()
-            self.config.lastY = self.y()
+            self.config.lastX.value = self.x()
+            self.config.lastY.value = self.y()
 
     def setWidth(self, width: int):
         self.resize(width, self.height())

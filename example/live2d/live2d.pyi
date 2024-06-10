@@ -94,7 +94,7 @@ class LAppModel:
         """
         pass
     
-    def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onStartMotionHandler=None, onFinishedMotionHandler=None) -> None:
+    def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         """
         Start a specific motion for the model.
         
@@ -105,7 +105,7 @@ class LAppModel:
         """
         pass
     
-    def StartRandomMotion(self, group: str | Any, priority: int | Any, onStartMotionHandler=None, onFinishedMotionHandler=None) -> None:
+    def StartRandomMotion(self, group: str | Any, priority: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         """
         Start a random motion from a specified group.
         
@@ -149,7 +149,7 @@ class LAppModel:
         """
         pass
 
-    def Touch(self, x: int | Any, y: int | Any, onStartMotionHandler=None, onFinishedMotionHandler=None) -> None:
+    def Touch(self, x: int | Any, y: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y
