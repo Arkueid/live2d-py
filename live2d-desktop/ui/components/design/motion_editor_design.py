@@ -19,8 +19,8 @@ class MotionEditorDesign(QWidget):
 
     def __init__(self, model3Json: Model3Json):
         super().__init__()
-        self.data = model3Json.motion_groups()
-        self.model_dir = model3Json.src_dir()
+        self.data = None
+        self.model_dir = None
 
         self.setMinimumHeight(250)
 
@@ -29,7 +29,9 @@ class MotionEditorDesign(QWidget):
 
         self.tree = TreeWidget()
         self.tree.setHeaderHidden(True)
-        self.populate_tree()
+
+        self.populate_tree(model3Json)
+
         self.tree.itemClicked.connect(self.on_item_clicked)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.open_menu)
@@ -48,7 +50,11 @@ class MotionEditorDesign(QWidget):
 
         splitter.setSizes([300, 600])
 
-    def populate_tree(self):
+    def populate_tree(self, data: Model3Json=None):
+        if data is not None:
+            self.data = data.motion_groups()
+            self.model_dir = data.src_dir()
+        
         self.tree.clear()
         for category, motions in self.data:
             category_item = QTreeWidgetItem(self.tree, [category])

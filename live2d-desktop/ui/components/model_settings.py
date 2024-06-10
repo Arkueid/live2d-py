@@ -10,7 +10,7 @@ class ModelSettings(ModelSettingsDesign):
     class CallbackSet(ABC):
 
         @abstractmethod
-        def onChangeModel(self):
+        def onChangeModel(self, callback: callable):
             pass
 
         @abstractmethod
@@ -33,8 +33,11 @@ class ModelSettings(ModelSettingsDesign):
 
     def setup(self, callbackSet: CallbackSet):
         self.callBackSet = callbackSet
-        self.config.model_name.valueChanged.connect(self.callBackSet.onChangeModel)
+        self.config.model_name.valueChanged.connect(self.onChangeModel)
         self.btn_save.pressed.connect(self.callBackSet.onModel3JsonChanged)
         self.motionEditor.playMotionFunc = self.callBackSet.onPlayMotion
+    
+    def onChangeModel(self):
+        self.callBackSet.onChangeModel(self.motionEditor.populate_tree)
 
 

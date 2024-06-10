@@ -105,17 +105,22 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
     def exitApplication(self):
         self.exit()
 
-    def onChangeModel(self):
+    def onChangeModel(self, callback):
         self.model.load_model()
         self.config.model3Json.load(
             os.path.join(self.config.resource_dir.value,
                          self.config.model_name.value,
                          self.config.model_name.value + define.MODEL_JSON_SUFFIX)
         )
+        callback(self.config.model3Json)
 
     def onModel3JsonChanged(self):
         self.config.model3Json.save()
         self.model.load_model()
+        self.config.model3Json.load(
+            os.path.join(self.config.resource_dir.value, self.config.model_name.value,
+            self.config.model_name.value + define.MODEL_JSON_SUFFIX)
+        )
 
     def onPlayMotion(self, group, no):
         if self.config.visible.value:

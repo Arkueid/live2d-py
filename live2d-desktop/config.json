@@ -16,12 +16,12 @@
     },
     "scene": {
         "fps": 30,
-        "height": 500,
+        "height": 270,
         "lastX": 867,
         "lastY": 310,
         "stay_on_top": false,
         "visible": true,
-        "width": 400
+        "width": 200
     },
     "systray": {
         "icon": "Resources/icon.png"

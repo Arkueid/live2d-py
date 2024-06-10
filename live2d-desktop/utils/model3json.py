@@ -75,7 +75,7 @@ class MotionGroups:
     def __init__(self, d: dict):
         self.__meta = d
 
-    def __iter__(self) -> (str, MotionGroup):
+    def __iter__(self):
         for key, value in self.__meta.items():
             yield key, MotionGroup(value)
 
@@ -90,6 +90,9 @@ class MotionGroups:
 
     def meta(self):
         return self.__meta
+    
+    def set_meta(self, meta):
+        self.__meta = meta
 
 
 # todo

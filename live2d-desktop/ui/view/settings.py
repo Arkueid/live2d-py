@@ -22,7 +22,7 @@ class Settings(FluentWindow):
     def __init__(self, config: Configuration):
         super().__init__()
         self.resource_dir = config.resource_dir.value
-        self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.NoDropShadowWindowHint | Qt.WindowType.Popup)
         self.appSettings = AppSettings(config)
         self.modelSettings = ModelSettings(config)
         self.addSubInterface(self.appSettings, self.icon("app_settings.svg"), "应用设置")
@@ -46,6 +46,7 @@ class Settings(FluentWindow):
         self.move(size.width() // 2 - self.width() // 2, size.height() // 2 - self.height() // 2)
         self.setVisible(True)
         self.adjustSize()
+        self.setMicaEffectEnabled(True)
 
     def icon(self, path):
         return QIcon(os.path.join(self.resource_dir, path))

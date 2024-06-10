@@ -16,6 +16,7 @@ class FlyoutText(QWidget):
         super().__init__(parent)
         self.view = FlyoutView("", "d")
         self.config = config
+        self.fadeOutAni = None
 
         self.hBoxLayout = QHBoxLayout(self)
 
@@ -24,7 +25,7 @@ class FlyoutText(QWidget):
         self.setShadowEffect()
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
+        self.setWindowFlags(Qt.WindowType.Popup | Qt.WindowType.FramelessWindowHint |
                             Qt.WindowType.NoDropShadowWindowHint)
 
         self.pressed.connect(self.close)
