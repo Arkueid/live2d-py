@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide2.QtWidgets import QWidget, QVBoxLayout
 
 from qfluentwidgets import SingleDirectionScrollArea
 

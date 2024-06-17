@@ -10,7 +10,7 @@ public:
     void Initialize();
     void UpdateScreenToScene(int ww, int wh);
     void ScreenToScene(float *x, float *y);
-    Csm::CubismMatrix44 &GetProjection(LAppModel *model, int ww, int wh);
+    Csm::CubismMatrix44 &GetProjection(LAppModel *model);
     void SetOffset(float x, float y);
     void SetScale(float scale);
 private:
@@ -19,4 +19,6 @@ private:
     float _offsetX;
     float _offsetY;
     float _scale;
+    int _ww;
+    int _wh;
 };

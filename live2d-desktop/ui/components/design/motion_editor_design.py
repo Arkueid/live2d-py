@@ -1,10 +1,10 @@
 import os.path
 import sys
 
-from PySide6.QtWidgets import (
+from PySide2.QtWidgets import (
     QApplication, QWidget, QTreeWidgetItem, QFormLayout, QSplitter, QVBoxLayout, QFileDialog
 )
-from PySide6.QtCore import Qt
+from PySide2.QtCore import Qt
 from ui.components.dialogs import InputDialog
 from utils.model3json import MotionGroups, Model3Json, Motion, MotionGroup
 

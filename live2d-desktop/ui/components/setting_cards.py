@@ -1,6 +1,6 @@
 from typing import Union
-from PySide6.QtWidgets import QWidget, QHBoxLayout
-from PySide6.QtGui import QIcon
+from PySide2.QtWidgets import QWidget, QHBoxLayout
+from PySide2.QtGui import QIcon
 from qfluentwidgets import *
 
 

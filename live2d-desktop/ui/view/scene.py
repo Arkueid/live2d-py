@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from PySide6.QtCore import QTimerEvent, Qt
-from PySide6.QtGui import QCursor
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide2.QtCore import QTimerEvent, Qt
+from PySide2.QtGui import QCursor
+from PySide2.QtWidgets import QOpenGLWidget
 
 from app import live2d
 from config import Configuration
@@ -76,8 +76,10 @@ class Scene(QOpenGLWidget):
 
     def initializeGL(self) -> None:
         self.makeCurrent()
-        live2d.InitializeGlew()
-        live2d.SetGLProperties()
+        if live2d.LIVE2D_VERSION == 3:
+            live2d.glewInit()
+            live2d.setGLProperties()
+
         self.callBackSet.onInitialize()
 
     def resizeGL(self, w: int, h: int) -> None:

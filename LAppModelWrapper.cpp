@@ -62,16 +62,15 @@ static void PyLAppModel_dealloc(PyLAppModelObject *self)
 }
 
 // LAppModel->LoadAssets
-static PyObject *PyLAppModel_LoadAssets(PyLAppModelObject *self, PyObject *args)
+static PyObject *PyLAppModel_LoadModelJson(PyLAppModelObject *self, PyObject *args)
 {
-    const char *dir;
     const char *fileName;
-    if (!PyArg_ParseTuple(args, "ss", &dir, &fileName))
+    if (!PyArg_ParseTuple(args, "s", &fileName))
     {
         return NULL;
     }
 
-    self->model->LoadAssets(dir, fileName);
+    self->model->LoadAssets(fileName);
 
     Py_RETURN_NONE;
 }
@@ -95,15 +94,8 @@ static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
 {
     LAppPal::UpdateTime();
 
-    int winWidth, winHeight;
-
-    if (!PyArg_ParseTuple(args, "ii", &winWidth, &winHeight))
-    {
-        return NULL;
-    }
-
     self->model->Update();
-    self->model->Draw(self->matrixManager.GetProjection(self->model, winWidth, winHeight));
+    self->model->Draw(self->matrixManager.GetProjection(self->model));
     Py_RETURN_NONE;
 }
 
@@ -422,7 +414,7 @@ static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
 
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
-    {"LoadAssets", (PyCFunction)PyLAppModel_LoadAssets, METH_VARARGS, "Load model assets."},
+    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, "Load model assets."},
     {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, "Update matrix."},
     {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, "Update model buffer."},
     {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, "Start motion by its groupname and idx."},
@@ -481,7 +473,7 @@ static PyTypeObject PyLAppModelType = {
     PyType_GenericNew,                                 /* tp_new */
 };
 
-static PyObject *live2d_initialize_cubism()
+static PyObject *live2d_init()
 {
     _cubismOption.LogFunction = LAppPal::PrintLn;
 #ifdef LOG_MODE_RELEASE
@@ -494,7 +486,7 @@ static PyObject *live2d_initialize_cubism()
     Py_RETURN_NONE;
 }
 
-static PyObject *live2d_release_cubism()
+static PyObject *live2d_dispose()
 {
 
     mutex_g_model.lock();
@@ -517,7 +509,7 @@ static PyObject *live2d_release_cubism()
     Py_RETURN_NONE;
 }
 
-static PyObject *live2d_initialzie_glew()
+static PyObject *live2d_glew_init()
 {
     if (glewInit() != GLEW_OK)
     {
@@ -550,11 +542,11 @@ static PyObject *live2d_clear_buffer()
 
 // 定义模块的方法
 static PyMethodDef module_methods[] = {
-    {"InitializeCubism", (PyCFunction)live2d_initialize_cubism, METH_VARARGS, "initialize sdk"},
-    {"ReleaseCubism", (PyCFunction)live2d_release_cubism, METH_VARARGS, "release sdk"},
-    {"InitializeGlew", (PyCFunction)live2d_initialzie_glew, METH_VARARGS, "release sdk"},
-    {"SetGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, "configure gl"},
-    {"ClearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, "clear buffer"},
+    {"init", (PyCFunction)live2d_init, METH_VARARGS, "initialize sdk"},
+    {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, "release sdk"},
+    {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, "release sdk"},
+    {"setGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, "configure gl"},
+    {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, "clear buffer"},
     {NULL, NULL, 0, NULL} // 哨兵
 };
 

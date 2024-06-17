@@ -1,28 +1,33 @@
 import pygame
 from pygame.locals import *
+# import live2d.v3.debug as live2d
+# import live2d.v3 as live2d
+import live2d.v2 as live2d
 
-import live2d.debug as live2d
-# import live2d
 
 def draw():
     pygame.display.flip()
     pygame.time.wait(10)
 
+
 def s_call(group, no):
     print(group, no)
+
 
 def f_call():
     print("end")
 
+
 def main():
     pygame.init()
-    live2d.InitializeCubism()
+    live2d.init()
 
     display = (400,300)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
-    live2d.InitializeGlew()
-    live2d.SetGLProperties()
+    if live2d.LIVE2D_VERSION == 3:
+        live2d.glewInit()
+        live2d.setGLProperties()
 
     model = live2d.LAppModel()
 
@@ -31,7 +36,10 @@ def main():
     del model
 
     model = live2d.LAppModel()
-    model.LoadAssets("./live2d-desktop/Resources/Haru/", "Haru.model3.json")
+    if live2d.LIVE2D_VERSION == 3:
+        model.LoadModelJson("./Resources/haru/haru.model3.json")
+    else:
+        model.LoadModelJson("./Resources/kasumi2/model.json")
 
     model.Resize(*display)
 
@@ -82,12 +90,12 @@ def main():
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
-        live2d.ClearBuffer()
-        model.Update(*display)
+        live2d.clearBuffer()
+        model.Update()
         draw()
 
     # del model
-    live2d.ReleaseCubism()
+    live2d.dispose()
 
     del model2
 

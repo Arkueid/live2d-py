@@ -81,11 +81,10 @@ LAppModel::~LAppModel()
     delete (_modelSetting);
 }
 
-void LAppModel::LoadAssets(const csmChar *dir, const csmChar *fileName)
+void LAppModel::LoadAssets(const csmChar *fileName)
 {
-    _modelHomeDir = dir;
-    if (_modelHomeDir.GetRawString()[_modelHomeDir.GetLength() - 1] != '/')
-        _modelHomeDir += "/";
+    _modelHomeDir = fileName;
+    _modelHomeDir += "/../";
 
     if (_debugMode)
     {
@@ -93,7 +92,7 @@ void LAppModel::LoadAssets(const csmChar *dir, const csmChar *fileName)
     }
 
     csmSizeInt size;
-    const csmString path = _modelHomeDir + fileName;
+    const csmString path = fileName;
 
     csmByte *buffer = CreateBuffer(path.GetRawString(), &size);
     ICubismModelSetting *setting = new CubismModelSettingJson(buffer, size);

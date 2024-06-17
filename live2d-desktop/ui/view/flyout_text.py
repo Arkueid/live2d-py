@@ -1,8 +1,8 @@
 import sys
 
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation
-from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QApplication, QGraphicsDropShadowEffect
+from PySide2.QtCore import Qt, Signal, QPropertyAnimation
+from PySide2.QtGui import QColor
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QApplication, QGraphicsDropShadowEffect
 from qfluentwidgets import PushButton, FlyoutView, isDarkTheme
 
 from config import Configuration

@@ -1,10 +1,10 @@
 import os
 import time
 
-from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PySide6.QtCore import QUrl, QCoreApplication, Signal
+from PySide2.QtMultimedia import QMediaPlayer
+from PySide2.QtCore import QUrl, QCoreApplication
 
-from app import live2d, define
+from app import live2d, settings
 from config.configuration import Configuration
 from ui.view.flyout_text import FlyoutText
 from ui.view.scene import Scene
@@ -22,7 +22,7 @@ def find_model_dir(path: str) -> list[str]:
         if not os.path.isdir(dirName):
             continue
 
-        modelJson = os.path.join(dirName, i + define.MODEL_JSON_SUFFIX)
+        modelJson = os.path.join(dirName, i + settings.MODEL_JSON_SUFFIX)
         if os.path.exists(modelJson):
             ls.append(i)
     return ls
@@ -37,8 +37,9 @@ class Model(Scene.CallBackSet):
     def onUpdate(self, ww: int, wh: int):
         self.model.SetScale(self.config.scale.value)
         self.model.SetOffset(self.config.drawX.value, self.config.drawY.value)
-        live2d.ClearBuffer()
-        self.model.Update(ww, wh)
+        
+        live2d.clearBuffer()
+        self.model.Update()
 
     def onResize(self, ww: int, wh: int):
         self.model.Resize(ww, wh)
@@ -61,7 +62,6 @@ class Model(Scene.CallBackSet):
     soundFinished: bool
     initialize: bool
     audioPlayer: QMediaPlayer
-    audioOutput: QAudioOutput
     flyoutText: FlyoutText
 
     def __init__(self):
@@ -69,16 +69,14 @@ class Model(Scene.CallBackSet):
         self.motionFinished = True
         self.soundFinished = True
         self.initialize = False
-        self.audioPlayer = QMediaPlayer()
-        self.audioOutput = QAudioOutput()
-        self.audioPlayer.setAudioOutput(self.audioOutput)
-        self.audioPlayer.playbackStateChanged.connect(self.set_sound_finished)
+        self.audioPlayer: QMediaPlayer = QMediaPlayer()
+        self.audioPlayer.mediaStatusChanged.connect(self.set_sound_finished)
 
     def setup(self, config: Configuration, flyoutText: FlyoutText):
         self.config = config
-        self.audioOutput.setVolume(self.config.volume.value / 100)
+        self.audioPlayer.setVolume(self.config.volume.value / 100)
         self.flyoutText = flyoutText
-        self.config.volume.valueChanged.connect(lambda: self.audioOutput.setVolume(self.config.volume.value / 100))
+        self.config.volume.valueChanged.connect(lambda: self.audioPlayer.setVolume(self.config.volume.value / 100))
 
     def load_model(self):
         if not self.initialize:
@@ -88,9 +86,12 @@ class Model(Scene.CallBackSet):
             del self.model
 
         self.model = live2d.LAppModel()
-        self.model.LoadAssets(
-            os.path.join(self.config.resource_dir.value, self.config.model_name.value),
-            self.config.model_name.value + define.MODEL_JSON_SUFFIX)
+        if live2d.LIVE2D_VERSION == 2:
+            self.model.LoadModelJson("./Resources/kasumi2/model.json")
+        else:
+            self.model.LoadModelJson(
+                os.path.join(self.config.resource_dir.value, self.config.model_name.value, self.config.model_name.value + settings.MODEL_JSON_SUFFIX)
+            )
 
         self.motionFinished = True
 
@@ -109,7 +110,7 @@ class Model(Scene.CallBackSet):
         self.set_text_finished()
 
     def set_sound_finished(self, state):
-        if state == QMediaPlayer.PlaybackState.StoppedState:
+        if state == QMediaPlayer.StoppedState:
             self.soundFinished = True
             info = time.strftime("[INFO  %Y-%m-%d %H:%M:%S] sound finished", time.localtime(time.time()))
             print(info)
@@ -132,7 +133,7 @@ class Model(Scene.CallBackSet):
             self.flyoutText.showText(text)
 
     def playAudio(self, group, no):
-        if self.audioPlayer.isPlaying():
+        if self.audioPlayer.state() == QMediaPlayer.PlayingState:
             self.audioPlayer.stop()
             QCoreApplication.processEvents()
         file = self.config.model3Json.motion_groups().group(group).motion(no).sound()
@@ -142,6 +143,6 @@ class Model(Scene.CallBackSet):
         if not os.path.exists(path):
             return
         self.soundFinished = False
-        self.audioPlayer.setSource(QUrl.fromLocalFile(path))
+        self.audioPlayer.setMedia(QUrl.fromLocalFile(path))
         self.audioPlayer.play()
         print(f"[INFO  {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}] play audio: {path}")

@@ -1,2 +1,2 @@
-pyside6
-pyside6-fluent-widgets[full]
+pyside2
+pyside2-fluent-widgets

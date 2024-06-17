@@ -1,8 +1,8 @@
 import os
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QApplication
 
 from config import Configuration
 from ui.components.api_settings import ApiSettings
@@ -22,7 +22,7 @@ class Settings(FluentWindow):
     def __init__(self, config: Configuration):
         super().__init__()
         self.resource_dir = config.resource_dir.value
-        self.setWindowFlags(Qt.WindowType.NoDropShadowWindowHint | Qt.WindowType.Popup)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
         self.appSettings = AppSettings(config)
         self.modelSettings = ModelSettings(config)
         self.addSubInterface(self.appSettings, self.icon("app_settings.svg"), "应用设置")

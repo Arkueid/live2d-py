@@ -1,12 +1,11 @@
 import os
 import sys
 
-from PySide6.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication
 from qfluentwidgets import qconfig, Flyout
 
 import app.settings as settings
-from app import define
-from app import live2d
+from app import live2d, settings
 from config.configuration import Configuration
 from ui.components.app_settings import AppSettings
 from ui.components.model_settings import ModelSettings
@@ -44,7 +43,7 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.config.model3Json.load(os.path.join(
             self.config.resource_dir.value,
             self.config.model_name.value,
-            self.config.model_name.value + define.MODEL_JSON_SUFFIX
+            self.config.model_name.value + settings.MODEL_JSON_SUFFIX
         ))
 
     def save_config(self) -> None:
@@ -55,13 +54,13 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.systray.start()
         self.scene.start()
 
-        self.app.exec()
+        self.app.exec_()
 
     def exit(self) -> None:
         self.systray.hide()
         self.scene.hide()
 
-        live2d.ReleaseCubism()
+        live2d.dispose()
 
         self.app.exit()
 
@@ -72,8 +71,8 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.model = Model()
         self.flyoutText = FlyoutText(self.config, self.scene)
 
-        live2d.InitializeCubism()
-
+        live2d.init()
+        
         self.systray.setup(self.config, self)
         self.model.setup(self.config, self.flyoutText)
         self.scene.setup(self.config, self.model)
@@ -110,8 +109,9 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.config.model3Json.load(
             os.path.join(self.config.resource_dir.value,
                          self.config.model_name.value,
-                         self.config.model_name.value + define.MODEL_JSON_SUFFIX)
+                         self.config.model_name.value + settings.MODEL_JSON_SUFFIX)
         )
+        self.model.onResize(self.config.width.value, self.config.height.value)
         callback(self.config.model3Json)
 
     def onModel3JsonChanged(self):
@@ -119,7 +119,7 @@ class Application(Systray.CallbackSet, AppSettings.CallBackSet, ModelSettings.Ca
         self.model.load_model()
         self.config.model3Json.load(
             os.path.join(self.config.resource_dir.value, self.config.model_name.value,
-            self.config.model_name.value + define.MODEL_JSON_SUFFIX)
+            self.config.model_name.value + settings.MODEL_JSON_SUFFIX)
         )
 
     def onPlayMotion(self, group, no):

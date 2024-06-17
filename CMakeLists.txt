@@ -4,6 +4,8 @@ project(LAppModelWrapper)
 
 set(LIB_NAME LAppModelWrapper)
 
+# set(CMAKE_BUILD_TYPE "Release")
+
 set(CMAKE_BUILD_TYPE "Debug")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -32,7 +34,7 @@ set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
 # 寻找Python
-list(APPEND CMAKE_PREFIX_PATH D:/Miniconda)
+list(APPEND CMAKE_PREFIX_PATH D:/pydk)
 
 find_package(Python REQUIRED COMPONENTS Development)
 
@@ -60,13 +62,13 @@ add_custom_command(
   POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/${OUTPUT_NAME}
+      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d/
 )
 elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
 add_custom_command(
@@ -74,30 +76,26 @@ add_custom_command(
   POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/live2d.pyi ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug
+      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/live2d.pyi ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/debug/live2d.pyi
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/__init__.py ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug
+      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/__init__.py ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/debug/__init__.py
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/debug/${OUTPUT_NAME}
-  # COMMAND
-  #   ${CMAKE_COMMAND} -E
-  #     copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
-  # COMMAND
-  #   ${CMAKE_COMMAND} -E
-  #     copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d
+      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/debug/${OUTPUT_NAME}
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d/
 )
 endif()
 
-# add_custom_command(
-#   TARGET ${LIB_NAME}
-#   POST_BUILD
-#   COMMAND
-#     ${CMAKE_COMMAND} -E
-#       copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
-# )
-
-# add_executable(test main.cpp)
-# add_subdirectory(thirdParty/glfw)
-# target_link_libraries(test PRIVATE Python::Python live2d glfw)
+add_custom_command(
+  TARGET ${LIB_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E
+      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
+)
