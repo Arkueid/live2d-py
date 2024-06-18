@@ -301,4 +301,4 @@ code live2d-py
 7. 使用，将 `package` 目录下的 `live2d` 文件夹作为 `Python` 模块集成即可。
 
 ### 对于 2.0 版本
-克隆或下载本仓库 `live2d-v2` 分支，使用 **Visual Studio 2022** 打开，选择 `Release` 配置和 `Win32` 平台进行构建和测试。  
+克隆或下载本仓库 [v2](https://github.com/Arkueid/live2d-py/tree/v2) 分支，使用 **Visual Studio 2022** 打开，选择 `Release` 配置和 `Win32` 平台进行构建和测试。  
