@@ -1,2 +1,0 @@
-pyside2
-pyside2-fluent-widgets

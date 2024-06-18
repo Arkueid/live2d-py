@@ -2,11 +2,17 @@ cmake_minimum_required(VERSION 3.13)
 
 project(LAppModelWrapper)
 
+set(CMAKE_BUILD_TYPE "Release")
+set(ENABLE_LOG TRUE)
+
+message("${CMAKE_BUILD_TYPE}")
+
 set(LIB_NAME LAppModelWrapper)
+set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
-# set(CMAKE_BUILD_TYPE "Release")
-
-set(CMAKE_BUILD_TYPE "Debug")
+# 寻找Python
+set(CMAKE_PREFIX_PATH D:/pydk)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -21,22 +27,17 @@ else()
 endif()  
 
 # Post build commands
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-message("Runtime log: off")
-# 关闭 log 输出
-add_compile_definitions(LOG_MODE_RELEASE)
-elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
+if(ENABLE_LOG)
 message("Runtime log: on")
+# 关闭 log 输出
+else()
+message("Runtime log: off")
+add_compile_definitions(LOG_MODE_RELEASE)
 endif()
 
-set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-
-set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
-
-# 寻找Python
-list(APPEND CMAKE_PREFIX_PATH D:/pydk)
-
 find_package(Python REQUIRED COMPONENTS Development)
+
+message("Python_LIBRARIES " ${Python_LIBRARIES})
 
 add_subdirectory(Main)
 
@@ -54,9 +55,6 @@ else(CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 
 # Post build commands
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-# 关闭 log 输出
-add_compile_definitions(LOG_MODE_RELEASE)
 add_custom_command(
   TARGET ${LIB_NAME}
   POST_BUILD
@@ -70,27 +68,6 @@ add_custom_command(
     ${CMAKE_COMMAND} -E
       copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d/
 )
-elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
-add_custom_command(
-  TARGET ${LIB_NAME}
-  POST_BUILD
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/live2d.pyi ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/debug/live2d.pyi
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/__init__.py ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/debug/__init__.py
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/debug/${OUTPUT_NAME}
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d/
-)
-endif()
 
 add_custom_command(
   TARGET ${LIB_NAME}

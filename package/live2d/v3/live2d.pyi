@@ -62,6 +62,9 @@ def clearBuffer() -> None:
     pass
 
 
+def setLogEnable(enable: bool):
+    pass
+
 class LAppModel:
     """
     The LAppModel class provides a structured way to interact with Live2D models, 

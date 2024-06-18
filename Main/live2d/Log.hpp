@@ -1,5 +1,6 @@
 #pragma once
 
+void setLogEnable(bool on);
 void _Info(const char *fmt, ...);
 void _InfoF(const char *file, const char *fmt, ...);
 void _Error(const char *fmt, ...);

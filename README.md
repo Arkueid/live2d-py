@@ -37,6 +37,7 @@ live2d-py
 ├── Framework  # Cubism Live2D Framework 源码，详情见 Cubism 官方
 ├── LAppModelWrapper.cpp  # 使用 CPython API 对 live2d C++ 进行的封装，用于生成 Python 可直接调用的动态库
 ├── live2d-desktop  # 基于 live2d-py 的 Python 桌面应用
+├── live2d-py-v2  # 适用于 v2 版本的 MSVC 项目
 ├── Main  # Cubism Live2D LAppModel 相关代码，用于加载 Live2D 模型，详情见 Cubism Live2D Native Sample
 ├── package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
 ├── README.md 
@@ -46,7 +47,7 @@ live2d-py
 
 ## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览
 
-见 [live2d-desktop](./live2d-desktop/)
+见 [live2d-desktop](https://github.com/Arkueid/Live2DMascot)
 
 ![alt](./docs/1.png)
 
@@ -56,9 +57,11 @@ live2d-py
 
 
 ## 使用说明
-使用接口见 [package/live2d/v3/live2d.pyi](./package/live2d/live2d.pyi)。
+Cubism 2.0 模型使用接口见 [package/live2d/v2/live2d.pyi](./package/live2d/v2/live2d.pyi)。
 
-详细使用示例见 [example](./example/) 文件夹。
+Cubism 3.0（含4.0） 模型使用接口见 [package/live2d/v3/live2d.pyi](./package/live2d/v3/live2d.pyi)。
+
+具体与图形库结合的用例示例见 [example](./example/) 文件夹。
 
 文件：
 * `live2d.so` 和 `live2d.pyd`：封装了 c++ 类的动态库，供 python 调用。在 `import live2d.vX as live2d` 时，解释器在文件目录中寻找 `live2d.so`/`live2d.pyd` 并载入内存。其中 `live2d.pyd` 在 windows 下使用，`live2d.so` 在 linux 下使用。
@@ -78,10 +81,6 @@ live2d-desktop\live2d
 |   `-- live2d.pyi
 `-- v3
     |-- __init__.py
-    |-- debug
-    |   |-- __init__.py
-    |   |-- live2d.pyd
-    |   `-- live2d.pyi
     |-- live2d.pyd
     |-- live2d.pyi
     `-- live2d.so
@@ -92,40 +91,34 @@ live2d-desktop\live2d
 在 `package` 目录下执行 shell 命令： `python setup.py sdist`，生成 `live2d-py-0.1.tar.gz` 文件。
 
 作为库安装到 Python 环境中：
-```
+```shell
 pip install live2d-py-0.1.tar.gz
 ```
 
 卸载
-```
+```shell
 pip uninstall live2d-py
 ```
 
 ### 绘制流程
-1. 导入 live2d
+#### 1. 导入 live2d
 
-#### 导入适用于 3.0 版本的 live2d 模型 
-包含日志输出：
-```python
-import live2d.v3.debug as live2d
-```
-
-不包含日志输出
+##### 导入适用于 3.0 版本的 live2d 库
 ```python
 import live2d.v3 as live2d
 ```
 
-#### 导入适用于 2.0 版本的 live2d 模型 
+##### 导入适用于 2.0 版本的 live2d 库 
 ```python
 import live2d.v2 as live2d
 ```
 
-2. 初始化 Cubism Framework
+#### 2. 在加载和使用 live2d 模型前，应初始化 live2d 模块
 ```python
 live2d.init()
 ```
 
-3. 在对应的窗口库中设置 OpenGL 上下文后，初始化 Glew 和 OpenGL 绘制选项。不同的窗口库方法不一样，以 Pygame 为例：
+#### 3. （3.0及以上版本）在对应的窗口库中设置 OpenGL 上下文后，初始化 Glew 和 OpenGL 绘制选项。不同的窗口库方法不一样，以 Pygame 为例：
 ```python
 display = (800,600)
 pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
@@ -135,7 +128,7 @@ live2d.glewInit()
 live2d.setGLProperties()
 ```
 
-4. 在上述步骤全部完成后，方可创建 `LAppModel` 并加载本地模型。路径如下：
+#### 4. 在上述步骤全部完成后，方可创建 `LAppModel` 并加载本地模型。路径如下：
 ```
 Resources\Haru
 |-- Haru.2048
@@ -156,31 +149,36 @@ model = live2d.LAppModel()
 model.LoadModelJson("./Resources/Haru/Haru.model3.json")
 ```
 
-5. 窗口大小变化时调用 `LAppModel` 的 `Resize` 方法。**初次加载时，即使没有改变大小也应设置一次大小，否则点击位置会错位。**
+#### 5. 窗口大小变化时调用 `LAppModel` 的 `Resize` 方法。**初次加载时，即使没有改变大小也应设置一次大小，否则点击位置会错位。**
 ```python
 model.Resize(800, 600)
 ```
 
-6. 鼠标点击时调用 `LAppModel` 的 `Touch` 方法。传入的参数为鼠标点击位置在窗口坐标系的坐标，即以绘图窗口左上角为原点，右和下为正方向的坐标系。
+#### 6. 鼠标点击时调用 `LAppModel` 的 `Touch` 方法。传入的参数为鼠标点击位置在窗口坐标系的坐标，即以绘图窗口左上角为原点，右和下为正方向的坐标系。
 ```python
 x, y = pygame.mouse.get_pos()
 model.Touch(x, y)
 ```
 
-7. 每帧绘制图像时，先清空画布，使用 `live2d.ClearBuffer`，再调用 `LAppModel` 的 `Update` 函数。在使用具体的窗口库时，需要调用缓冲刷新函数。
+#### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数。在使用具体的窗口库时，需要调用缓冲刷新函数。
 ```python
 live2d.clearBuffer()
 model.Update()
 ```
 
-8. 不再使用 live2d 模块，则应调用 `live2d.dispose` 释放内存。
+#### 8. 不再使用 live2d 模块，则应调用 `live2d.dispose` 释放内存。
 ```python
 live2d.dispose()
 ```
 
+#### 9. 关闭 live2d 运行时的日志输出。
+```python
+live2d.setLogEnable(False)
+```
+
 ### PySide2 示例：
 
-[main_pyside2.py](./example/main_pyside6.py)
+[main_pyside2.py](./example/main_pyside2.py)
 
 ```python
 from PySide2.QtGui import QMouseEvent
@@ -267,3 +265,40 @@ if __name__ == "__main__":
 
     live2d.dispose()
 ```
+
+## 编译
+### 对于 3.0 版本：
+
+1. 克隆本仓库到本地文件夹 `live2d-py`
+```shell
+git clone git@github.com:Arkueid/live2d-py.git live2d-py
+```
+2. 安装 **CMake** 、**Visual Studio Code** 和 **Visual Studio 2022 Release -x86** 
+
+3. 用 **Visual Studio Code** 打开本仓库
+```shell
+code live2d-py
+```
+
+4. **Visual Studio Code** 安装插件：`C/C++`、`CMake`、`CMake Tools`
+
+![插件](./docs/vscode-plugins.png)
+
+5. 在 **Visual Studio Code** 中按下 `Ctrl + Shift + P` 打开选项面板，选择 `CMake: Configure`
+
+![配置CMake](./docs/configure-cmake.png)
+
+6. 选择构建工具 `Visual Studio Community 20XX Release - x86`，当配置完毕，生成 `build` 文件夹后，点击下方工具栏的 `build` 选项生成 `live2d-py` 库，输出文件为 `package/live2d/live2d.pyd`。
+
+![选择构建工具](./docs/select-builder.png)
+
+![配置完毕](./docs/config-done.png)
+
+构建目标选择 `LAppModelWrapper`，点击 `build` 编译生成。
+
+![build](./docs/build.png)
+
+7. 使用，将 `package` 目录下的 `live2d` 文件夹作为 `Python` 模块集成即可。
+
+### 对于 2.0 版本
+克隆或下载本仓库 `live2d-v2` 分支，使用 **Visual Studio 2022** 打开，选择 `Release` 配置和 `Win32` 平台进行构建和测试。  

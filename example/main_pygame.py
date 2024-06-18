@@ -1,9 +1,9 @@
 import pygame
 from pygame.locals import *
-# import live2d.v3.debug as live2d
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 
+live2d.setLogEnable(True)
 
 def draw():
     pygame.display.flip()

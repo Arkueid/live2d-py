@@ -8,13 +8,7 @@
 #include <MatrixManager.hpp>
 #include <Default.hpp>
 
-#ifdef _DEBUG
-#undef _DEBUG
 #include <Python.h>
-#define _DEBUG
-#else
-#include <Python.h>
-#endif
 
 static LAppAllocator _cubismAllocator;
 static Csm::CubismFramework::Option _cubismOption;
@@ -540,6 +534,20 @@ static PyObject *live2d_clear_buffer()
     Py_RETURN_NONE;
 }
 
+static PyObject* live2d_set_log_enable(PyObject* self, PyObject* args)
+{
+    bool enable;
+    if (!PyArg_ParseTuple(args, "p", &enable))
+    {
+        PyErr_SetString(PyExc_TypeError, "invalid param");
+        return NULL;
+    }
+
+    setLogEnable(enable);
+
+    Py_RETURN_NONE;
+}
+
 // 定义模块的方法
 static PyMethodDef module_methods[] = {
     {"init", (PyCFunction)live2d_init, METH_VARARGS, "initialize sdk"},
@@ -547,6 +555,7 @@ static PyMethodDef module_methods[] = {
     {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, "release sdk"},
     {"setGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, "configure gl"},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, "clear buffer"},
+    {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, "clear buffer"},
     {NULL, NULL, 0, NULL} // 哨兵
 };
 

@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdarg.h>
 #include <string.h>
+#include <mutex>
 
 #define LOG_INFO_CONSOLE_FORMAT "[INFO  %s] %s\n"
 #define LOG_ERROR_CONSOLE_FORMAT "\033[31m[ERROR %s] %s\033[0m\n"
@@ -21,6 +22,14 @@
 #define MAX_LEVEL_HEADER_SIZE 32
 #define MAX_BUFSIZE 1024
 #define MAX_MSG_SIZE (MAX_BUFSIZE - MAX_LEVEL_HEADER_SIZE)
+
+
+static bool enable = true;
+
+void setLogEnable(bool on)
+{
+    enable = on;
+}
 
 void current_time(char *buf)
 {
@@ -73,6 +82,7 @@ static void WriteFile(const char *level_fmt, const char *file, ...)
 
 void _Info(const char *fmt, ...)
 {
+    if (!enable) return;
     char time_buf[TIME_BUFSIZE];
     current_time(time_buf);
 
@@ -88,6 +98,7 @@ void _Info(const char *fmt, ...)
 
 void _InfoF(const char *file, const char *fmt, ...)
 {
+    if (!enable) return;
     char time_buf[TIME_BUFSIZE];
     current_time(time_buf);
     va_list args;
@@ -102,6 +113,7 @@ void _InfoF(const char *file, const char *fmt, ...)
 
 void _Error(const char *fmt, ...)
 {
+    if (!enable) return;
     char time_buf[TIME_BUFSIZE];
     current_time(time_buf);
     va_list args;
@@ -116,6 +128,7 @@ void _Error(const char *fmt, ...)
 
 void _ErrorF(const char *file, const char *fmt, ...)
 {
+    if (!enable) return;
     char time_buf[TIME_BUFSIZE];
     current_time(time_buf);
     va_list args;
@@ -130,6 +143,7 @@ void _ErrorF(const char *file, const char *fmt, ...)
 
 void _Debug(const char *fmt, ...)
 {
+    if (!enable) return;
     char time_buf[TIME_BUFSIZE];
     current_time(time_buf);
     va_list args;
@@ -144,6 +158,7 @@ void _Debug(const char *fmt, ...)
 
 void _DebugF(const char *file, const char *fmt, ...)
 {
+    if (!enable) return;
     char time_buf[TIME_BUFSIZE];
     current_time(time_buf);
     va_list args;
