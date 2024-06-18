@@ -14,3 +14,4 @@ static
 *.log
 *.pdb
 live2d-desktop
+config.json

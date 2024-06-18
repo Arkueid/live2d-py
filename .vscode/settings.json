@@ -3,8 +3,5 @@
     "C_Cpp.errorSquiggles": "enabled",
     "files.associations": {
         "*.tpp": "cpp"
-    },
-    "cmake.configureSettings": {
-        "CMAKE_BUILD_TYPE": "${buildType}"
     }
 }
