@@ -69,8 +69,6 @@ Cubism 3.0（含4.0） 模型使用接口见 [package/live2d/v3/live2d.pyi](./pa
 
 ### 导入库
 
-#### 无 pip 安装
-
 将 `package/live2d` 文件夹放置在使用者 `main.py` 同目录下，在 `main.py` 中使用如 `import live2d.v2`。
 
 ```
@@ -84,20 +82,6 @@ live2d-desktop\live2d
     |-- live2d.pyd
     |-- live2d.pyi
     `-- live2d.so
-```
-
-#### pip 安装
-
-在 `package` 目录下执行 shell 命令： `python setup.py sdist`，生成 `live2d-py-0.1.tar.gz` 文件。
-
-作为库安装到 Python 环境中：
-```shell
-pip install live2d-py-0.1.tar.gz
-```
-
-卸载
-```shell
-pip uninstall live2d-py
 ```
 
 ### 绘制流程
@@ -280,15 +264,52 @@ git clone git@github.com:Arkueid/live2d-py.git live2d-py
 code live2d-py
 ```
 
-4. **Visual Studio Code** 安装插件：`C/C++`、`CMake`、`CMake Tools`
+4. 修改 `LAppModelWrapper.cpp` 同目录下的 `CMakeLists.txt`
+
+将下面 `D:/pydk` 修改为对应版本的 Python 安装目录。
+
+```cmake
+# 寻找Python
+set(CMAKE_PREFIX_PATH D:/pydk)
+```
+
+`d:/pydk` 的结构如下：
+```
+d:\pydk
+|-- DLLs
+|-- LICENSE.txt
+|-- Lib
+|-- NEWS.txt
+|-- Scripts
+|-- Tools
+|-- include
+|-- libs
+|-- python.exe
+|-- python.pdb
+|-- python3.dll
+|-- python310.dll
+|-- python310.pdb
+|-- python310_d.dll
+|-- python310_d.pdb
+|-- python3_d.dll
+|-- python_d.exe
+|-- python_d.pdb
+|-- pythonw.exe
+|-- pythonw.pdb
+|-- pythonw_d.exe
+|-- pythonw_d.pdb
+`-- vcruntime140.dll
+```
+
+5. **Visual Studio Code** 安装插件：`C/C++`、`CMake`、`CMake Tools`
 
 ![插件](./docs/vscode-plugins.png)
 
-5. 在 **Visual Studio Code** 中按下 `Ctrl + Shift + P` 打开选项面板，选择 `CMake: Configure`
+6. 在 **Visual Studio Code** 中按下 `Ctrl + Shift + P` 打开选项面板，选择 `CMake: Configure`
 
 ![配置CMake](./docs/configure-cmake.png)
 
-6. 选择构建工具 `Visual Studio Community 20XX Release - x86`，当配置完毕，生成 `build` 文件夹后，点击下方工具栏的 `build` 选项生成 `live2d-py` 库，输出文件为 `package/live2d/live2d.pyd`。
+7. 选择构建工具 `Visual Studio Community 20XX Release - x86`，当配置完毕，生成 `build` 文件夹后，点击下方工具栏的 `build` 选项生成 `live2d-py` 库，输出文件为 `package/live2d/live2d.pyd`。
 
 ![选择构建工具](./docs/select-builder.png)
 
@@ -298,7 +319,7 @@ code live2d-py
 
 ![build](./docs/build.png)
 
-7. 使用，将 `package` 目录下的 `live2d` 文件夹作为 `Python` 模块集成即可。
+8. 使用，将 `package` 目录下的 `live2d` 文件夹作为 `Python` 模块集成即可。
 
 ### 对于 2.0 版本
 克隆或下载本仓库 [v2](https://github.com/Arkueid/live2d-py/tree/v2) 分支，使用 **Visual Studio 2022** 打开，选择 `Release` 配置和 `Win32` 平台进行构建和测试。  

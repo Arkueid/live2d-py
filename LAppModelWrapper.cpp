@@ -17,42 +17,44 @@ struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
     MatrixManager matrixManager;
-    time_t key;
+    size_t key;
 };
 
-static std::mutex mutex_g_model;
 static std::unordered_map<size_t, LAppModel *> g_model;
 
 // LAppModel()
 static int PyLAppModel_init(PyLAppModelObject *self, PyObject *args, PyObject *kwds)
 {
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
 
     self->model = new LAppModel();
-
-    mutex_g_model.lock();
     self->key = (size_t)self->model;
     g_model[self->key] = self->model;
-    mutex_g_model.unlock();
 
     self->matrixManager.Initialize();
+    Info("[M] allocate model: %p", self->key);
 
+    PyGILState_Release(gstate);
     return 0;
 }
 
 static void PyLAppModel_dealloc(PyLAppModelObject *self)
 {
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
 
-    mutex_g_model.lock();
     if (g_model.find(self->key) != g_model.end())
     {
         g_model.erase(self->key);
         delete self->model;
+        Info("[M] release: LAppModel(at=%p)", self->model);
     }
-    mutex_g_model.unlock();
 
-    Info("deallocate: PyLAppModelObject(at=%ld)", self);
+    Info("[M] deallocate: PyLAppModelObject(at=%p)", self);
 
     Py_TYPE(self)->tp_free((PyObject *)self);
+    PyGILState_Release(gstate);
 }
 
 // LAppModel->LoadAssets
@@ -482,24 +484,19 @@ static PyObject *live2d_init()
 
 static PyObject *live2d_dispose()
 {
-
-    mutex_g_model.lock();
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
 
     for (auto &pair : g_model)
     {
-
-        Info("release: LAppModel(at=%ld)", pair.second);
-
         delete pair.second;
-
-        break;
+        Info("[G] release: LAppModel(at=%p)", pair.second);
     }
 
     g_model.clear();
 
-    mutex_g_model.unlock();
-
     Csm::CubismFramework::Dispose();
+    PyGILState_Release(gstate);
     Py_RETURN_NONE;
 }
 

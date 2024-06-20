@@ -11,6 +11,8 @@ set(LIB_NAME LAppModelWrapper)
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
+set(CMAKE_CONFIGURATION_TYPES "Release")
+
 # 寻找Python
 set(CMAKE_PREFIX_PATH D:/pydk)
 
@@ -26,7 +28,6 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/static/${CMAKE_BUILD_TYPE})
 endif()  
 
-# Post build commands
 if(ENABLE_LOG)
 message("Runtime log: on")
 # 关闭 log 输出
@@ -42,7 +43,7 @@ message("Python_LIBRARIES " ${Python_LIBRARIES})
 add_subdirectory(Main)
 
 # 创建Python扩展模块
-add_library(LAppModelWrapper MODULE LAppModelWrapper.cpp)
+add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
 target_link_libraries(LAppModelWrapper PRIVATE Python::Python live2d)
 
 # Configure for Linux / Windows
@@ -61,18 +62,4 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E
       copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/example/live2d/
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/live2d/
-)
-
-add_custom_command(
-  TARGET ${LIB_NAME}
-  POST_BUILD
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/live2d-desktop/Resources
 )
