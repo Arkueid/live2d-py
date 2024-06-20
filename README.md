@@ -28,6 +28,11 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
 
+|`live2d-py`|支持的live2d模型|支持的Python版本|支持平台|
+|-|-|-|-|
+|`live2d.v2`|Cubism 2.0 及以上，不包括 3.0|仅 32 位，支持`Python 3.0` 及以上版本，但除 `Python 3.10.11` 外需要自行编译|Windows
+|`live2d.v3`|Cubism 3.0 及以上，包括 4.0|支持 `32` / `64` 位，支持`Python 3.0` 及以上版本，但除 `Python 3.10.11` 外需要自行编译|Windows、Linux
+
 ## 文件说明
 
 ```shell
@@ -38,8 +43,6 @@ live2d-py
 ├── example  # live2d-py 使用示例，包含结合 python 各种窗口库的使用方法
 ├── Framework  # Cubism Live2D Framework 源码，详情见 Cubism 官方
 ├── LAppModelWrapper.cpp  # 使用 CPython API 对 live2d C++ 进行的封装，用于生成 Python 可直接调用的动态库
-├── live2d-desktop  # 基于 live2d-py 的 Python 桌面应用
-├── live2d-py-v2  # 适用于 v2 版本的 MSVC 项目
 ├── Main  # Cubism Live2D LAppModel 相关代码，用于加载 Live2D 模型，详情见 Cubism Live2D Native Sample
 ├── package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
 ├── README.md 
@@ -63,7 +66,7 @@ Cubism 2.0 模型使用接口见 [package/live2d/v2/live2d.pyi](./package/live2d
 
 Cubism 3.0（含4.0） 模型使用接口见 [package/live2d/v3/live2d.pyi](./package/live2d/v3/live2d.pyi)。
 
-具体与图形库结合的用例示例见 [example](./example/) 文件夹。
+具体与图形库结合的用例示例见 [package](./package/) 文件夹。
 
 文件：
 * `live2d.so` 和 `live2d.pyd`：封装了 c++ 类的动态库，供 python 调用。在 `import live2d.vX as live2d` 时，解释器在文件目录中寻找 `live2d.so`/`live2d.pyd` 并载入内存。其中 `live2d.pyd` 在 windows 下使用，`live2d.so` 在 linux 下使用。
@@ -164,7 +167,7 @@ live2d.setLogEnable(False)
 
 ### PySide2 示例：
 
-[main_pyside2.py](./example/main_pyside2.py)
+[main_pyside2.py](./package/main_pyside2.py)
 
 ```python
 from PySide2.QtGui import QMouseEvent
