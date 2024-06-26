@@ -100,7 +100,8 @@ class LAppModel:
         :param group: The group name of the motion.
         :param no: The motion number within the group.
         :param priority: Priority of the motion. Higher priority motions can interrupt lower priority ones.
-        :param onFinishedMotionHandler: Optional callback function that gets called when the motion finishes.
+        :param onStartMotionHandler: Optional callback function that gets called when the motion starts.
+        :param onFinishMotionHandler: Optional callback function that gets called when the motion finishes.
         """
         pass
     

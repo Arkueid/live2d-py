@@ -17,19 +17,23 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 功能：
 * 加载模型
-* 鼠标点击触发动作
 * 鼠标拖拽视线
-
-本仓库中已编译好的版本支持 **Python 3.10.11 （win32）**。
-
-若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 编译。
-
-对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
+* 鼠标点击触发动作
+* 动作播放回调函数
 
 |`live2d-py`|支持的live2d模型|支持的Python版本|支持平台|
 |-|-|-|-|
 |`live2d.v2`|Cubism 2.0 及以上，不包括 3.0|仅 32 位，支持`Python 3.0` 及以上版本，但除 `Python 3.10.11` 外需要自行编译|Windows
-|`live2d.v3`|Cubism 3.0 及以上，包括 4.0|支持 `32` / `64` 位，支持`Python 3.0` 及以上版本，但除 `Python 3.10.11` 外需要自行编译|Windows、Linux
+|`live2d.v3`|Cubism 3.0 及以上，包括 4.0|支持 `32` / `64` 位，支持`Python 3.0` 及以上版本，但除 `Python 3.12` 外需要自行编译|Windows、Linux
+
+本仓库已发布的版本中：
+* v2 版本仅支持：**Python 3.10.11 (win32)**
+* v3 版本仅支持：**Python 3.12+ (win64)**
+
+
+若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 编译。
+
+对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
 
 ## 文件说明
 
@@ -136,15 +140,24 @@ model = live2d.LAppModel()
 model.LoadModelJson("./Resources/Haru/Haru.model3.json")
 ```
 
-#### 5. 窗口大小变化时调用 `LAppModel` 的 `Resize` 方法。**初次加载时，即使没有改变大小也应设置一次大小，否则点击位置会错位。**
+#### 5. 窗口大小变化时调用 `LAppModel` 的 `Resize` 方法。**初次加载时，即使没有改变大小也应设置一次大小，否则模型不显示。**
 ```python
 model.Resize(800, 600)
 ```
 
 #### 6. 鼠标点击时调用 `LAppModel` 的 `Touch` 方法。传入的参数为鼠标点击位置在窗口坐标系的坐标，即以绘图窗口左上角为原点，右和下为正方向的坐标系。
 ```python
+# 如果鼠标点击位置是可触发动作区域，且对应动作被触发，
+# 则会在动作开始播放前调用该函数
+def onStartCallback(group: str, no: int):
+    print(f"touched and motion [{group}_{no}] is started")
+
+# 动作播放结束后会调用该函数
+def onFinishCallback():
+    print("motion finished")
+
 x, y = pygame.mouse.get_pos()
-model.Touch(x, y)
+model.Touch(x, y, onStartCallback, onFinishCallback)
 ```
 
 #### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数。在使用具体的窗口库时，需要调用缓冲刷新函数。
@@ -161,6 +174,20 @@ live2d.dispose()
 #### 9. 关闭 live2d 运行时的日志输出。
 ```python
 live2d.setLogEnable(False)
+```
+
+#### 10. 播放动作
+```python
+# 动作开始播放前调用该函数
+def onStartCallback(group: str, no: int):
+    print(f"touched and motion [{group}_{no}] is started")
+
+# 动作播放结束后会调用该函数
+def onFinishCallback():
+    print("motion finished")
+
+# 播放名称为 Idle 的动作组中第一个动作
+model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 ```
 
 ### PySide2 示例：
@@ -325,4 +352,4 @@ d:\pydk
 8. 使用，将 `package` 目录下的 `live2d` 文件夹作为 `Python` 模块集成即可。
 
 ### 对于 2.0 版本
-克隆或下载本仓库 [v2](https://github.com/Arkueid/live2d-py/tree/v2) 分支，使用 **Visual Studio 2022** 打开，选择 `Release` 配置和 `Win32` 平台进行构建和测试。  
+详见 [v2](https://github.com/Arkueid/live2d-py/tree/v2) 分支。  

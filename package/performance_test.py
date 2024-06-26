@@ -1,6 +1,6 @@
 # 测试内存
 
-import live2d.v2 as live2d
+import live2d.v3 as live2d
 # import live2d.v3 as live2d
 import threading as t
 

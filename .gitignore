@@ -392,3 +392,5 @@ live2d-desktop
 config.v2.json
 config.v3.json
 !glew/build
+
+*.zip
