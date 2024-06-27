@@ -339,9 +339,21 @@ d:\pydk
 
 ![配置CMake](./docs/configure-cmake.png)
 
-7. 选择构建工具 `Visual Studio Community 20XX Release - x86`，当配置完毕，生成 `build` 文件夹后，点击下方工具栏的 `build` 选项生成 `live2d-py` 库，输出文件为 `package/live2d/live2d.pyd`。
+7. 执行构建，输出文件为 `package/live2d/live2d.pyd`。
+
+设置 output 输出日志的编码为 utf-8。
+
+![output-encoding](./docs/output-encoding.png)
+
+选择构建工具 `Visual Studio Community 20XX Release - x86`。如果目标平台为 `x64`，则选择 `Visual Studio Community 20XX Release - amd64`
 
 ![选择构建工具](./docs/select-builder.png)
+
+选择配置为 `Release`
+
+![CMake配置](./docs/cmake-config.png)
+
+当配置完毕，生成 `build` 文件夹后，输出如下：
 
 ![配置完毕](./docs/config-done.png)
 
