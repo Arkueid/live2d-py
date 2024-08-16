@@ -22,7 +22,7 @@ def main():
     pygame.init()
     live2d.init()
 
-    display = (400,300)
+    display = (700,500)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
     if live2d.LIVE2D_VERSION == 3:
@@ -31,15 +31,11 @@ def main():
 
     model = live2d.LAppModel()
 
-    model2 = live2d.LAppModel()
-
-    del model
-
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson("./Resources/v3/haru/haru.model3.json")
+        model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
     else:
-        model.LoadModelJson("./Resources/v2/kasumi2/kasumi2.model.json")
+        model.LoadModelJson("../Resources/v2/kasumi2/kasumi2.model.json")
 
     model.Resize(*display)
 
@@ -86,7 +82,10 @@ def main():
 
         if cnt == 0:
             cnt += 1
-            model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value)
+            model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value, None, f_call)
+        model.CalcParameters()
+        model.SetParamValue("ParamAngleX", 30, 1.)
+        
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
@@ -94,10 +93,7 @@ def main():
         model.Update()
         draw()
 
-    # del model
     live2d.dispose()
-
-    del model2
 
     pygame.quit()
     quit()

@@ -174,3 +174,9 @@ class LAppModel:
 
     def SetScale(self, scale: float | Any) -> None:
         pass
+
+    def SetParamValue(self, paramId: str, value: float, weight: float) -> None:
+        pass
+    
+    def CalcParameters(self) -> None:
+        pass

@@ -394,3 +394,5 @@ config.v3.json
 !glew/build
 
 *.zip
+
+.venv

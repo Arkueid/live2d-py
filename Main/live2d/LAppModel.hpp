@@ -130,6 +130,10 @@ public:
 
     bool IsMotionFinished();
 
+    void SetParamValue(const char* paramId, float value, float weight);
+
+    void CalcParameters();
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。
@@ -198,6 +202,23 @@ private:
     const Csm::CubismId *_idParamBodyAngleX; ///< パラメータID: ParamBodyAngleX
     const Csm::CubismId *_idParamEyeBallX;   ///< パラメータID: ParamEyeBallX
     const Csm::CubismId *_idParamEyeBallY;   ///< パラメータID: ParamEyeBallXY
+
+    // 附加id，详见 https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
+    //const Csm::CubismId* _idParamEyeLOpen; // 左眼开合
+    //const Csm::CubismId* _idParamEyeROpen; // 右眼开合
+    //const Csm::CubismId* _idParamEyeLSmile;  // 左眼弯曲程度
+    //const Csm::CubismId* _idParamEyeRSmile;  // 右眼弯曲程度
+    //const Csm::CubismId* _idParamBrowLY; // 左眉上挑程度
+    //const Csm::CubismId* _idParamBrowRY; // 右眉上挑程度
+    //const Csm::CubismId* _idParamBrowLAngle; // 左眉角度
+    //const Csm::CubismId* _idParamBrowRAngle;  // 右眉角度
+    //const Csm::CubismId* _idParamBrowLForm;  // 左眉形狀
+    //const Csm::CubismId* _idParamBrowRForm; // 右眉形狀
+    //const Csm::CubismId* _idParamMouthForm; // 嘴巴形狀
+    //const Csm::CubismId* _idParamMouthOpenY; // 嘴巴開合
+    //const Csm::CubismId* _idParamCheek; // 脸颊红润
+    //const Csm::CubismId*
+    
 
     LAppWavFileHandler _wavFileHandler; ///< wavファイルハンドラ
     LAppTextureManager _textureManager; ///< 纹理管理器
