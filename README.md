@@ -20,6 +20,8 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * 鼠标拖拽视线
 * 鼠标点击触发动作
 * 动作播放回调函数
+* 口型同步
+* 模型各部分参数控制
 
 |`live2d-py`|支持的live2d模型|支持的Python版本|支持平台|
 |-|-|-|-|
@@ -188,6 +190,15 @@ def onFinishCallback():
 
 # 播放名称为 Idle 的动作组中第一个动作
 model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
+```
+
+### 11. 参数控制
+```python
+# 设置上下唇开合，取值浮点数，0.0~1.0，权重为 1.0
+# "ParamMouthOpenY" 为 live2d 模型内嵌的参数
+# 所有可操作参数见官方文档：https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
+# 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
+model.SetParamValue("ParamMouthOpenY", 1.0, 1.0)
 ```
 
 ### PySide2 示例：
