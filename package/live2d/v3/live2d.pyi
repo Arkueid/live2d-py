@@ -185,4 +185,7 @@ class LAppModel:
         pass
     
     def CalcParameters(self) -> None:
+        """
+        初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
+        """
         pass

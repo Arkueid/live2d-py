@@ -192,7 +192,7 @@ def onFinishCallback():
 model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 ```
 
-### 11. 参数控制
+#### 11. 参数控制
 ```python
 # 设置上下唇开合，取值浮点数，0.0~1.0，权重为 1.0
 # "ParamMouthOpenY" 为 live2d 模型内嵌的参数
