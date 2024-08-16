@@ -165,6 +165,9 @@ model.Touch(x, y, onStartCallback, onFinishCallback)
 #### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数。在使用具体的窗口库时，需要调用缓冲刷新函数。
 ```python
 live2d.clearBuffer()
+# 初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
+model.CalcParameters()
+# 执行绘制
 model.Update()
 ```
 
@@ -198,6 +201,7 @@ model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 # "ParamMouthOpenY" 为 live2d 模型内嵌的参数
 # 所有可操作参数见官方文档：https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
 # 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
+# 调用时机：在CalcParameters 后，在 Update 之前
 model.SetParamValue("ParamMouthOpenY", 1.0, 1.0)
 ```
 

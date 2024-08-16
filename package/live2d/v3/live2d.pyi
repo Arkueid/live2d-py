@@ -178,8 +178,9 @@ class LAppModel:
     def SetParamValue(self, paramId: str, value: float, weight: float) -> None:
         """
         为对应控制参数设置具体值  
+        调用时机: 在CalcParameters 后，在 Update 之前  
         paramId: "ParamMouthOpenY" 为 live2d 模型内嵌的参数  
-        value: 所有可操作参数见官方文档：https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/  
+        value: 所有可操作参数见官方文档: https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/  
         weight: 当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight  
         """
         pass
