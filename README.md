@@ -201,7 +201,7 @@ model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 # "ParamMouthOpenY" 为 live2d 模型内嵌的参数
 # 所有可操作参数见官方文档：https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
 # 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
-# 调用时机：在CalcParameters 后，在 Update 之前
+# 调用时机：在CalcParameters 后，在 Update 之前 
 model.SetParamValue("ParamMouthOpenY", 1.0, 1.0)
 ```
 
