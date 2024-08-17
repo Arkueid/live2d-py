@@ -395,4 +395,8 @@ config.v3.json
 
 *.zip
 
+glew/doc
+
 .venv
+
+**/.idea

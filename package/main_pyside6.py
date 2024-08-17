@@ -39,7 +39,7 @@ class Win(QOpenGLWidget):
             self.model.LoadModelJson("../Resources/v2/kasumi2/kasumi2.model.json")
         elif live2d.LIVE2D_VERSION == 3:
             # 适用于 3 的模型
-            self.model.LoadModelJson("./Resources/v3/Haru/Haru.model3.json")
+            self.model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
 
         # 设置口型同步幅度
         self.model.SetLipSyncN(5)

@@ -41,7 +41,7 @@ def main():
 
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson("./Resources/v3/Haru/Haru.model3.json")
+        model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
     else:
         model.LoadModelJson("../Resources/v2/kasumi2/kasumi2.model.json")
 
@@ -106,6 +106,7 @@ def main():
 
     pygame.quit()
     quit()
+
 
 if __name__ == "__main__":
     main()
