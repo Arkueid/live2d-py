@@ -21,7 +21,7 @@ def f_call():
 
     print("end")
     
-    model.SetParamValue("ParamAngleX", 30, 1.)
+    model.SetParameterValue("ParamAngleX", 30, 1.)
 
 
 def main():
@@ -54,6 +54,9 @@ def main():
     scale: float = 1.0
 
     cnt = 0
+    
+    model.SetAutoBlinkEnable(False)
+    model.SetAutoBreathEnable(False)
 
     while True:
         for event in pygame.event.get():
@@ -85,6 +88,9 @@ def main():
                 
                 elif event.key == pygame.K_u:
                     scale -= 0.01
+            
+            if event.type == pygame.MOUSEMOTION:
+                model.Drag(*pygame.mouse.get_pos())
 
         if not running: break
 
@@ -92,8 +98,7 @@ def main():
         if cnt < 1000 / 30 * 5:
             cnt += 1
             # model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value, None, f_call)
-            model.SetParamValue("ParamAngleX", 30, 1.)
-
+            model.AddParameterValue("ParamAngleX", 30)
         
 
         model.SetOffset(dx, dy)

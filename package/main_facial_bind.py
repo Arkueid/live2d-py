@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import live2d.v3 as live2d
-from facial_capture.capture_task import facial_capture_task, FacialParams, OnCapturedListener
+from facial_capture.capture_task import facial_capture_task, FacialParams
 import threading as td
 
 live2d.setLogEnable(False)
@@ -36,17 +36,8 @@ def main():
     model.Resize(*display)
 
     running = True
-    capture_task_running = False
 
-    class MyListener(OnCapturedListener):
-
-        def __init__(self, params: FacialParams):
-            self.params = params
-
-        def onCaptured(self, params: FacialParams):
-            self.params = params
-
-    listener = None
+    params = None
 
     while True:
         for event in pygame.event.get():
@@ -63,15 +54,20 @@ def main():
         if not running:
             break
 
-        if not capture_task_running:
-            listener = MyListener(FacialParams())
-            td.Thread(None, facial_capture_task, "Capture Task", (listener, ), daemon=True).start()
-            capture_task_running = True
+        if not params:
+            params = FacialParams()
+            td.Thread(None, facial_capture_task, "Capture Task", (params,), daemon=True).start()
 
         model.CalcParameters()
-        if listener:
-            model.SetParamValue("ParamEyeLOpen", listener.params.paramEyeLOpen, 1)
-            model.SetParamValue("ParamEyeROpen", listener.params.paramEyeROpen, 1)
+        if params:
+            # 面捕贴合程度取决于面部特征识别和参数计算算法
+            model.SetParameterValue("ParamEyeLOpen", params.EyeLOpen, 1)
+            model.SetParameterValue("ParamEyeROpen", params.EyeROpen, 1)
+            model.SetParameterValue("ParamMouthOpenY", params.MouthOpenY, 1)
+            model.SetParameterValue("ParamAngleX", params.AngleX, 1)
+            model.SetParameterValue("ParamAngleY", params.AngleY, 1)
+            model.SetParameterValue("ParamAngleZ", params.AngleZ, 1)
+
         live2d.clearBuffer()
         model.Update()
         draw()

@@ -33,9 +33,11 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * v3 版本仅支持：**Python 3.12+ (win64)**
 
 
-若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 编译。
+若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 构建。
 
 对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
+
+[更新内容](./updates.md#2024817)
 
 ## 文件说明
 
@@ -53,6 +55,10 @@ live2d-py
 |-- include  # 项目包含目录
 `-- package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
 ```
+## 简易面部动捕示例
+源码见 [main_facial_bind.py](./package/main_facial_bind.py)  
+
+![简易动捕](./docs/facial_capture.gif)
 
 ## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览
 
@@ -63,7 +69,6 @@ live2d-py
 ![alt](./docs/2.png)
 
 ![alt](./docs/3.png)
-
 
 ## 使用说明
 Cubism 2.0 模型使用接口见 [package/live2d/v2/live2d.pyi](./package/live2d/v2/live2d.pyi)。
@@ -162,11 +167,19 @@ x, y = pygame.mouse.get_pos()
 model.Touch(x, y, onStartCallback, onFinishCallback)
 ```
 
-#### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数。在使用具体的窗口库时，需要调用缓冲刷新函数。
+#### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数，**对模型动作参数进行控制**，则应先后调用 `CalcParameters` 和 `SetParameterValue`。在使用具体的窗口库时，需要调用缓冲刷新函数。
 ```python
 live2d.clearBuffer()
-# 初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
+
+# 初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值（如果对应的功能开启
 model.CalcParameters()
+
+# 在初始化的基础上修改参数（具体用法参考 live2d.pyi 文件
+# 直接赋值
+model.SetParameterValue("ParamAngleX", 15, 1.)
+# 在原值基础上添加
+model.AddParameterValue("ParamAngleX", 15)
+
 # 执行绘制
 model.Update()
 ```
@@ -176,9 +189,17 @@ model.Update()
 live2d.dispose()
 ```
 
-#### 9. 关闭 live2d 运行时的日志输出。
+#### 9. 开关选项。
 ```python
+# 以下选项，默认均为开启状态
+# 日志开关
 live2d.setLogEnable(False)
+# 口型同步开关（播放动作时如果有音频文件，则会触发口型同步
+model.SetLipSyncEnable(False)
+# 自动呼吸开关
+model.SetAutoBreathEnable(False)
+# 自动眨眼开关
+model.SetAutoBlinkEnable(False)
 ```
 
 #### 10. 播放动作
@@ -198,11 +219,12 @@ model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 #### 11. 参数控制
 ```python
 # 设置上下唇开合，取值浮点数，0.0~1.0，权重为 1.0
-# "ParamMouthOpenY" 为 live2d 模型内嵌的参数
-# 所有可操作参数见官方文档：https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
+# "ParamMouthOpenY" 为 live2d 模型内嵌的参数 id
+# 所有可操作参数见官方文档：
+# https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
 # 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
 # 调用时机：在CalcParameters 后，在 Update 之前 
-model.SetParamValue("ParamMouthOpenY", 1.0, 1.0)
+model.SetParameterValue("ParamMouthOpenY", 1.0, 1.0)
 ```
 
 ## 编译

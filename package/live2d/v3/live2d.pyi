@@ -1,7 +1,11 @@
 from enum import Enum
 from typing import Any
 
+
 class MotionPriority(Enum):
+    """
+    动作优先级
+    """
     NONE = 0
     IDLE = 1
     NORMAL = 2
@@ -9,6 +13,9 @@ class MotionPriority(Enum):
 
 
 class MotionGroup(Enum):
+    """
+    内置动作组
+    """
     IDLE = "Idle"
     TAP_HEAD = "TapHead"
 
@@ -54,7 +61,7 @@ def setGLProperties() -> None:
 def clearBuffer() -> None:
     """
     glClearColor(0.0, 0.0, 0.0, 0.0)
-        
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     
     glClearDepth(1.0)
@@ -65,16 +72,17 @@ def clearBuffer() -> None:
 def setLogEnable(enable: bool):
     pass
 
+
 class LAppModel:
     """
     The LAppModel class provides a structured way to interact with Live2D models, 
     enabling you to load assets, update the model per frame, manage motions, set 
     expressions, and perform hit testing. 
     """
-    
+
     def __init__(self):
         pass
-    
+
     def LoadModelJson(self, fileName: str | Any) -> None:
         """
         Load Live2D model assets.
@@ -85,15 +93,20 @@ class LAppModel:
 
     def Resize(self, ww: int | Any, wh: int | Any) -> None:
         """
+        按照画布尺寸调整模型绘制大小，画布大小改变以及第一次加载时应调用
+        :param ww: 画布宽度
+        :param wh: 画布高度
+        :return:
         """
-    
+
     def Update(self) -> None:
         """
         Update the model, typically called once per frame.
         """
         pass
-    
-    def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
+
+    def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onStartMotionHandler=None,
+                    onFinishMotionHandler=None) -> None:
         """
         Start a specific motion for the model.
         
@@ -104,8 +117,9 @@ class LAppModel:
         :param onFinishMotionHandler: Optional callback function that gets called when the motion finishes.
         """
         pass
-    
-    def StartRandomMotion(self, group: str | Any, priority: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
+
+    def StartRandomMotion(self, group: str | Any, priority: int | Any, onStartMotionHandler=None,
+                          onFinishMotionHandler=None) -> None:
         """
         Start a random motion from a specified group.
         
@@ -114,7 +128,7 @@ class LAppModel:
         :param onFinishedMotionHandler: Optional callback function that gets called when the motion finishes.
         """
         pass
-    
+
     def SetExpression(self, expressionID: str | Any) -> None:
         """
         Set a specific expression for the model.
@@ -122,13 +136,13 @@ class LAppModel:
         :param expressionID: Identifier for the expression to be set.
         """
         pass
-    
+
     def SetRandomExpression(self) -> None:
         """
         Set a random expression for the model.
         """
         pass
-    
+
     def HitTest(self, hitAreaName: str | Any, x: float | Any, y: float | Any) -> str:
         """
         Perform a hit test to determine if a specific area of the model has been clicked.
@@ -139,7 +153,7 @@ class LAppModel:
         :return: The hit area name if a hit is detected, otherwise an empty string.
         """
         pass
-    
+
     def HasMocConsistencyFromFile(self, mocFileName: str | Any) -> bool:
         """
         Check if the model's MOC file is consistent.
@@ -164,29 +178,73 @@ class LAppModel:
         pass
 
     def SetLipSyncN(self, n: float | Any) -> None:
+        """
+        设置口型同步的幅度缩放值
+        :param n: 幅度缩放
+        :return:
+        """
         pass
 
     def IsMotionFinished(self) -> bool:
+        """
+        当前正在播放的动作是否已经结束
+        :return:
+        """
         pass
 
     def SetOffset(self, dx: float | Any, dy: float | Any) -> None:
+        """
+        设置模型中心坐标的偏移量
+        :param dx:
+        :param dy:
+        :return:
+        """
         pass
 
     def SetScale(self, scale: float | Any) -> None:
+        """
+        设置模型缩放比例
+        :param scale: 缩放比例
+        :return:
+        """
         pass
 
-    def SetParamValue(self, paramId: str, value: float, weight: float) -> None:
+    def SetParameterValue(self, paramId: str, value: float, weight: float) -> None:
         """
         为对应控制参数设置具体值  
-        调用时机: 在CalcParameters 后，在 Update 之前  
-        paramId: "ParamMouthOpenY" 为 live2d 模型内嵌的参数  
-        value: 所有可操作参数见官方文档: https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/  
-        weight: 当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight  
+        调用时机: 在 CalcParameters 后，在 Update 之前
+        :param paramId: "ParamMouthOpenY" 为 live2d 模型内嵌的参数
+        :param value: 所有可操作参数见官方文档: https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
+        :param weight: 当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
         """
         pass
-    
+
+    def AddParameterValue(self, paramId: str, value: float) -> None:
+        """
+        最终值=原值+value
+        """
+        pass
+
     def CalcParameters(self) -> None:
         """
         初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
+        """
+        pass
+
+    def SetLipSyncEnable(self, enable: bool) -> None:
+        """
+        开启口型同步
+        """
+        pass
+
+    def SetAutoBreathEnable(self, enable: bool) -> None:
+        """
+        开启自动呼吸
+        """
+        pass
+
+    def SetAutoBlinkEnable(self, enable: bool) -> None:
+        """
+        开启自动眨眼
         """
         pass

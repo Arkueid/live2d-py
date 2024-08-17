@@ -1,9 +1,17 @@
 import math
 
 
-def linearScale(value, min_value, max_value):
+def clipValue(value, min_value, max_value):
+    if value > max_value:
+        return max_value
+    elif value < min_value:
+        return min_value
+    return value
+
+
+def linearScalePercent(value, min_value, max_value):
     """
-    将值映射到 [min_value, max_value] 区间内
+    将值映射到 0.0 ~ 1.0 之间
     :param value: 当前值
     :param min_value: 最小值
     :param max_value: 最大值

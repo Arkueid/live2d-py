@@ -1,4 +1,5 @@
-﻿/**
+﻿#include "LAppModel.hpp"
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -43,7 +44,7 @@ namespace
 }
 
 LAppModel::LAppModel()
-    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f)
+    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f), _autoBlink(true), _autoBreath(true)
 {
     if (MocConsistencyValidationEnable)
     {
@@ -668,19 +669,16 @@ bool LAppModel::IsMotionFinished()
     return _motionManager->IsFinished();
 }
 
-void LAppModel::SetParamValue(const char* paramId, float value, float weight)
+void LAppModel::SetParameterValue(const char* paramId, float value, float weight)
 {
-    //const char** arr = Live2D::Cubism::Core::csmGetParameterIds(_model->GetModel());
-
-    //const int size = Live2D::Cubism::Core::csmGetParameterCount(_model->GetModel());
-
-    //for (int i = 0; i < size; i++)
-    //{
-    //    Info("param id: %d %s", i, arr[i]);
-    //}
     const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
-    //_model->SetParameterValue(paramHanle, value, weight);
     _model->SetParameterValue(paramHanle, value, weight);
+}
+
+void LAppModel::AddParameterValue(const char* paramId, float value)
+{
+    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    _model->AddParameterValue(paramHanle, value);
 }
 
 void LAppModel::CalcParameters()
@@ -710,7 +708,7 @@ void LAppModel::CalcParameters()
     // まばたき
     if (!motionUpdated)
     {
-        if (_eyeBlink != NULL)
+        if (_autoBlink && _eyeBlink != NULL)
         {
             // メインモーションの更新がないとき
             _eyeBlink->UpdateParameters(_model, deltaTimeSeconds); // 目パチ
@@ -728,15 +726,15 @@ void LAppModel::CalcParameters()
     _model->AddParameterValue(_idParamAngleY, _dragY * 30);
     _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
 
-    ////// ドラッグによる体の向きの調整
+    // ドラッグによる体の向きの調整
     _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
 
-    ////// ドラッグによる目の向きの調整
+    // ドラッグによる目の向きの調整
     _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
     _model->AddParameterValue(_idParamEyeBallY, _dragY);
 
     // 呼吸など
-    if (_breath != NULL)
+    if (_autoBreath && _breath != NULL)
     {
         _breath->UpdateParameters(_model, deltaTimeSeconds);
     }
@@ -768,4 +766,19 @@ void LAppModel::CalcParameters()
     {
         _pose->UpdateParameters(_model, deltaTimeSeconds);
     }
+}
+
+void LAppModel::SetLipSyncEnable(bool enable)
+{
+    _lipSync = enable;
+}
+
+void LAppModel::SetAutoBreathEnable(bool enable)
+{
+    _autoBreath = enable;
+}
+
+void LAppModel::SetAutoBlinkEnable(bool enable)
+{
+    _autoBlink = enable;
 }

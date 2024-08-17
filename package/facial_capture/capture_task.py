@@ -2,22 +2,19 @@
 
 import cv2 as cv
 import mediapipe as mp
-from facial_capture.math_utils import linearScale
-from facial_capture.listeners import OnCapturedListener
+from facial_capture.math_utils import *
 from facial_capture.facial_params import FacialParams
 from facial_capture.capture_config import *
-from facial_capture.calculation import calculate_eye_open_ratio
+from facial_capture.calculation import *
 
 
-def facial_capture_task(listener: OnCapturedListener):
+def facial_capture_task(params: FacialParams):
     # 初始化 Mediapipe Face Mesh 模块
     mp_face_mesh = mp.solutions.face_mesh
     face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, min_detection_confidence=0.5)
 
     # 摄像头
     cap = cv.VideoCapture(0)
-    # 初始化面部参数
-    params = FacialParams()
 
     while True:
         ret, frame = cap.read()
@@ -31,24 +28,31 @@ def facial_capture_task(listener: OnCapturedListener):
         results = face_mesh.process(rgb_frame)
         # 绘制特征点
         if results.multi_face_landmarks:
-            face_landmarks = results.multi_face_landmarks[0]
+            landmarks = results.multi_face_landmarks[0].landmark
             frame_height, frame_width, _ = frame.shape
 
-            # left openness ratio
-            lor = calculate_eye_open_ratio(face_landmarks.landmark, LEFT_EYE)
-            # right openness ration
-            ror = calculate_eye_open_ratio(face_landmarks.landmark, RIGHT_EYE)
+            # left eye openness ratio
+            lor = calculate_eye_openness(landmarks, LEFT_EYE)
+            # right eye openness ratio
+            ror = calculate_eye_openness(landmarks, RIGHT_EYE)
+            # mouth openness ration
+            mor = calculate_mouth_openness(landmarks, LIP)
+
+            # 面部角度
+            roll_angle, yaw_angle, pitch_angle = calculate_head_pose(landmarks)
 
             # 直接使用计算结果会存在抖动现象，需要后续处理
-            params.paramEyeLOpen = round(linearScale(lor, EYE_OPENNESS_MIN, EYE_OPENNESS_MAX), 1)
-            params.paramEyeROpen = round(linearScale(ror, EYE_OPENNESS_MIN, EYE_OPENNESS_MAX), 1)
-            # 回调
-            listener.onCaptured(params)
+            params.EyeLOpen = round(linearScalePercent(lor, EYE_OPENNESS_MIN, EYE_OPENNESS_MAX), 1)
+            params.EyeROpen = round(linearScalePercent(ror, EYE_OPENNESS_MIN, EYE_OPENNESS_MAX), 1)
+            params.MouthOpenY = round(linearScalePercent(mor, MOUTH_OPENNESS_MIN, MOUTH_OPENNESS_MAX), 1)
+            params.AngleX = clipValue(yaw_angle, -30, 30)
+            params.AngleY = clipValue(pitch_angle, -30, 30)
+            params.AngleZ = clipValue(roll_angle, -30, 30)
 
             # 绘制特征点
             # 眼睛特征点
-            for p in LEFT_EYE + RIGHT_EYE:
-                point = face_landmarks.landmark[p]
+            for p in LEFT_EYE + RIGHT_EYE + LIP:
+                point = landmarks[p]
                 cv.circle(frame, (int(point.x * frame_width), int(point.y * frame_height)), 2, (0, 255, 0), -1)
 
         cv.imshow("Mediapipe Face Mesh", frame)
@@ -61,16 +65,9 @@ def facial_capture_task(listener: OnCapturedListener):
 
 
 if __name__ == '__main__':
-    class MyListener(OnCapturedListener):
-
-        def onCaptured(self, params: FacialParams):
-            # 测试打印
-            print(params.paramEyeLOpen, params.paramEyeROpen)
-
-
     import threading as td
 
-    t = td.Thread(None, facial_capture_task, "Capture Task", (MyListener(),))
+    t = td.Thread(None, facial_capture_task, "Capture Task", (FacialParams(),))
     t.start()
 
     t.join()
