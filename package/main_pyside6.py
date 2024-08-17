@@ -1,10 +1,11 @@
-from PySide2.QtGui import QMouseEvent
+from PySide6.QtGui import QMouseEvent
 # import live2d.v2 as live2d
 import live2d.v3 as live2d
 
-from PySide2.QtCore import QTimerEvent
-from PySide2.QtWidgets import QApplication
-from PySide2.QtWidgets import QOpenGLWidget
+from PySide6.QtCore import QTimerEvent
+from PySide6.QtWidgets import QApplication
+from PySide6.QtOpenGLWidgets import QOpenGLWidget
+
 
 def callback():
     print("motion end")
@@ -56,6 +57,8 @@ class Win(QOpenGLWidget):
         live2d.clearBuffer()
 
         self.model.CalcParameters()
+
+        self.model.SetParamValue("ParamMouthOpenY", 1, 0.5)
         self.model.Update()
     
     def timerEvent(self, a0: QTimerEvent | None) -> None:
@@ -81,6 +84,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = Win()
     win.show()
-    app.exec_()
+    app.exec()
 
     live2d.dispose()

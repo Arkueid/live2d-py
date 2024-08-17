@@ -16,3 +16,4 @@
 // model files
 #define MODEL_MOC_SUFFIX ".moc3"
 #define MODEL_JSON_SUFFIX ".model3.json"
+

@@ -1,4 +1,5 @@
-﻿/**
+﻿#include "LAppModel.hpp"
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -43,7 +44,7 @@ namespace
 }
 
 LAppModel::LAppModel()
-    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f)
+    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f), _autoBlink(true), _autoBreath(true)
 {
     if (MocConsistencyValidationEnable)
     {
@@ -363,89 +364,7 @@ void LAppModel::ReleaseExpressions()
 
 void LAppModel::Update()
 {
-    const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
-    _userTimeSeconds += deltaTimeSeconds;
 
-    _dragManager->Update(deltaTimeSeconds);
-    _dragX = _dragManager->GetX();
-    _dragY = _dragManager->GetY();
-
-    // モーションによるパラメータ更新の有無
-    csmBool motionUpdated = false;
-
-    //-----------------------------------------------------------------
-    _model->LoadParameters(); // 前回セーブされた状態をロード
-    if (!_motionManager->IsFinished())
-    {
-        motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
-    }
-    _model->SaveParameters(); // 状態を保存
-    //-----------------------------------------------------------------
-
-    // 不透明度
-    _opacity = _model->GetModelOpacity();
-
-    // まばたき
-    if (!motionUpdated)
-    {
-        if (_eyeBlink != NULL)
-        {
-            // メインモーションの更新がないとき
-            _eyeBlink->UpdateParameters(_model, deltaTimeSeconds); // 目パチ
-        }
-    }
-
-    if (_expressionManager != NULL)
-    {
-        _expressionManager->UpdateMotion(_model, deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
-    }
-
-    // ドラッグによる変化
-    // ドラッグによる顔の向きの調整
-    _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
-    _model->AddParameterValue(_idParamAngleY, _dragY * 30);
-    _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
-
-    // ドラッグによる体の向きの調整
-    _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
-
-    // ドラッグによる目の向きの調整
-    _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
-    _model->AddParameterValue(_idParamEyeBallY, _dragY);
-
-    // 呼吸など
-    if (_breath != NULL)
-    {
-        _breath->UpdateParameters(_model, deltaTimeSeconds);
-    }
-
-    // 物理演算の設定
-    if (_physics != NULL)
-    {
-        _physics->Evaluate(_model, deltaTimeSeconds);
-    }
-
-    // リップシンクの設定
-    if (_lipSync)
-    {
-        // リアルタイムでリップシンクを行う場合、システムから音量を取得して0〜1の範囲で値を入力します。
-        csmFloat32 value = 0.0f;
-
-        // 状態更新/RMS値取得
-        _wavFileHandler.Update(deltaTimeSeconds);
-        value = _wavFileHandler.GetRms() * _lipSyncN;
-
-        for (csmUint32 i = 0; i < _lipSyncIds.GetSize(); ++i)
-        {
-            _model->AddParameterValue(_lipSyncIds[i], value, 0.8f);
-        }
-    }
-
-    // ポーズの設定
-    if (_pose != NULL)
-    {
-        _pose->UpdateParameters(_model, deltaTimeSeconds);
-    }
 
     _model->Update();
 }
@@ -539,7 +458,11 @@ handle_sound:
     }
 
     if (!hasMotion) {
-        onFinishedMotionHandler(NULL);
+        // 添加空指针判断，如果 motion 文件不存在，直接调用动作结束回调函数 
+        // 修复模型文件不存在时，导致崩溃
+        if (onFinishedMotionHandler) {
+            onFinishedMotionHandler(NULL);
+        }
         _motionManager->SetReservePriority(PriorityNone);
         return InvalidMotionQueueEntryHandleValue;
     }
@@ -744,4 +667,118 @@ void LAppModel::SetLipSyncN(float n)
 bool LAppModel::IsMotionFinished()
 {
     return _motionManager->IsFinished();
+}
+
+void LAppModel::SetParameterValue(const char* paramId, float value, float weight)
+{
+    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    _model->SetParameterValue(paramHanle, value, weight);
+}
+
+void LAppModel::AddParameterValue(const char* paramId, float value)
+{
+    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    _model->AddParameterValue(paramHanle, value);
+}
+
+void LAppModel::CalcParameters()
+{
+    const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
+    _userTimeSeconds += deltaTimeSeconds;
+
+    _dragManager->Update(deltaTimeSeconds);
+    _dragX = _dragManager->GetX();
+    _dragY = _dragManager->GetY();
+
+    // モーションによるパラメータ更新の有無
+    csmBool motionUpdated = false;
+
+    //-----------------------------------------------------------------
+    _model->LoadParameters(); // 前回セーブされた状態を
+    if (!_motionManager->IsFinished())
+    {
+        motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
+    }
+    _model->SaveParameters(); // 状態を保存
+    //-----------------------------------------------------------------
+
+    // 不透明度
+    _opacity = _model->GetModelOpacity();
+
+    // まばたき
+    if (!motionUpdated)
+    {
+        if (_autoBlink && _eyeBlink != NULL)
+        {
+            // メインモーションの更新がないとき
+            _eyeBlink->UpdateParameters(_model, deltaTimeSeconds); // 目パチ
+        }
+    }
+
+    if (_expressionManager != NULL)
+    {
+        _expressionManager->UpdateMotion(_model, deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
+    }
+
+    // ドラッグによる変化
+    // ドラッグによる顔の向きの調整
+    _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
+    _model->AddParameterValue(_idParamAngleY, _dragY * 30);
+    _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
+
+    // ドラッグによる体の向きの調整
+    _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
+
+    // ドラッグによる目の向きの調整
+    _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
+    _model->AddParameterValue(_idParamEyeBallY, _dragY);
+
+    // 呼吸など
+    if (_autoBreath && _breath != NULL)
+    {
+        _breath->UpdateParameters(_model, deltaTimeSeconds);
+    }
+
+    // 物理演算の設定
+    if (_physics != NULL)
+    {
+        _physics->Evaluate(_model, deltaTimeSeconds);
+    }
+
+    // リップシンクの設定
+    if (_lipSync)
+    {
+        // リアルタイムでリップシンクを行う場合、システムから音量を取得して0〜1の範囲で値を入力します。
+        csmFloat32 value = 0.0f;
+
+        // 状態更新/RMS値取得
+        _wavFileHandler.Update(deltaTimeSeconds);
+        value = _wavFileHandler.GetRms() * _lipSyncN;
+
+        for (csmUint32 i = 0; i < _lipSyncIds.GetSize(); ++i)
+        {
+            _model->AddParameterValue(_lipSyncIds[i], value, 0.8f);
+        }
+    }
+
+    // ポーズの設定
+    if (_pose != NULL)
+    {
+        _pose->UpdateParameters(_model, deltaTimeSeconds);
+    }
+}
+
+void LAppModel::SetLipSyncEnable(bool enable)
+{
+    _lipSync = enable;
+}
+
+void LAppModel::SetAutoBreathEnable(bool enable)
+{
+    _autoBreath = enable;
+}
+
+void LAppModel::SetAutoBlinkEnable(bool enable)
+{
+    _autoBlink = enable;
 }

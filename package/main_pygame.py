@@ -5,6 +5,8 @@ import live2d.v3 as live2d
 
 live2d.setLogEnable(True)
 
+model: live2d.LAppModel
+
 def draw():
     pygame.display.flip()
     pygame.time.wait(10)
@@ -15,14 +17,20 @@ def s_call(group, no):
 
 
 def f_call():
+    global model
+
     print("end")
+    
+    model.SetParameterValue("ParamAngleX", 30, 1.)
 
 
 def main():
+    global model
+
     pygame.init()
     live2d.init()
 
-    display = (400,300)
+    display = (700,500)
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
     if live2d.LIVE2D_VERSION == 3:
@@ -31,15 +39,11 @@ def main():
 
     model = live2d.LAppModel()
 
-    model2 = live2d.LAppModel()
-
-    del model
-
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson("./Resources/v3/haru/haru.model3.json")
+        model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
     else:
-        model.LoadModelJson("./Resources/v2/kasumi2/kasumi2.model.json")
+        model.LoadModelJson("../Resources/v2/kasumi2/kasumi2.model.json")
 
     model.Resize(*display)
 
@@ -50,6 +54,9 @@ def main():
     scale: float = 1.0
 
     cnt = 0
+    
+    model.SetAutoBlinkEnable(False)
+    model.SetAutoBreathEnable(False)
 
     while True:
         for event in pygame.event.get():
@@ -81,12 +88,18 @@ def main():
                 
                 elif event.key == pygame.K_u:
                     scale -= 0.01
+            
+            if event.type == pygame.MOUSEMOTION:
+                model.Drag(*pygame.mouse.get_pos())
 
         if not running: break
 
-        if cnt == 0:
+        model.CalcParameters()
+        if cnt < 1000 / 30 * 5:
             cnt += 1
-            model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value)
+            # model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value, None, f_call)
+            model.AddParameterValue("ParamAngleX", 30)
+        
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
@@ -94,13 +107,11 @@ def main():
         model.Update()
         draw()
 
-    # del model
     live2d.dispose()
-
-    del model2
 
     pygame.quit()
     quit()
+
 
 if __name__ == "__main__":
     main()

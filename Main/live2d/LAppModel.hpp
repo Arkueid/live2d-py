@@ -130,6 +130,18 @@ public:
 
     bool IsMotionFinished();
 
+    void SetParameterValue(const char* paramId, float value, float weight);
+
+    void AddParameterValue(const char* paramId, float value);
+
+    void CalcParameters();
+
+    void SetLipSyncEnable(bool enable);
+
+    void SetAutoBreathEnable(bool enable);
+
+    void SetAutoBlinkEnable(bool enable);
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。
@@ -198,6 +210,7 @@ private:
     const Csm::CubismId *_idParamBodyAngleX; ///< パラメータID: ParamBodyAngleX
     const Csm::CubismId *_idParamEyeBallX;   ///< パラメータID: ParamEyeBallX
     const Csm::CubismId *_idParamEyeBallY;   ///< パラメータID: ParamEyeBallXY
+    // 附加id，详见 https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
 
     LAppWavFileHandler _wavFileHandler; ///< wavファイルハンドラ
     LAppTextureManager _textureManager; ///< 纹理管理器
@@ -205,4 +218,7 @@ private:
     Csm::Rendering::CubismOffscreenSurface_OpenGLES2 _renderBuffer; ///< フレームバッファ以外の描画先
 
     Csm::csmFloat32 _lipSyncN;
+
+    bool _autoBreath;
+    bool _autoBlink;
 };

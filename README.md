@@ -20,6 +20,8 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * 鼠标拖拽视线
 * 鼠标点击触发动作
 * 动作播放回调函数
+* 口型同步
+* 模型各部分参数控制
 
 |`live2d-py`|支持的live2d模型|支持的Python版本|支持平台|
 |-|-|-|-|
@@ -31,9 +33,11 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * v3 版本仅支持：**Python 3.12+ (win64)**
 
 
-若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 编译。
+若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 构建。
 
 对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
+
+[更新内容](./updates.md#2024817)
 
 ## 文件说明
 
@@ -51,6 +55,10 @@ live2d-py
 |-- include  # 项目包含目录
 `-- package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
 ```
+## 简易面部动捕示例
+源码见 [main_facial_bind.py](./package/main_facial_bind.py)  
+
+![简易动捕](./docs/facial_capture.gif)
 
 ## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览
 
@@ -61,7 +69,6 @@ live2d-py
 ![alt](./docs/2.png)
 
 ![alt](./docs/3.png)
-
 
 ## 使用说明
 Cubism 2.0 模型使用接口见 [package/live2d/v2/live2d.pyi](./package/live2d/v2/live2d.pyi)。
@@ -160,9 +167,20 @@ x, y = pygame.mouse.get_pos()
 model.Touch(x, y, onStartCallback, onFinishCallback)
 ```
 
-#### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数。在使用具体的窗口库时，需要调用缓冲刷新函数。
+#### 7. 每帧绘制图像时，先清空画布，使用 `live2d.clearBuffer`，再调用 `LAppModel` 的 `Update` 函数，**对模型动作参数进行控制**，则应先后调用 `CalcParameters` 和 `SetParameterValue`。在使用具体的窗口库时，需要调用缓冲刷新函数。
 ```python
 live2d.clearBuffer()
+
+# 初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值（如果对应的功能开启
+model.CalcParameters()
+
+# 在初始化的基础上修改参数（具体用法参考 live2d.pyi 文件
+# 直接赋值
+model.SetParameterValue("ParamAngleX", 15, 1.)
+# 在原值基础上添加
+model.AddParameterValue("ParamAngleX", 15)
+
+# 执行绘制
 model.Update()
 ```
 
@@ -171,9 +189,17 @@ model.Update()
 live2d.dispose()
 ```
 
-#### 9. 关闭 live2d 运行时的日志输出。
+#### 9. 开关选项。
 ```python
+# 以下选项，默认均为开启状态
+# 日志开关
 live2d.setLogEnable(False)
+# 口型同步开关（播放动作时如果有音频文件，则会触发口型同步
+model.SetLipSyncEnable(False)
+# 自动呼吸开关
+model.SetAutoBreathEnable(False)
+# 自动眨眼开关
+model.SetAutoBlinkEnable(False)
 ```
 
 #### 10. 播放动作
@@ -190,94 +216,15 @@ def onFinishCallback():
 model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 ```
 
-### PySide2 示例：
-
-[main_pyside2.py](./example/main_pyside2.py)
-
+#### 11. 参数控制
 ```python
-from PySide2.QtGui import QMouseEvent
-import live2d.v2 as live2d
-
-from PySide2.QtCore import QTimerEvent
-from PySide2.QtWidgets import QApplication
-from PySide2.QtWidgets import QOpenGLWidget
-
-
-def callback():
-    print("motion end")
-
-
-class Win(QOpenGLWidget):
-    model: live2d.LAppModel
-
-    def __init__(self) -> None:
-        super().__init__()
-        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
-        # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.a = 0
-        self.resize(270, 200)
-
-    def initializeGL(self) -> None:
-        # 将当前窗口作为 OpenGL 的上下文
-        # 图形会被绘制到当前窗口
-        self.makeCurrent()
-
-        if live2d.LIVE2D_VERSION == 3:
-            live2d.glewInit()
-            live2d.setGLProperties()
-
-        # 创建模型
-        self.model = live2d.LAppModel()
-        # 加载模型参数
-        if live2d.LIVE2D_VERSION == 2:
-            # 适用于 2 的模型
-            self.model.LoadModelJson("./Resources/kasumi2/model.json")
-        elif live2d.LIVE2D_VERSION == 3:
-            # 适用于 3 的模型
-            self.model.LoadModelJson("./Resources/Haru/Haru.model3.json")
-
-        # 设置口型同步幅度
-        self.model.SetLipSyncN(5)
-
-        # 以 fps = 30 的频率进行绘图
-        self.startTimer(int(1000 / 30))
-
-    def resizeGL(self, w: int, h: int) -> None:
-        # 使模型的参数按窗口大小进行更新
-        self.model.Resize(w, h)
-    
-    def paintGL(self) -> None:
-        
-        live2d.clearBuffer()
-
-        self.model.Update()
-    
-    def timerEvent(self, a0: QTimerEvent | None) -> None:
-
-        if self.a == 0: # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value, onFinishMotionHandler=callback)
-            self.a += 1
-        
-        self.update() 
-
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-        # 传入鼠标点击位置的窗口坐标
-        self.model.Touch(event.pos().x(), event.pos().y());
-
-    def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        self.model.Drag(event.pos().x(), event.pos().y())
-
-
-if __name__ == "__main__":
-    import sys
-    live2d.init()
-
-    app = QApplication(sys.argv)
-    win = Win()
-    win.show()
-    app.exec_()
-
-    live2d.dispose()
+# 设置上下唇开合，取值浮点数，0.0~1.0，权重为 1.0
+# "ParamMouthOpenY" 为 live2d 模型内嵌的参数 id
+# 所有可操作参数见官方文档：
+# https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
+# 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
+# 调用时机：在CalcParameters 后，在 Update 之前 
+model.SetParameterValue("ParamMouthOpenY", 1.0, 1.0)
 ```
 
 ## 编译

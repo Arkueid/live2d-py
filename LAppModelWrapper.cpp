@@ -147,7 +147,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
 
     if (onStartHandler != nullptr)
     {
-        if (!PyCallable_Check(onStartHandler))
+        bool isNone = Py_IsNone(onStartHandler);
+        if (!isNone && !PyCallable_Check(onStartHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
@@ -155,12 +156,13 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
         g_start_callback = onStartHandler;
-        s_call = default_start_call_back;
+        s_call = isNone ? nullptr : default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
     {
-        if (!PyCallable_Check(onFinishHandler))
+        bool isNone = Py_IsNone(onFinishHandler);
+        if (!isNone && !PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
@@ -168,7 +170,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         Py_XDECREF(g_finish_callback);
         Py_INCREF(onFinishHandler);
         g_finish_callback = onFinishHandler;
-        f_call = default_finish_call_back;
+        f_call = isNone ? nullptr : default_finish_call_back;
     }
 
     Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority, s_call, f_call);
@@ -194,28 +196,30 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 
     if (onStartHandler != nullptr)
     {
-        if (!PyCallable_Check(onStartHandler))
+        bool isNone = Py_IsNone(onStartHandler);
+        if (!isNone && !PyCallable_Check(onStartHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
         Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
         g_start_callback = onStartHandler;
-        s_call = default_start_call_back;
+        s_call = isNone ? nullptr : default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
     {
-        if (!PyCallable_Check(onFinishHandler))
+        bool isNone = Py_IsNone(onFinishHandler);
+        if (!isNone && !PyCallable_Check(onFinishHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
         }
         Py_XDECREF(g_finish_callback);
-        Py_XINCREF(onFinishHandler);
+        Py_INCREF(onFinishHandler);
         g_finish_callback = onFinishHandler;
-        f_call = default_finish_call_back;
+        f_call = isNone ? nullptr : default_finish_call_back;
     }
 
     self->model->StartRandomMotion(group, priority, s_call, f_call);
@@ -293,28 +297,30 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
     if (onStartHandler != nullptr)
     {
-        if (!PyCallable_Check(onStartHandler))
+        bool isNone = Py_IsNone(onStartHandler);
+        if (!isNone && !PyCallable_Check(onStartHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
         Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
         g_start_callback = onStartHandler;
-        s_call = default_start_call_back;
+        s_call = isNone ? nullptr : default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
     {
-        if (!PyCallable_Check(onFinishHandler))
+        bool isNone = Py_IsNone(onFinishHandler);
+        if (!isNone && !PyCallable_Check(onFinishHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
         }
         Py_XDECREF(g_finish_callback);
-        Py_XINCREF(onFinishHandler);
+        Py_INCREF(onFinishHandler);
         g_finish_callback = onFinishHandler;
-        f_call = default_finish_call_back;
+        f_call = isNone ? nullptr : default_finish_call_back;
     }
 
     float xf = (float)mx;
@@ -408,23 +414,117 @@ static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_SetParameterValue(PyLAppModelObject *self, PyObject *args)
+{
+    const char* paramId;
+    float value, weight;
+
+    if (PyArg_ParseTuple(args, "sff", &paramId, &value, &weight) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params (str, float, float)");
+        return NULL;
+    }
+
+    self->model->SetParameterValue(paramId, value, weight);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
+{
+    const char* paramId;
+    float value;
+
+    if (PyArg_ParseTuple(args, "sf", &paramId, &value) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params (str, float)");
+        return NULL;
+    }
+
+    self->model->AddParameterValue(paramId, value);
+
+    Py_RETURN_NONE;
+}
+
+
+static PyObject* PyLAppModel_CalcParameters(PyLAppModelObject* self, PyObject* args)
+{
+
+    self->model->CalcParameters();
+
+    Py_RETURN_NONE;
+}
+
+
+static PyObject* PyLAppModel_SetLipSyncEnable(PyLAppModelObject* self, PyObject* args)
+{
+    bool enable;
+
+    if (PyArg_ParseTuple(args, "p", &enable) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    self->model->SetLipSyncEnable(enable);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObject* args)
+{
+    bool enable;
+
+    if (PyArg_ParseTuple(args, "p", &enable) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    self->model->SetAutoBreathEnable(enable);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObject* args)
+{
+    bool enable;
+
+    if (PyArg_ParseTuple(args, "p", &enable) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    self->model->SetAutoBlinkEnable(enable);
+
+    Py_RETURN_NONE;
+}
+
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
-    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, "Load model assets."},
-    {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, "Update matrix."},
-    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, "Update model buffer."},
-    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, "Start motion by its groupname and idx."},
-    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, "Start random motion."},
-    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, "Set expression by name."},
-    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, "Set random expression."},
+    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
+    {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, ""},
+    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
+    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
+    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, ""},
     {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, "Get the name of the area being hit."},
-    {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, "Start random motion."},
-    {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, "Click at (x, y)."},
-    {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, "Drag to (x, y)."},
-    {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, "Set magnitude for lip sync."},
-    {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, "Test if current motion is finished."},
-    {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, "Set offset of the drawing center."},
-    {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, "Set model scale."},
+    {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
+    {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, ""},
+    {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
+    {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, ""},
+    {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
+    {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
+    {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
+    {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
+    {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
+    {"CalcParameters", (PyCFunction)PyLAppModel_CalcParameters, METH_VARARGS, ""},
+    {"SetLipSyncEnable", (PyCFunction)PyLAppModel_SetLipSyncEnable, METH_VARARGS, ""},
+    {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
+    {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志
 };
 
