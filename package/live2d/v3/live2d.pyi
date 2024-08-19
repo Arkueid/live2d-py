@@ -177,14 +177,6 @@ class LAppModel:
         """
         pass
 
-    def SetLipSyncN(self, n: float | Any) -> None:
-        """
-        设置口型同步的幅度缩放值
-        :param n: 幅度缩放
-        :return:
-        """
-        pass
-
     def IsMotionFinished(self) -> bool:
         """
         当前正在播放的动作是否已经结束
@@ -228,12 +220,6 @@ class LAppModel:
     def CalcParameters(self) -> None:
         """
         初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
-        """
-        pass
-
-    def SetLipSyncEnable(self, enable: bool) -> None:
-        """
-        开启口型同步
         """
         pass
 

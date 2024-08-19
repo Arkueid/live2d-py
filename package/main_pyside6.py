@@ -43,7 +43,6 @@ class Win(QOpenGLWidget):
             self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
         # 设置口型同步幅度
-        self.model.SetLipSyncN(5)
 
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))
@@ -59,13 +58,12 @@ class Win(QOpenGLWidget):
 
         self.model.CalcParameters()
 
-        self.model.SetParameterValue("ParamMouthOpenY", 1, 0.5)
         self.model.Update()
     
     def timerEvent(self, a0: QTimerEvent | None) -> None:
 
         if self.a == 0: # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value, onFinishMotionHandler=callback)
             self.a += 1
         
         self.update() 
