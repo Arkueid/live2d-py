@@ -37,10 +37,10 @@ class Win(QOpenGLWidget):
         # 加载模型参数
         if live2d.LIVE2D_VERSION == 2:
             # 适用于 2 的模型
-            self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
         elif live2d.LIVE2D_VERSION == 3:
             # 适用于 3 的模型
-            self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))

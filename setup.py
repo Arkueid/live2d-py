@@ -1,3 +1,4 @@
+import configparser
 import os
 import platform
 import re
@@ -23,6 +24,14 @@ class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
+
+
+def is_virtualenv():
+    return 'VIRTUAL_ENV' in os.environ
+
+
+def get_base_python_path(venv_path):
+    return re.search("home = (.*)\n", open(os.path.join(venv_path, "pyvenv.cfg"), 'r').read()).group(1)
 
 
 class CMakeBuild(build_ext):
@@ -61,10 +70,20 @@ class CMakeBuild(build_ext):
         else:
             cmake_args += ["-DCMAKE_BUILD_TYPE=" + "Release"]
             build_args += ["--", "-j2"]
+            raise Exception("Building on Windows is not supported yet")
         build_folder = os.path.abspath(self.build_temp)
 
         if not os.path.exists(build_folder):
             os.makedirs(build_folder)
+
+        if is_virtualenv():
+            python_installation_path = get_base_python_path(os.environ["VIRTUAL_ENV"])
+        else:
+            python_installation_path = os.path.split(sys.executable)[0]
+        print("Python installation path: " + python_installation_path)
+        sys.stdout.flush()
+
+        cmake_args += ["-DPYTHON_INSTALLATION_PATH=" + python_installation_path]
 
         cmake_setup = ["cmake", ext.sourcedir] + cmake_args
         cmake_build = ["cmake", "--build", "."] + build_args

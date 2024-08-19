@@ -34,7 +34,7 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 若需要 64 位或 linux 平台支持，则选择（两种方法均需要安装 Visual Studio 和 CMake）：
 * 拉取本仓库源码使用 CMake 构建
-* 克隆本仓库，使用`pip install .`安装
+* 克隆本仓库，使用`pip install . -v`安装
 
 对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
 

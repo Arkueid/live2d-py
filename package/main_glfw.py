@@ -34,9 +34,9 @@ def main():
 
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
     else:
-        model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 
     while not glfw.window_should_close(window):
         glfw.poll_events()

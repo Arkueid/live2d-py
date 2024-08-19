@@ -13,8 +13,14 @@ set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
 set(CMAKE_CONFIGURATION_TYPES "Release")
 
-# 寻找Python
-set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
+if(DEFINED PYTHON_INSTALLATION_PATH)
+    message("Found PYTHON_INSTALLATION_PATH in environment variables")
+    set(CMAKE_PREFIX_PATH ${PYTHON_INSTALLATION_PATH})
+else()
+    # 寻找Python
+    message("Not found PYTHON_INSTALLATION_PATH in environment variables")
+    set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
+endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
