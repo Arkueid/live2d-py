@@ -356,21 +356,6 @@ static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *PyLAppModel_SetLipSyncN(PyLAppModelObject *self, PyObject *args)
-{
-    float n;
-
-    if (PyArg_ParseTuple(args, "f", &n) < 0)
-    {
-        PyErr_SetString(PyExc_TypeError, "Missing param n (float)");
-        return NULL;
-    }
-
-    self->model->SetLipSyncN(n);
-
-    Py_RETURN_NONE;
-}
-
 static PyObject *PyLAppModel_IsMotionFinished(PyLAppModelObject *self, PyObject *args)
 {
 
@@ -455,22 +440,6 @@ static PyObject* PyLAppModel_CalcParameters(PyLAppModelObject* self, PyObject* a
     Py_RETURN_NONE;
 }
 
-
-static PyObject* PyLAppModel_SetLipSyncEnable(PyLAppModelObject* self, PyObject* args)
-{
-    bool enable;
-
-    if (PyArg_ParseTuple(args, "p", &enable) < 0)
-    {
-        PyErr_SetString(PyExc_TypeError, "Invalid param");
-        return NULL;
-    }
-
-    self->model->SetLipSyncEnable(enable);
-
-    Py_RETURN_NONE;
-}
-
 static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObject* args)
 {
     bool enable;
@@ -515,14 +484,12 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
     {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, ""},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
-    {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, ""},
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
     {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
     {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
     {"CalcParameters", (PyCFunction)PyLAppModel_CalcParameters, METH_VARARGS, ""},
-    {"SetLipSyncEnable", (PyCFunction)PyLAppModel_SetLipSyncEnable, METH_VARARGS, ""},
     {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
     {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志

@@ -10,8 +10,6 @@ add_library(${APP_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppTextureManager.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppModel.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppModel.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/LAppWavFileHandler.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/LAppWavFileHandler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Log.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Log.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.cpp
