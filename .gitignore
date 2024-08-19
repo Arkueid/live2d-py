@@ -400,3 +400,5 @@ glew/doc
 .venv
 
 **/.idea
+
+**/*.mp4

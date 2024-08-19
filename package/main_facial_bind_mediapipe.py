@@ -1,10 +1,10 @@
 import pygame
 from pygame.locals import *
 import live2d.v3 as live2d
-from facial_capture.capture_task import facial_capture_task, FacialParams
+from mediapipe_capture.capture_task import mediapipe_capture_task, Params
 import threading as td
 
-live2d.setLogEnable(False)
+live2d.setLogEnable(True)
 
 
 def draw():
@@ -31,6 +31,7 @@ def main():
     live2d.setGLProperties()
 
     model = live2d.LAppModel()
+
     model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
 
     model.Resize(*display)
@@ -55,8 +56,8 @@ def main():
             break
 
         if not params:
-            params = FacialParams()
-            td.Thread(None, facial_capture_task, "Capture Task", (params,), daemon=True).start()
+            params = Params()
+            td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
 
         model.CalcParameters()
         if params:
@@ -67,6 +68,7 @@ def main():
             model.SetParameterValue("ParamAngleX", params.AngleX, 1)
             model.SetParameterValue("ParamAngleY", params.AngleY, 1)
             model.SetParameterValue("ParamAngleZ", params.AngleZ, 1)
+            model.SetParameterValue("ParamBodyAngleX", params.BodyAngleX, 1)
 
         live2d.clearBuffer()
         model.Update()

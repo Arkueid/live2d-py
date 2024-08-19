@@ -58,6 +58,8 @@ live2d-py
 ## 简易面部动捕示例
 源码见 [main_facial_bind.py](./package/main_facial_bind.py)  
 
+![期末周破防](./docs/video_test.gif)
+
 ![简易动捕](./docs/facial_capture.gif)
 
 ## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览

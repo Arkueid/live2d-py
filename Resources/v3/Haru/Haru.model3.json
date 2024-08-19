@@ -44,6 +44,12 @@
             }
         ],
         "Motions": {
+            "tts": [
+                {
+                    "File": "",
+                    "Sound": ""
+                }
+            ],
             "Idle": [
                 {
                     "File": "motions/haru_g_idle.motion3.json",

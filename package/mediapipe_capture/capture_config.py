@@ -18,4 +18,8 @@ MOUTH_OPENNESS_MAX = 0.5
 MOUTH_OPENNESS_MIN = MOUTH_OPEN_THRESHOLD
 
 # 头部姿势 right, left, nose, upper_lip_center, lower_lip_center
-HEAD = [234, 454, 1, 13, 14]
+HEAD = [33, 133, 362, 263, 1, 454, 234, 10, 152]
+
+# 眼球
+LEFT_EYE_BALL = [469, 470, 471, 472]
+RIGHT_EYE_BALL = [474, 475, 476, 477]

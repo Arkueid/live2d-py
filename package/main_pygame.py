@@ -21,7 +21,7 @@ def f_call():
 
     print("end")
     
-    model.SetParameterValue("ParamAngleX", 30, 1.)
+    # model.SetParameterValue("ParamAngleX", 30, 1.)
 
 
 def main():
@@ -99,7 +99,8 @@ def main():
             cnt += 1
             # model.StartMotion(live2d.MotionGroup.IDLE.value, 0, live2d.MotionPriority.IDLE.value, None, f_call)
             model.AddParameterValue("ParamAngleX", 30)
-        
+
+        model.SetParameterValue("ParamMouthOpenY", 1.0, 1)
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
