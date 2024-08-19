@@ -1,8 +1,11 @@
 import pygame
 from pygame.locals import *
 import live2d.v3 as live2d
-from mediapipe_capture.capture_task import mediapipe_capture_task, Params
+from mediapipe_capture.capture_task import mediapipe_capture_task
+from facial_params import Params
 import threading as td
+import os
+import resouces
 
 live2d.setLogEnable(True)
 
@@ -32,7 +35,7 @@ def main():
 
     model = live2d.LAppModel()
 
-    model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
+    model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
     model.Resize(*display)
 

@@ -13,7 +13,6 @@
 #include <Type/csmRectF.hpp>
 #include <Rendering/OpenGL/CubismOffscreenSurface_OpenGLES2.hpp>
 
-#include "LAppWavFileHandler.hpp"
 #include "LAppTextureManager.hpp"
 
 /**
@@ -126,8 +125,6 @@ public:
      */
     Csm::csmBool HasMocConsistencyFromFile(const Csm::csmChar *mocFileName);
 
-    void SetLipSyncN(float n);
-
     bool IsMotionFinished();
 
     void SetParameterValue(const char* paramId, float value, float weight);
@@ -135,8 +132,6 @@ public:
     void AddParameterValue(const char* paramId, float value);
 
     void CalcParameters();
-
-    void SetLipSyncEnable(bool enable);
 
     void SetAutoBreathEnable(bool enable);
 
@@ -212,12 +207,9 @@ private:
     const Csm::CubismId *_idParamEyeBallY;   ///< パラメータID: ParamEyeBallXY
     // 附加id，详见 https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
 
-    LAppWavFileHandler _wavFileHandler; ///< wavファイルハンドラ
     LAppTextureManager _textureManager; ///< 纹理管理器
 
     Csm::Rendering::CubismOffscreenSurface_OpenGLES2 _renderBuffer; ///< フレームバッファ以外の描画先
-
-    Csm::csmFloat32 _lipSyncN;
 
     bool _autoBreath;
     bool _autoBlink;

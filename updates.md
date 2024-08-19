@@ -1,5 +1,11 @@
 # 更新内容
 
+## 2024/8/19
+添加:
+* 日志打印、口型同步工具（需要`numpy`）：`live2d.log`，`live2d.lipsync`
+移除：
+* v3版本的内置口型同步功能：`LAppModel.SetLipSyncEnable`，`LAppModel.SetLipSyncN`
+
 ## 2024/8/17
 添加：  
 * 口型同步、自动呼吸、自动眨眼开关

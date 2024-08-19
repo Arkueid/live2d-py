@@ -41,7 +41,7 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 ## 文件说明
 
-```shell
+```
 live2d-py
 |-- CMakeLists.txt # CMake 配置文件，用于生成 live2d-py 
 |-- Core # Cubism Live2D Core 头文件和库文件，详情见 Cubism 官方
@@ -56,7 +56,7 @@ live2d-py
 `-- package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
 ```
 ## 简易面部动捕示例
-源码见 [main_facial_bind.py](./package/main_facial_bind.py)  
+源码见 [main_facial_bind.py](./package/main_facial_bind_mediapipe.py)  
 
 ![期末周破防](./docs/video_test.gif)
 
@@ -66,11 +66,8 @@ live2d-py
 
 见 [live2d-desktop](https://github.com/Arkueid/Live2DMascot)
 
-![alt](./docs/1.png)
-
 ![alt](./docs/2.png)
 
-![alt](./docs/3.png)
 
 ## 使用说明
 Cubism 2.0 模型使用接口见 [package/live2d/v2/live2d.pyi](./package/live2d/v2/live2d.pyi)。
@@ -227,6 +224,44 @@ model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 # 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
 # 调用时机：在CalcParameters 后，在 Update 之前 
 model.SetParameterValue("ParamMouthOpenY", 1.0, 1.0)
+```
+
+### 口型同步
+
+读取 wav 文件响度的工具：[live2d.lipsync.WavHandler](./package/live2d/lipsync.py)
+
+示例代码：[main_lipsync.py](./package/main_lipsync.py)
+
+用法：
+
+关闭内置的口型同步
+```python
+model.SetLipSyncEnable(False)
+``` 
+
+创建 `wavHandler` 对象并设置口型同步幅度 `lipSyncN`
+```python
+from live2d.lipsync import WavHandler
+wavHandler = WavHandler()
+lipSyncN = 3
+```
+
+在播放动作的同时，播放音频并进行口型同步
+```python
+def start_callback(group, no):
+    # 播放音频
+    pygame.mixer.music.load("audio1.wav")
+    pygame.mixer.music.play()
+    # 处理口型同步
+    wavHandler.Start("audio1.wav")
+
+model.StartMotion("Speak", 0, live2d.MotionPriority.FORCE.value, start_callback)
+```
+
+将 wav 响度同步到 `ParamMouthOpenY` 上
+```python
+if wavHandler.Update():  # 获取 wav 的下一帧片段，并返回当前音频是否已结束
+    model.AddParameterValue("ParamMouthOpenY", wavHandler.GetRms() * lipSyncN)
 ```
 
 ## 编译
