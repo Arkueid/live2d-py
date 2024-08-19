@@ -352,9 +352,74 @@ void LAppModel::ReleaseExpressions()
 
 void LAppModel::Update()
 {
+        const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
+    _userTimeSeconds += deltaTimeSeconds;
 
+    _dragManager->Update(deltaTimeSeconds);
+    _dragX = _dragManager->GetX();
+    _dragY = _dragManager->GetY();
 
-    _model->Update();
+    // モーションによるパラメータ更新の有無
+    csmBool motionUpdated = false;
+
+    //-----------------------------------------------------------------
+    _model->LoadParameters(); // 前回セーブされた状態を
+    if (!_motionManager->IsFinished())
+    {
+        motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
+    }
+    _model->SaveParameters(); // 状態を保存
+    //-----------------------------------------------------------------
+
+    // 不透明度
+    _opacity = _model->GetModelOpacity();
+
+    // まばたき
+    if (!motionUpdated)
+    {
+        if (_autoBlink && _eyeBlink != NULL)
+        {
+            // メインモーションの更新がないとき
+            _eyeBlink->UpdateParameters(_model, deltaTimeSeconds); // 目パチ
+        }
+    }
+
+    if (_expressionManager != NULL)
+    {
+        _expressionManager->UpdateMotion(_model, deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
+    }
+
+    // ドラッグによる変化
+    // ドラッグによる顔の向きの調整
+    _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
+    _model->AddParameterValue(_idParamAngleY, _dragY * 30);
+    _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
+
+    // ドラッグによる体の向きの調整
+    _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
+
+    // ドラッグによる目の向きの調整
+    _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
+    _model->AddParameterValue(_idParamEyeBallY, _dragY);
+
+    // 呼吸など
+    if (_autoBreath && _breath != NULL)
+    {
+        _breath->UpdateParameters(_model, deltaTimeSeconds);
+    }
+
+    // 物理演算の設定
+    if (_physics != NULL)
+    {
+        _physics->Evaluate(_model, deltaTimeSeconds);
+    }
+
+    // ポーズの設定
+    if (_pose != NULL)
+    {
+        _pose->UpdateParameters(_model, deltaTimeSeconds);
+    }
+
 }
 
 CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority, 
@@ -469,6 +534,8 @@ void LAppModel::DoDraw()
 
 void LAppModel::Draw(CubismMatrix44 &matrix)
 {
+    _model->Update();
+
     if (_model == NULL)
     {
         return;
@@ -649,77 +716,6 @@ void LAppModel::AddParameterValue(const char* paramId, float value)
 {
     const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->AddParameterValue(paramHanle, value);
-}
-
-void LAppModel::CalcParameters()
-{
-    const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
-    _userTimeSeconds += deltaTimeSeconds;
-
-    _dragManager->Update(deltaTimeSeconds);
-    _dragX = _dragManager->GetX();
-    _dragY = _dragManager->GetY();
-
-    // モーションによるパラメータ更新の有無
-    csmBool motionUpdated = false;
-
-    //-----------------------------------------------------------------
-    _model->LoadParameters(); // 前回セーブされた状態を
-    if (!_motionManager->IsFinished())
-    {
-        motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
-    }
-    _model->SaveParameters(); // 状態を保存
-    //-----------------------------------------------------------------
-
-    // 不透明度
-    _opacity = _model->GetModelOpacity();
-
-    // まばたき
-    if (!motionUpdated)
-    {
-        if (_autoBlink && _eyeBlink != NULL)
-        {
-            // メインモーションの更新がないとき
-            _eyeBlink->UpdateParameters(_model, deltaTimeSeconds); // 目パチ
-        }
-    }
-
-    if (_expressionManager != NULL)
-    {
-        _expressionManager->UpdateMotion(_model, deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
-    }
-
-    // ドラッグによる変化
-    // ドラッグによる顔の向きの調整
-    _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
-    _model->AddParameterValue(_idParamAngleY, _dragY * 30);
-    _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
-
-    // ドラッグによる体の向きの調整
-    _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
-
-    // ドラッグによる目の向きの調整
-    _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
-    _model->AddParameterValue(_idParamEyeBallY, _dragY);
-
-    // 呼吸など
-    if (_autoBreath && _breath != NULL)
-    {
-        _breath->UpdateParameters(_model, deltaTimeSeconds);
-    }
-
-    // 物理演算の設定
-    if (_physics != NULL)
-    {
-        _physics->Evaluate(_model, deltaTimeSeconds);
-    }
-
-    // ポーズの設定
-    if (_pose != NULL)
-    {
-        _pose->UpdateParameters(_model, deltaTimeSeconds);
-    }
 }
 
 void LAppModel::SetAutoBreathEnable(bool enable)

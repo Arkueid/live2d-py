@@ -1,3 +1,5 @@
+# 口型同步示例
+
 import os
 
 import pygame
@@ -5,8 +7,9 @@ from pygame.locals import *
 
 import live2d.v3 as live2d
 import resouces
-from live2d.lipsync import WavHandler
-from live2d.log import Info
+from live2d.utils.lipsync import WavHandler
+from live2d.utils.log import Info
+from live2d.v3.params import StandardParams
 
 
 live2d.setLogEnable(True)
@@ -57,7 +60,7 @@ def main():
                 running = False
                 break
 
-        model.CalcParameters()
+        model.Update()
         if cnt < 1:
             cnt += 1
             model.StartMotion(
@@ -65,10 +68,10 @@ def main():
             )
 
         if wavHandler.Update():  # 当前音频仍在播放
-            model.AddParameterValue("ParamMouthOpenY", wavHandler.GetRms() * lipSyncN)
+            model.AddParameterValue(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
 
         live2d.clearBuffer()
-        model.Update()
+        model.Draw()
         draw()
 
     live2d.dispose()

@@ -2,7 +2,6 @@ import os.path
 import resouces
 
 import glfw
-# import live2d.v2 as live2d
 import live2d.v3 as live2d
 
 

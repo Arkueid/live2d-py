@@ -86,11 +86,10 @@ static PyObject *PyLAppModel_Resize(PyLAppModelObject *self, PyObject *args)
 }
 
 // LAppModel->Update
-static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
+static PyObject *PyLAppModel_Draw(PyLAppModelObject *self, PyObject *args)
 {
     LAppPal::UpdateTime();
 
-    self->model->Update();
     self->model->Draw(self->matrixManager.GetProjection(self->model));
     Py_RETURN_NONE;
 }
@@ -432,10 +431,10 @@ static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject
 }
 
 
-static PyObject* PyLAppModel_CalcParameters(PyLAppModelObject* self, PyObject* args)
+static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args)
 {
 
-    self->model->CalcParameters();
+    self->model->Update();
 
     Py_RETURN_NONE;
 }
@@ -475,7 +474,7 @@ static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObjec
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
     {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, ""},
-    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
+    {"Draw", (PyCFunction)PyLAppModel_Draw, METH_VARARGS, ""},
     {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
     {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
     {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
@@ -489,7 +488,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
     {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
     {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
-    {"CalcParameters", (PyCFunction)PyLAppModel_CalcParameters, METH_VARARGS, ""},
+    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
     {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
     {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志

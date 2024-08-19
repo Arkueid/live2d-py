@@ -37,7 +37,7 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
 
-[更新内容](./updates.md#2024817)
+[更新内容](./updates.md#2024819)
 
 ## 文件说明
 
@@ -82,19 +82,19 @@ Cubism 3.0（含4.0） 模型使用接口见 [package/live2d/v3/live2d.pyi](./pa
 
 ### 导入库
 
-将 `package/live2d` 文件夹放置在使用者 `main.py` 同目录下，在 `main.py` 中使用如 `import live2d.v2`。
+将 `package/live2d` 文件夹放置在使用者 `main.py` 同目录下，在 `main.py` 中使用如 `import live2d.v3`。
 
 ```
-live2d-desktop\live2d
-|-- v2
-|   |-- __init__.py
-|   |-- live2d.pyd
-|   `-- live2d.pyi
+package\live2d
+|-- utils
+|   |
+|   |-- lipsync.py  # 口型同步工具
+|   `-- log.py      # 日志工具
 `-- v3
     |-- __init__.py
-    |-- live2d.pyd
-    |-- live2d.pyi
-    `-- live2d.so
+    |-- live2d.pyd  # 动态库/封装c++函数
+    |-- live2d.pyi  # 接口&文档
+    `-- params.py   # live2d 标准参数id
 ```
 
 ### 绘制流程
@@ -171,7 +171,7 @@ model.Touch(x, y, onStartCallback, onFinishCallback)
 live2d.clearBuffer()
 
 # 初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值（如果对应的功能开启
-model.CalcParameters()
+model.Update()
 
 # 在初始化的基础上修改参数（具体用法参考 live2d.pyi 文件
 # 直接赋值
@@ -180,7 +180,7 @@ model.SetParameterValue("ParamAngleX", 15, 1.)
 model.AddParameterValue("ParamAngleX", 15)
 
 # 执行绘制
-model.Update()
+model.Draw()
 ```
 
 #### 8. 不再使用 live2d 模块，则应调用 `live2d.dispose` 释放内存。
@@ -193,8 +193,6 @@ live2d.dispose()
 # 以下选项，默认均为开启状态
 # 日志开关
 live2d.setLogEnable(False)
-# 口型同步开关（播放动作时如果有音频文件，则会触发口型同步
-model.SetLipSyncEnable(False)
 # 自动呼吸开关
 model.SetAutoBreathEnable(False)
 # 自动眨眼开关
@@ -224,6 +222,8 @@ model.StartMotion("Idle", 0, onStartCallback, onFinishCallback)
 # 权重：当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
 # 调用时机：在CalcParameters 后，在 Update 之前 
 model.SetParameterValue("ParamMouthOpenY", 1.0, 1.0)
+# 最终值 = 原值 + 传入值
+model.AddParameterValue("ParamMouthOpenY", 1.0)
 ```
 
 ### 口型同步
@@ -233,11 +233,6 @@ model.SetParameterValue("ParamMouthOpenY", 1.0, 1.0)
 示例代码：[main_lipsync.py](./package/main_lipsync.py)
 
 用法：
-
-关闭内置的口型同步
-```python
-model.SetLipSyncEnable(False)
-``` 
 
 创建 `wavHandler` 对象并设置口型同步幅度 `lipSyncN`
 ```python

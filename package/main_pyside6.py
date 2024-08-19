@@ -42,8 +42,6 @@ class Win(QOpenGLWidget):
             # 适用于 3 的模型
             self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
-        # 设置口型同步幅度
-
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))
 
@@ -56,9 +54,9 @@ class Win(QOpenGLWidget):
         
         live2d.clearBuffer()
 
-        self.model.CalcParameters()
-
         self.model.Update()
+
+        self.model.Draw()
     
     def timerEvent(self, a0: QTimerEvent | None) -> None:
 

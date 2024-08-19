@@ -1,3 +1,5 @@
+# 简易面捕示例
+
 import pygame
 from pygame.locals import *
 import live2d.v3 as live2d
@@ -6,6 +8,7 @@ from facial_params import Params
 import threading as td
 import os
 import resouces
+from live2d.v3.params import StandardParams
 
 live2d.setLogEnable(True)
 
@@ -62,19 +65,19 @@ def main():
             params = Params()
             td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
 
-        model.CalcParameters()
+        model.Update()
         if params:
             # 面捕贴合程度取决于面部特征识别和参数计算算法
-            model.SetParameterValue("ParamEyeLOpen", params.EyeLOpen, 1)
-            model.SetParameterValue("ParamEyeROpen", params.EyeROpen, 1)
-            model.SetParameterValue("ParamMouthOpenY", params.MouthOpenY, 1)
-            model.SetParameterValue("ParamAngleX", params.AngleX, 1)
-            model.SetParameterValue("ParamAngleY", params.AngleY, 1)
-            model.SetParameterValue("ParamAngleZ", params.AngleZ, 1)
-            model.SetParameterValue("ParamBodyAngleX", params.BodyAngleX, 1)
+            model.SetParameterValue(StandardParams.ParamEyeLOpen, params.EyeLOpen, 1)
+            model.SetParameterValue(StandardParams.ParamEyeROpen, params.EyeROpen, 1)
+            model.SetParameterValue(StandardParams.ParamMouthOpenY, params.MouthOpenY, 1)
+            model.SetParameterValue(StandardParams.ParamAngleX, params.AngleX, 1)
+            model.SetParameterValue(StandardParams.ParamAngleY, params.AngleY, 1)
+            model.SetParameterValue(StandardParams.ParamAngleZ, params.AngleZ, 1)
+            model.SetParameterValue(StandardParams.ParamBodyAngleX, params.BodyAngleX, 1)
 
         live2d.clearBuffer()
-        model.Update()
+        model.Draw()
         draw()
 
     live2d.dispose()

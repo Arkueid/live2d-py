@@ -4,7 +4,7 @@ import pygame
 from pygame.locals import *
 
 import live2d.v3 as live2d
-import live2d.log as log
+import live2d.utils.log as log
 import resouces
 
 # import live2d.v2 as live2d
@@ -91,11 +91,11 @@ def main():
         if not running:
             break
 
-        model.CalcParameters()
+        model.Update()
         model.SetOffset(dx, dy)
         model.SetScale(scale)
         live2d.clearBuffer()
-        model.Update()
+        model.Draw()
         draw()
 
     live2d.dispose()

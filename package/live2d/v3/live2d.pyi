@@ -99,9 +99,9 @@ class LAppModel:
         :return:
         """
 
-    def Update(self) -> None:
+    def Draw(self) -> None:
         """
-        Update the model, typically called once per frame.
+        绘制模型
         """
         pass
 
@@ -205,7 +205,7 @@ class LAppModel:
         """
         为对应控制参数设置具体值  
         调用时机: 在 CalcParameters 后，在 Update 之前
-        :param paramId: "ParamMouthOpenY" 为 live2d 模型内嵌的参数
+        :param paramId: live2d 模型内嵌的参数，详细见 live2d.v3.params.StandardParams
         :param value: 所有可操作参数见官方文档: https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
         :param weight: 当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
         """
@@ -217,7 +217,7 @@ class LAppModel:
         """
         pass
 
-    def CalcParameters(self) -> None:
+    def Update(self) -> None:
         """
         初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
         """
