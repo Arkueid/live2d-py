@@ -403,3 +403,5 @@ glew/doc
 
 **/*.mp4
 **/*.wav
+
+**/*.egg-info

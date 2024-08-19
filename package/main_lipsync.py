@@ -6,7 +6,7 @@ import pygame
 from pygame.locals import *
 
 import live2d.v3 as live2d
-import resouces
+import resources
 from live2d.utils.lipsync import WavHandler
 from live2d.utils.log import Info
 from live2d.v3.params import StandardParams

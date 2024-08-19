@@ -5,7 +5,7 @@ from pygame.locals import *
 
 import live2d.v3 as live2d
 import live2d.utils.log as log
-import resouces
+import resources
 
 # import live2d.v2 as live2d
 

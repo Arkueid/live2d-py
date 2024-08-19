@@ -1,5 +1,5 @@
 import os.path
-import resouces
+import resources
 
 import glfw
 import live2d.v3 as live2d

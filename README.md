@@ -23,17 +23,18 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 * 口型同步
 * 模型各部分参数控制
 
-|`live2d-py`|支持的live2d模型|支持的Python版本|支持平台|
-|-|-|-|-|
-|`live2d.v2`|Cubism 2.0 及以上，不包括 3.0|仅 32 位，支持`Python 3.0` 及以上版本，但除 `Python 3.10.11` 外需要自行编译|Windows
-|`live2d.v3`|Cubism 3.0 及以上，包括 4.0|支持 `32` / `64` 位，支持`Python 3.0` 及以上版本，但除 `Python 3.12` 外需要自行编译|Windows、Linux
+| `live2d-py` | 支持的live2d模型            | 支持的Python版本                                                    | 支持平台          |
+|-------------|------------------------|----------------------------------------------------------------|---------------|
+| `live2d.v2` | Cubism 2.0 及以上，不包括 3.0 | 仅 32 位，支持`Python 3.0` 及以上版本，但除 `Python 3.10.11` 外需要自行编译        | Windows       |
+| `live2d.v3` | Cubism 3.0 及以上，包括 4.0  | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本，但除 `Python 3.12` 外需要自行编译 | Windows、Linux |
 
 本仓库已发布的版本中：
 * v2 版本仅支持：**Python 3.10.11 (win32)**
 * v3 版本仅支持：**Python 3.12+ (win64)**
 
-
-若需要 64 位或 linux 平台支持，则需要拉取本仓库源码使用 CMake 构建。
+若需要 64 位或 linux 平台支持，则选择（两种方法均需要安装 Visual Studio 和 CMake）：
+* 拉取本仓库源码使用 CMake 构建
+* 克隆本仓库，使用`pip install .`安装
 
 对于适用 Cubism 2.0 模型，目前只支持 32 位，因为当前网络上能找到的现存 live2d opengl 静态库只有 32 位。
 

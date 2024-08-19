@@ -7,7 +7,7 @@ from mediapipe_capture.capture_task import mediapipe_capture_task
 from facial_params import Params
 import threading as td
 import os
-import resouces
+import resources
 from live2d.v3.params import StandardParams
 
 live2d.setLogEnable(True)
