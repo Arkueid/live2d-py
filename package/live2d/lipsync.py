@@ -33,6 +33,7 @@ class WavHandler:
 
                 self.startTime = time.time()
                 self.lastOffset = 0
+
         except Exception as e:
             Info(f"[LipSync]Failed to load wav file due to exception: {e}")
             self.ReleasePcmData()

@@ -44,12 +44,12 @@ def main():
     # 可以通过 group 和 no 获取 model3.json 中定义的音频路径
     # 其他外部生成的音频路径直接传入即可
     def start_callback(group, no):
-        pygame.mixer.music.load(os.path.join(resouces.CURRENT_DIRECTORY, "audio1.wav"))
+        pygame.mixer.music.load(os.path.join(resouces.CURRENT_DIRECTORY, "audio2.wav"))
         pygame.mixer.music.play()
         Info("start lipsync")
-        wavHandler.Start(os.path.join(resouces.CURRENT_DIRECTORY, "audio1.wav"))
+        wavHandler.Start(os.path.join(resouces.CURRENT_DIRECTORY, "audio2.wav"))
 
-    lipSyncN = 1.5
+    lipSyncN = 2
 
     while running:
         for event in pygame.event.get():
