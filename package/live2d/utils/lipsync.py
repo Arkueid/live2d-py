@@ -6,14 +6,20 @@ from .log import Info
 
 class WavHandler:
     def __init__(self):
-        # 每个通道的
+        # 每个通道的采样帧数
         self.numFrames: int = 0
+        # 采样率，帧/秒
         self.sampleRate: int = 0
         self.sampleWidth: int = 0
+        # 通道数
         self.numChannels: int = 0
+        # 数据
         self.pcmData: np.ndarray = None
+        # 已经读取的帧数
         self.lastOffset: int = 0
+        # 当前rms值
         self.currentRms: float = 0
+        # 开始读取的时间
         self.startTime: float = -1
 
     def Start(self, filePath: str) -> None:
