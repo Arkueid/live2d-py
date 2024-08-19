@@ -1,7 +1,6 @@
 # 测试内存
 
 import live2d.v2 as live2d
-# import live2d.v3 as live2d
 import threading as t
 
 import glfw
@@ -18,10 +17,6 @@ if not window:
 glfw.make_context_current(window)
 
 live2d.init()
-
-if live2d.LIVE2D_VERSION == 3:
-    live2d.glewInit()
-    live2d.setGLProperties()
 
 
 sem = t.Semaphore(500)

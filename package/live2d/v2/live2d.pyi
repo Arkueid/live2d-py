@@ -59,6 +59,12 @@ class LAppModel:
     
     def Update(self) -> None:
         pass
+
+    def Draw(self) -> None:
+        pass
+
+    def SetAutoEyeBlinkEnable(enable: bool) -> None:
+        pass
     
     def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         pass
@@ -84,9 +90,6 @@ class LAppModel:
     def Drag(self, x: int | Any, y: int | Any) -> None:
         pass
 
-    def SetLipSyncN(self, n: float | Any) -> None:
-        pass
-
     def IsMotionFinished(self) -> bool:
         pass
 
@@ -94,4 +97,10 @@ class LAppModel:
         pass
 
     def SetScale(self, scale: float | Any) -> None:
+        pass
+
+    def SetParameterValue(self, paramId: str, value: float, weight: float):
+        pass
+
+    def AddParameterValue(self, paramId: str, value: float):
         pass

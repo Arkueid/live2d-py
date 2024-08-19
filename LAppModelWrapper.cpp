@@ -1,3 +1,4 @@
+#include <gl/glew.h>
 #include "LAppModel.h"
 #include "Log.hpp"
 #include <unordered_map>
@@ -11,7 +12,6 @@
 #include <Python.h>
 #include <Live2DModelOpenGL.h>
 
-
 struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
@@ -19,7 +19,7 @@ struct PyLAppModelObject
     size_t key;
 };
 
-//static std::mutex mutex_g_model;
+// static std::mutex mutex_g_model;
 static std::unordered_map<size_t, LAppModel *> g_model;
 
 // LAppModel()
@@ -29,10 +29,10 @@ static int PyLAppModel_init(PyLAppModelObject *self, PyObject *args, PyObject *k
     gstate = PyGILState_Ensure();
     self->model = new LAppModel();
 
-    //mutex_g_model.lock();
+    // mutex_g_model.lock();
     self->key = (size_t)self->model;
     g_model[self->key] = self->model;
-    //mutex_g_model.unlock();
+    // mutex_g_model.unlock();
 
     self->matrixManager.init();
 
@@ -45,14 +45,14 @@ static void PyLAppModel_dealloc(PyLAppModelObject *self)
 {
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
-    //mutex_g_model.lock();
+    // mutex_g_model.lock();
     if (g_model.find(self->key) != g_model.end())
     {
         g_model.erase(self->key);
         delete self->model;
         Info("[M] deallocate: LAppModel(at=%p)", self->model);
     }
-    //mutex_g_model.unlock();
+    // mutex_g_model.unlock();
     PyGILState_Release(gstate);
 
     Py_TYPE(self)->tp_free((PyObject *)self);
@@ -87,11 +87,27 @@ static PyObject *PyLAppModel_Resize(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_SetAutoEyeblinkEnable(PyLAppModelObject *self, PyObject *args)
+{
+    bool enable;
+    if (!PyArg_ParseTuple(args, "p", &enable))
+    {
+        PyErr_SetString(PyExc_TypeError, "invalid param.");
+        return NULL;
+    }
+    self->model->setEyeBlinkEnable(enable);
+    Py_RETURN_NONE;
+}
+
 // LAppModel->Update
 static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
 {
     self->model->update();
+    Py_RETURN_NONE;
+}
 
+static PyObject *PyLAppModel_Draw(PyLAppModelObject *self, PyObject *args)
+{
     self->model->draw();
     Py_RETURN_NONE;
 }
@@ -110,7 +126,7 @@ static void default_start_call_back(const char *group, int no)
         Py_XDECREF(result);
 
     // Py_DECREF(g_start_callback);
-    // g_start_callback = nullptr;                          
+    // g_start_callback = nullptr;
     PyGILState_Release(gstate);
 };
 
@@ -137,7 +153,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
     LAppModel::OnStartMotionCallback s_call = nullptr;
     LAppModel::OnFinishMotionCallback f_call = nullptr;
 
-    static char *kwlist[] = {(char*)"group", (char*)"no", (char*)"priority", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL};
+    static char *kwlist[] = {(char *)"group", (char *)"no", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "sii|OO", kwlist, &group, &no, &priority, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
@@ -184,7 +200,7 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
     LAppModel::OnStartMotionCallback s_call = nullptr;
     LAppModel::OnFinishMotionCallback f_call = nullptr;
 
-    static char *kwlist[] = {(char*)"group", (char*)"priority", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL};
+    static char *kwlist[] = {(char *)"group", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
@@ -265,7 +281,7 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
     LAppModel::OnStartMotionCallback s_call = nullptr;
     LAppModel::OnFinishMotionCallback f_call = nullptr;
 
-    static char *kwlist[] = {(char*)"mx", (char*)"my", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL};
+    static char *kwlist[] = {(char *)"mx", (char *)"my", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
@@ -333,21 +349,6 @@ static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *PyLAppModel_SetLipSyncN(PyLAppModelObject *self, PyObject *args)
-{
-    float n;
-
-    if (PyArg_ParseTuple(args, "f", &n) < 0)
-    {
-        PyErr_SetString(PyExc_TypeError, "Missing param n (float)");
-        return NULL;
-    }
-
-    self->model->setLipSyncN(n);
-
-    Py_RETURN_NONE;
-}
-
 static PyObject *PyLAppModel_IsMotionFinished(PyLAppModelObject *self, PyObject *args)
 {
 
@@ -391,22 +392,57 @@ static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args)
+{
+    const char* paramId;
+    float value, weight;
+
+    if (PyArg_ParseTuple(args, "sff", &paramId, &value, &weight) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid parmas");
+        Py_RETURN_NONE;
+    }
+
+    self->model->setParameterValue(paramId, value, weight);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
+{
+    const char* paramId;
+    float value;
+
+    if (PyArg_ParseTuple(args, "sf", &paramId, &value) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params");
+        Py_RETURN_NONE;
+    }
+
+    self->model->addParameterValue(paramId, value);
+
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
-    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, "Load model assets."},
-    {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, "Update matrix."},
-    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, "Update model buffer."},
-    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, "Start motion by its groupname and idx."},
-    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, "Start random motion."},
-    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, "Set expression by name."},
-    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, "Set random expression."},
-    {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, "Get the name of the area being hit."},
-    {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, "Click at (x, y)."},
-    {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, "Drag to (x, y)."},
-    {"SetLipSyncN", (PyCFunction)PyLAppModel_SetLipSyncN, METH_VARARGS, "Set magnitude for lip sync."},
-    {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, "Test if current motion is finished."},
-    {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, "Set offset of the drawing center."},
-    {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, "Set model scale."},
+    {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
+    {"Resize", (PyCFunction)PyLAppModel_Resize, METH_VARARGS, ""},
+    {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
+    {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
+    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, ""},
+    {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, ""},
+    {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, ""},
+    {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
+    {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
+    {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
+    {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
+    {"SetAutoEyeBlinkEnable", (PyCFunction)PyLAppModel_SetAutoEyeblinkEnable, METH_VARARGS, ""},
+    {"Draw", (PyCFunction)PyLAppModel_Draw, METH_VARARGS, ""},
+    {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
+    {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志
 };
 
@@ -455,6 +491,8 @@ static PyObject *live2d_init()
 {
     live2d::Live2D::init();
 
+    Info("live2d version: %s", live2d::Live2D::getVersionStr());
+
     live2d::framework::Live2DFramework::setPlatformManager(new PlatformManager());
     Py_RETURN_NONE;
 }
@@ -464,7 +502,7 @@ static PyObject *live2d_dispose()
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
 
-    //mutex_g_model.lock();
+    // mutex_g_model.lock();
 
     for (auto &pair : g_model)
     {
@@ -474,7 +512,7 @@ static PyObject *live2d_dispose()
 
     g_model.clear();
 
-    //mutex_g_model.unlock();
+    // mutex_g_model.unlock();
     live2d::Live2D::dispose();
     Info("[G] live2d::dispose success");
     PyGILState_Release(gstate);
@@ -483,14 +521,14 @@ static PyObject *live2d_dispose()
 
 static PyObject *live2d_clear_buffer()
 {
-    // glClearColor(0.0, 0.0, 0.0, 0.0);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // glClearDepth(1.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearDepth(1.0);
 
     Py_RETURN_NONE;
 }
 
-static PyObject* live2d_set_log_enbale(PyObject* self, PyObject* args)
+static PyObject *live2d_set_log_enbale(PyObject *self, PyObject *args)
 {
     bool enable;
     if (!PyArg_ParseTuple(args, "p", &enable))
