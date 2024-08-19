@@ -1,3 +1,6 @@
+import os.path
+import resouces
+
 import glfw
 # import live2d.v2 as live2d
 import live2d.v3 as live2d
@@ -23,7 +26,7 @@ def main():
     if not window:
         print("Failed to create GLFW window")
         return
-    
+
     live2d.init()
 
     if live2d.LIVE2D_VERSION == 3:
@@ -32,19 +35,19 @@ def main():
 
     model = live2d.LAppModel()
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
+        model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
     else:
-        model.LoadModelJson("../Resources/v2/kasumi2/kasumi2.model.json")
-    
+        model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+
     while not glfw.window_should_close(window):
         glfw.poll_events()
-        
+
         live2d.clearBuffer()
         model.CalcParameters()
         model.Update()
-        
+
         glfw.swap_buffers(window)
-    
+
     glfw.terminate()
     live2d.dispose()
 

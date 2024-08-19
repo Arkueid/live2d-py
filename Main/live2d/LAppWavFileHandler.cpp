@@ -10,12 +10,9 @@
 #include <cstdint>
 #include "LAppPal.hpp"
 
+
 LAppWavFileHandler::LAppWavFileHandler()
-    : _rawData(NULL)
-    , _pcmData(NULL)
-    , _userTimeSeconds(0.0f)
-    , _lastRms(0.0f)
-    , _sampleOffset(0)
+    : _rawData(NULL), _pcmData(NULL), _userTimeSeconds(0.0f), _lastRms(0.0f), _sampleOffset(0)
 {
 }
 
@@ -37,9 +34,9 @@ Csm::csmBool LAppWavFileHandler::Update(Csm::csmFloat32 deltaTimeSeconds)
     Csm::csmUint32 goalOffset;
     Csm::csmFloat32 rms;
 
+    int index = 1;
     // データロード前/ファイル末尾に達した場合は更新しない
-    if ((_pcmData == NULL)
-        || (_sampleOffset >= _wavFileInfo._samplesPerChannel))
+    if ((_pcmData == NULL) || (_sampleOffset >= _wavFileInfo._samplesPerChannel))
     {
         _lastRms = 0.0f;
         return false;
@@ -70,7 +67,9 @@ Csm::csmBool LAppWavFileHandler::Update(Csm::csmFloat32 deltaTimeSeconds)
     return true;
 }
 
-void LAppWavFileHandler::Start(const Csm::csmString& filePath)
+
+
+void LAppWavFileHandler::Start(const Csm::csmString &filePath)
 {
     // WAVファイルのロード
     if (!LoadWavFile(filePath))
@@ -91,12 +90,12 @@ Csm::csmFloat32 LAppWavFileHandler::GetRms() const
     return _lastRms;
 }
 
-const LAppWavFileHandler::WavFileInfo& LAppWavFileHandler::GetWavFileInfo() const
+const LAppWavFileHandler::WavFileInfo &LAppWavFileHandler::GetWavFileInfo() const
 {
     return _wavFileInfo;
 }
 
-const Csm::csmByte* LAppWavFileHandler::GetRawData() const
+const Csm::csmByte *LAppWavFileHandler::GetRawData() const
 {
     return _rawData;
 }
@@ -121,7 +120,7 @@ Csm::csmVector<Csm::csmFloat32> LAppWavFileHandler::GetPcmData() const
     return buffer;
 }
 
-void LAppWavFileHandler::GetPcmDataChannel(Csm::csmFloat32* dst, Csm::csmUint32 useChannel) const
+void LAppWavFileHandler::GetPcmDataChannel(Csm::csmFloat32 *dst, Csm::csmUint32 useChannel) const
 {
     for (Csm::csmUint32 sampleCount = 0; sampleCount < _wavFileInfo._samplesPerChannel; sampleCount++)
     {
@@ -129,7 +128,7 @@ void LAppWavFileHandler::GetPcmDataChannel(Csm::csmFloat32* dst, Csm::csmUint32 
     }
 }
 
-Csm::csmFloat32 LAppWavFileHandler::NormalizePcmSample(Csm::csmUint32 bitsPerSample, Csm::csmByte* data, Csm::csmUint32 dataSize)
+Csm::csmFloat32 LAppWavFileHandler::NormalizePcmSample(Csm::csmUint32 bitsPerSample, Csm::csmByte *data, Csm::csmUint32 dataSize)
 {
     Csm::csmInt32 pcm32;
 
@@ -190,7 +189,7 @@ Csm::csmFloat32 LAppWavFileHandler::NormalizePcmSample(Csm::csmUint32 bitsPerSam
     return static_cast<Csm::csmFloat32>(pcm32) / INT32_MAX;
 }
 
-Csm::csmBool LAppWavFileHandler::LoadWavFile(const Csm::csmString& filePath)
+Csm::csmBool LAppWavFileHandler::LoadWavFile(const Csm::csmString &filePath)
 {
     Csm::csmBool ret;
 
@@ -218,7 +217,8 @@ Csm::csmBool LAppWavFileHandler::LoadWavFile(const Csm::csmString& filePath)
     // ファイル名
     _wavFileInfo._fileName = filePath;
 
-    do {
+    do
+    {
         // シグネチャ "RIFF"
         if (!_byteReader.GetCheckSignature("RIFF"))
         {
@@ -263,8 +263,7 @@ Csm::csmBool LAppWavFileHandler::LoadWavFile(const Csm::csmString& filePath)
             _byteReader._readOffset += (fmtChunkSize - 16);
         }
         // "data"チャンクが出現するまで読み飛ばし
-        while (!(_byteReader.GetCheckSignature("data"))
-            && (_byteReader._readOffset < _byteReader._fileSize))
+        while (!(_byteReader.GetCheckSignature("data")) && (_byteReader._readOffset < _byteReader._fileSize))
         {
             _byteReader._readOffset += _byteReader.Get32LittleEndian();
         }
@@ -281,11 +280,11 @@ Csm::csmBool LAppWavFileHandler::LoadWavFile(const Csm::csmString& filePath)
         }
         // 領域確保
         _rawDataSize = static_cast<Csm::csmUint64>(_wavFileInfo._blockAlign) * static_cast<Csm::csmUint64>(_wavFileInfo._samplesPerChannel);
-        _rawData = static_cast<Csm::csmByte*>(CSM_MALLOC(sizeof(Csm::csmByte) * _rawDataSize));
-        _pcmData = static_cast<Csm::csmFloat32**>(CSM_MALLOC(sizeof(Csm::csmFloat32*) * _wavFileInfo._numberOfChannels));
+        _rawData = static_cast<Csm::csmByte *>(CSM_MALLOC(sizeof(Csm::csmByte) * _rawDataSize));
+        _pcmData = static_cast<Csm::csmFloat32 **>(CSM_MALLOC(sizeof(Csm::csmFloat32 *) * _wavFileInfo._numberOfChannels));
         for (Csm::csmUint32 channelCount = 0; channelCount < _wavFileInfo._numberOfChannels; channelCount++)
         {
-            _pcmData[channelCount] = static_cast<Csm::csmFloat32*>(CSM_MALLOC(sizeof(Csm::csmFloat32) * _wavFileInfo._samplesPerChannel));
+            _pcmData[channelCount] = static_cast<Csm::csmFloat32 *>(CSM_MALLOC(sizeof(Csm::csmFloat32) * _wavFileInfo._samplesPerChannel));
         }
         // 波形データ取得
         Csm::csmUint64 rawPos = 0;
@@ -305,7 +304,7 @@ Csm::csmBool LAppWavFileHandler::LoadWavFile(const Csm::csmString& filePath)
 
         ret = true;
 
-    }  while (false);
+    } while (false);
 
     // ファイル開放
     LAppPal::ReleaseBytes(_byteReader._fileByte);

@@ -44,9 +44,9 @@
             }
         ],
         "Motions": {
-            "tts": [
+            "Speak": [
                 {
-                    "File": "",
+                    "File": "motions/haru_g_idle.motion3.json",
                     "Sound": ""
                 }
             ],

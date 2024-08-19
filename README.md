@@ -41,7 +41,7 @@ Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进�
 
 ## 文件说明
 
-```shell
+```
 live2d-py
 |-- CMakeLists.txt # CMake 配置文件，用于生成 live2d-py 
 |-- Core # Cubism Live2D Core 头文件和库文件，详情见 Cubism 官方
@@ -56,7 +56,7 @@ live2d-py
 `-- package  # 生成的 live2d-py 包，可用 setup.py 打包和安装
 ```
 ## 简易面部动捕示例
-源码见 [main_facial_bind.py](./package/main_facial_bind.py)  
+源码见 [main_facial_bind.py](./package/main_facial_bind_mediapipe.py)  
 
 ![期末周破防](./docs/video_test.gif)
 

@@ -46,15 +46,9 @@ namespace
 LAppModel::LAppModel()
     : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _lipSyncN(1.0f), _autoBlink(true), _autoBreath(true)
 {
-    if (MocConsistencyValidationEnable)
-    {
-        _mocConsistency = true;
-    }
+    _mocConsistency = MocConsistencyValidationEnable;
 
-    if (DebugLogEnable)
-    {
-        _debugMode = true;
-    }
+    _debugMode = DebugLogEnable;
 
     _idParamAngleX = CubismFramework::GetIdManager()->GetId(ParamAngleX);
     _idParamAngleY = CubismFramework::GetIdManager()->GetId(ParamAngleY);
@@ -87,10 +81,7 @@ void LAppModel::LoadAssets(const csmChar *fileName)
     _modelHomeDir = fileName;
     _modelHomeDir += "/../";
 
-    if (_debugMode)
-    {
-        Info("load model setting: %s", fileName);
-    }
+    Info("load model setting: %s", fileName);
 
     csmSizeInt size;
     const csmString path = fileName;
@@ -274,13 +265,10 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
         // 定义了动作但是没有动作路径
         if (path.GetLength() == 0)
         {
-            if (_debugMode)
-            {
-                Info("load motion without file: %s => [%s_%d] ", path.GetRawString(), group, i);
-            }
+            Info("load motion without file: %s => [%s_%d] ", path.GetRawString(), group, i);
             continue;
         }
-        else if (_debugMode)
+        else
         {
             Info("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
         }
@@ -442,9 +430,9 @@ handle_sound:
     csmString voice = _modelSetting->GetMotionSoundFileName(group, no);
     if (strcmp(voice.GetRawString(), "") != 0)
     {
-        csmString path = voice;
-        path = _modelHomeDir + path;
+        csmString path = _modelHomeDir + voice;
         _wavFileHandler.Start(path);
+        Info("start lipsync: %s %s", _modelHomeDir.GetRawString(), voice.GetRawString());
     }
 
     if (onStartMotionHandler)
@@ -452,10 +440,7 @@ handle_sound:
         onStartMotionHandler(group, no);
     }
 
-    if (_debugMode)
-    {
-        Info("start motion: [%s_%d]", group, no);
-    }
+    Info("start motion: [%s_%d]", group, no);
 
     if (!hasMotion) {
         // 添加空指针判断，如果 motion 文件不存在，直接调用动作结束回调函数 
@@ -748,13 +733,10 @@ void LAppModel::CalcParameters()
     // リップシンクの設定
     if (_lipSync)
     {
-        // リアルタイムでリップシンクを行う場合、システムから音量を取得して0〜1の範囲で値を入力します。
-        csmFloat32 value = 0.0f;
-
         // 状態更新/RMS値取得
         _wavFileHandler.Update(deltaTimeSeconds);
-        value = _wavFileHandler.GetRms() * _lipSyncN;
-
+        // リアルタイムでリップシンクを行う場合、システムから音量を取得して0〜1の範囲で値を入力します。
+        csmFloat32 value = _wavFileHandler.GetRms() * _lipSyncN;
         for (csmUint32 i = 0; i < _lipSyncIds.GetSize(); ++i)
         {
             _model->AddParameterValue(_lipSyncIds[i], value, 0.8f);

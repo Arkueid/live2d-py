@@ -1,10 +1,12 @@
 from PySide2.QtGui import QMouseEvent
 # import live2d.v2 as live2d
 import live2d.v3 as live2d
-
+import os
+import resouces
 from PySide2.QtCore import QTimerEvent
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QOpenGLWidget
+
 
 def callback():
     print("motion end")
@@ -35,10 +37,10 @@ class Win(QOpenGLWidget):
         # 加载模型参数
         if live2d.LIVE2D_VERSION == 2:
             # 适用于 2 的模型
-            self.model.LoadModelJson("../Resources/v2/kasumi2/kasumi2.model.json")
+            self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
         elif live2d.LIVE2D_VERSION == 3:
             # 适用于 3 的模型
-            self.model.LoadModelJson("../Resources/v3/Haru/Haru.model3.json")
+            self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
         # 设置口型同步幅度
         self.model.SetLipSyncN(5)
@@ -50,21 +52,21 @@ class Win(QOpenGLWidget):
         if self.model:
             # 使模型的参数按窗口大小进行更新
             self.model.Resize(w, h)
-    
+
     def paintGL(self) -> None:
-        
+
         live2d.clearBuffer()
 
         self.model.CalcParameters()
         self.model.Update()
-    
+
     def timerEvent(self, a0: QTimerEvent | None) -> None:
 
-        if self.a == 0: # 测试一次播放动作和回调函数
+        if self.a == 0:  # 测试一次播放动作和回调函数
             self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value)
             self.a += 1
-        
-        self.update() 
+
+        self.update()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         # 传入鼠标点击位置的窗口坐标
@@ -76,6 +78,7 @@ class Win(QOpenGLWidget):
 
 if __name__ == "__main__":
     import sys
+
     live2d.init()
 
     app = QApplication(sys.argv)
