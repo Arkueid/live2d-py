@@ -105,6 +105,7 @@ setup(
     long_description_content_type="text/markdown",
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
+    license="MIT",
     url=URL,
     install_requires=INSTALL_REQUIRES,
     ext_modules=[CMakeExtension("LAppModelWrapper", ".")],
