@@ -1,0 +1,8 @@
+recursive-include Core *
+recursive-include include *
+recursive-include Main *
+recursive-include glew *
+recursive-include Framework *
+recursive-include package *
+include CMakeLists.txt
+include LAppModelWrapper.cpp

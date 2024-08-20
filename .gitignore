@@ -405,3 +405,5 @@ glew/doc
 **/*.wav
 
 **/*.egg-info
+
+dist
