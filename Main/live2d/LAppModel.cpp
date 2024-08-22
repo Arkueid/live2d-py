@@ -727,3 +727,21 @@ void LAppModel::SetAutoBlinkEnable(bool enable)
 {
     _autoBlink = enable;
 }
+
+int LAppModel::GetParameterCount()
+{
+    return _model->GetParameterCount();
+}
+
+Parameter LAppModel::GetParameter(int i)
+{
+    Parameter param {
+        _model->GetParameterId(i)->GetString().GetRawString(),
+        _model->GetParameterType(i),
+        _model->GetParameterValue(i),
+        _model->GetParameterMaximumValue(i),
+        _model->GetParameterMinimumValue(i),
+        _model->GetParameterDefaultValue(i)
+    };
+    return param;
+}

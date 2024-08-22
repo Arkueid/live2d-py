@@ -1,0 +1,33 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "llny.moc3",
+		"Textures": [
+			"llny.4096/texture_00.png",
+			"llny.4096/texture_01.png"
+		],
+		"Physics": "llny.physics3.json",
+		"DisplayInfo": "llny.cdi3.json",
+		"Expressions": [
+			{
+				"Name": "F01",
+				"File": "expressions/口罩.exp3.json"
+			}
+		]
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

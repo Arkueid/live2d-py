@@ -20,6 +20,17 @@
  *         モデル生成、機能コンポーネント生成、更新処理とレンダリングの呼び出しを行う。
  *
  */
+struct Parameter
+{
+    std::string id;
+    int type;
+    float value;
+    float maxValue;
+    float minValue;
+    float defaultValue;
+};
+
+
 class LAppModel : public Csm::CubismUserModel
 {
 public:
@@ -127,15 +138,17 @@ public:
 
     bool IsMotionFinished();
 
-    void SetParameterValue(const char* paramId, float value, float weight);
+    void SetParameterValue(const char *paramId, float value, float weight);
 
-    void AddParameterValue(const char* paramId, float value);
-
-    void CalcParameters();
+    void AddParameterValue(const char *paramId, float value);
 
     void SetAutoBreathEnable(bool enable);
 
     void SetAutoBlinkEnable(bool enable);
+
+    int GetParameterCount();
+
+    Parameter GetParameter(int i);
 
 protected:
     /**

@@ -27,7 +27,7 @@ else(CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 
 # Specify version of compiler.
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

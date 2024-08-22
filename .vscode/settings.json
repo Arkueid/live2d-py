@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "mutex": "cpp",
+        "xlocale": "cpp",
+        "codecvt": "cpp",
+        "xlocbuf": "cpp",
+        "fstream": "cpp",
+        "iostream": "cpp",
+        "string": "cpp",
+        "xstring": "cpp",
+        "filesystem": "cpp",
+        "vector": "cpp"
+    }
+}

@@ -18,6 +18,8 @@
 #include <chrono>
 #include <Log.hpp>
 
+#include <filesystem>
+
 using std::endl;
 using namespace Csm;
 using namespace std;
@@ -27,32 +29,26 @@ double LAppPal::s_currentFrame = 0.0;
 double LAppPal::s_lastFrame = 0.0;
 double LAppPal::s_deltaTime = 0.0;
 
+
 csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
 {
     //filePath;//
-    const char* path = filePath.c_str();
+    const char* pathStr = filePath.c_str();
+    std::filesystem::path path = std::filesystem::u8path(filePath);
 
     int size = 0;
-    struct stat statBuf;
-    if (stat(path, &statBuf) == 0)
+    if (std::filesystem::exists(path))
     {
-        size = statBuf.st_size;
-
+        size = std::filesystem::file_size(path);
         if (size == 0)
         {
-            if (DebugLogEnable)
-            {
-                Info("Stat succeeded but file size is zero. path:%s", path);
-            }
+            Info("Stat succeeded but file size is zero. path:%s", pathStr);
             return NULL;
         }
     }
     else
     {
-        if (DebugLogEnable)
-        {
-            Info("Stat failed. errno:%d path:%s", errno, path);
-        }
+        Info("Stat failed. errno:%d path:%s", errno, pathStr);
         return NULL;
     }
 
@@ -60,10 +56,7 @@ csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
     file.open(path, std::ios::in | std::ios::binary);
     if (!file.is_open())
     {
-        if (DebugLogEnable)
-        {
-            Info("File open failed. path:%s", path);
-        }
+        Info("File open failed. path:%s", pathStr);
         return NULL;
     }
 
@@ -71,7 +64,8 @@ csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
     file.read(buf, size);
     file.close();
 
-    *outSize = size;
+    if(outSize) *outSize = size;
+    
     return reinterpret_cast<csmByte*>(buf);
 }
 

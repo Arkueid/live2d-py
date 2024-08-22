@@ -1,19 +1,16 @@
 #pragma once
 
-void setLogEnable(bool on);
-void _Info(const char *fmt, ...);
-void _InfoF(const char *file, const char *fmt, ...);
-void _Error(const char *fmt, ...);
-void _ErrorF(const char *file, const char *fmt, ...);
-void _Debug(const char *fmt, ...);
-void _DebugF(const char *file, const char *fmt, ...);
+enum LogLevel
+{
+    INFO,
+    DEBUG,
+    ERROR
+};
 
-#ifdef LOG_MODE_RELEASE
-#define Debug(fmt, ...) ((void)0)
-#define Info(fmt, ...) ((void)0)
-#define Error(fmt, ...) _ErrorF("error.log", fmt, ##__VA_ARGS__)
-#else
-#define Debug(fmt, ...) _Debug(fmt, ##__VA_ARGS__)
-#define Info(fmt, ...) _Info(fmt, ##__VA_ARGS__)
-#define Error(fmt, ...) _Error(fmt, ##__VA_ARGS__)
-#endif
+
+void setLogEnable(bool on);
+void _LOG(const int format, const char *fmt, ...);
+
+#define Debug(fmt, ...) _LOG(LogLevel::DEBUG, fmt, ##__VA_ARGS__)
+#define Info(fmt, ...) _LOG(LogLevel::INFO, fmt, ##__VA_ARGS__)
+#define Error(fmt, ...) _LOG(LogLevel::ERROR, fmt, ##__VA_ARGS__)

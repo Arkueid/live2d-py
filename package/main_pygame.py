@@ -5,18 +5,12 @@ from pygame.locals import *
 
 import live2d.v3 as live2d
 import live2d.utils.log as log
+from live2d.utils.lipsync import WavHandler
+from live2d.v3.params import StandardParams, Parameter
 import resources
 
-# import live2d.v2 as live2d
 
 live2d.setLogEnable(True)
-
-
-def on_start_motion_callback(group: str, no: int):
-    log.Info("start motion: [%s_%d]" % (group, no))
-
-def on_finish_motion_callback():
-    log.Info("motion finished")
 
 
 def draw():
@@ -29,20 +23,20 @@ def main():
     pygame.mixer.init()
     live2d.init()
 
-
     display = (700, 500)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
-    if live2d.LIVE2D_VERSION == 3:
-        live2d.glewInit()
-        live2d.setGLProperties()
+    live2d.glewInit()
+    live2d.setGLProperties()
 
     model = live2d.LAppModel()
 
-    if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
-    else:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+    # 加载中文路径模型
+    model.LoadModelJson(
+        os.path.join(
+            resources.RESOURCES_DIRECTORY, "v3/波奇酱2.0/波奇酱2.0.model3.json"
+        )
+    )
 
     model.Resize(*display)
 
@@ -56,6 +50,29 @@ def main():
     # model.SetAutoBlinkEnable(False)
     # 关闭自动呼吸
     # model.SetAutoBreathEnable(False)
+
+    wavHandler = WavHandler()
+    lipSyncN = 2.5
+
+    audioPlayed = False
+
+    def on_start_motion_callback(group: str, no: int):
+        log.Info("start motion: [%s_%d]" % (group, no))
+        audioPath = os.path.join(resources.CURRENT_DIRECTORY, "audio2.wav")
+        pygame.mixer.music.load(audioPath)
+        pygame.mixer.music.play()
+        log.Info("start lipSync")
+        wavHandler.Start(audioPath)
+
+
+    def on_finish_motion_callback():
+        log.Info("motion finished")
+
+
+    # 获取全部可用参数
+    for i in range(model.GetParameterCount()):
+        param: Parameter = model.GetParameter(i)
+        print(param.id, param.type, param.value, param.max, param.min, param.default)
 
     while True:
         for event in pygame.event.get():
@@ -85,13 +102,25 @@ def main():
                     scale -= 0.01
 
             if event.type == pygame.MOUSEMOTION:
+                # 实现拖拽
                 model.Drag(*pygame.mouse.get_pos())
-
 
         if not running:
             break
 
         model.Update()
+        if wavHandler.Update():
+            # 利用 wav 响度更新 嘴部张合
+            model.AddParameterValue(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
+
+        if not audioPlayed:
+            # 播放一个不存在的动作
+            model.StartMotion("", 0, live2d.MotionPriority.FORCE.value, on_start_motion_callback, on_finish_motion_callback)
+            audioPlayed = True
+        
+        # 一般通过设置 param 去除水印
+        # model.SetParameterValue("Param261", 1, 1)
+
         model.SetOffset(dx, dy)
         model.SetScale(scale)
         live2d.clearBuffer()

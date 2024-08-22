@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any
+from params import Parameter
 
 
 class MotionPriority(Enum):
@@ -70,6 +71,17 @@ def clearBuffer() -> None:
 
 
 def setLogEnable(enable: bool):
+    pass
+
+
+def testWrite(fileName: str):
+    pass
+
+def testRead(fileName: str):
+    pass
+
+
+def testPrint(s: str):
     pass
 
 
@@ -233,4 +245,10 @@ class LAppModel:
         """
         开启自动眨眼
         """
+        pass
+
+    def GetParameterCount() -> int:
+        pass
+
+    def GetParameter(index: int) -> Parameter:
         pass

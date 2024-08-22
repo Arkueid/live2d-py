@@ -39,3 +39,14 @@ class StandardParams:
     ParamBustY = "ParamBustY"
     ParamBaseX = "ParamBaseX"
     ParamBaseY = "ParamBaseY"
+
+
+class Parameter:
+
+    def __init__(self):
+        self.id: str = ""
+        self.type: int = 0
+        self.value: float = 0
+        self.max: float = 0
+        self.min: float = 0
+        self.default: float = 0

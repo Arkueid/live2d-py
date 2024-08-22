@@ -18,7 +18,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
     set(CMAKE_PREFIX_PATH ${PYTHON_INSTALLATION_PATH})
 else()
     # 寻找Python
-    message("Not found PYTHON_INSTALLATION_PATH in environment variables")
+    message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
     set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
 endif()
 
@@ -26,8 +26,12 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/static)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Zi")
   add_compile_options("/utf-8" "/wd4018" "/wd4244" "/wd4996")
-  add_link_options("/NODEFAULTLIB:LIBCMT")
+  add_link_options("/NODEFAULTLIB:LIBCMT" "/DEBUG")
+
+
 else()
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})

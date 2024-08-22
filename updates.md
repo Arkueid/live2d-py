@@ -1,5 +1,23 @@
 # 更新内容
 
+## 2024/8/22
+添加：
+
+1. 中文路径支持
+
+2. 获取模型内置参数数量、参数对象：`LAppModel.GetParameterCount`，`LAppModel.GetParameter`
+```python
+from live2d.v3.params import Parameter
+
+# 获取所有可用参数
+for i in range(model.GetParameterCount()):
+    param: Parameter = model.GetParameter(i)
+    print(param.id, param.type, param.value, param.max, param.min, param.default)
+```
+
+
+
+
 ## 2024/8/19
 
 添加:

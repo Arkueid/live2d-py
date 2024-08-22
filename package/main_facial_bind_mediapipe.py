@@ -38,7 +38,7 @@ def main():
 
     model = live2d.LAppModel()
 
-    model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json"))
 
     model.Resize(*display)
 
@@ -52,11 +52,8 @@ def main():
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                try:
-                    model.Touch(x, y, s_call, f_call)
-                except Exception as e:
-                    print(e)
+                print("set random expression")
+                model.SetRandomExpression()
 
         if not running:
             break
@@ -75,6 +72,9 @@ def main():
             model.SetParameterValue(StandardParams.ParamAngleY, params.AngleY, 1)
             model.SetParameterValue(StandardParams.ParamAngleZ, params.AngleZ, 1)
             model.SetParameterValue(StandardParams.ParamBodyAngleX, params.BodyAngleX, 1)
+        
+        # 去除水印
+        model.SetParameterValue("Param14", 1, 1)
 
         live2d.clearBuffer()
         model.Draw()

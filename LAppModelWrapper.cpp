@@ -10,6 +10,10 @@
 
 #include <Python.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 static LAppAllocator _cubismAllocator;
 static Csm::CubismFramework::Option _cubismOption;
 
@@ -111,7 +115,7 @@ static void default_start_call_back(const char *group, int no)
         Py_XDECREF(result);
 
     // Py_DECREF(g_start_callback);
-    // g_start_callback = nullptr;                          
+    // g_start_callback = nullptr;
     PyGILState_Release(gstate);
 };
 
@@ -138,7 +142,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
     LAppModel::OnStartMotionHandler s_call = nullptr;
     FinishedMotionCallback f_call = nullptr;
 
-    static char *kwlist[] = {(char*)"group", (char*)"no", (char*)"priority", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL};
+    static char *kwlist[] = {(char *)"group", (char *)"no", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "sii|OO", kwlist, &group, &no, &priority, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
@@ -187,7 +191,7 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
     LAppModel::OnStartMotionHandler s_call = nullptr;
     FinishedMotionCallback f_call = nullptr;
 
-    static char *kwlist[] = {(char*)"group", (char*)"priority", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL};
+    static char *kwlist[] = {(char *)"group", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
@@ -288,7 +292,7 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
     LAppModel::OnStartMotionHandler s_call = nullptr;
     FinishedMotionCallback f_call = nullptr;
 
-    static char *kwlist[] = {(char*)"mx", (char*)"my", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL};
+    static char *kwlist[] = {(char *)"mx", (char *)"my", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
@@ -400,7 +404,7 @@ static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
 
 static PyObject *PyLAppModel_SetParameterValue(PyLAppModelObject *self, PyObject *args)
 {
-    const char* paramId;
+    const char *paramId;
     float value, weight;
 
     if (PyArg_ParseTuple(args, "sff", &paramId, &value, &weight) < 0)
@@ -414,9 +418,9 @@ static PyObject *PyLAppModel_SetParameterValue(PyLAppModelObject *self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
+static PyObject *PyLAppModel_AddParameterValue(PyLAppModelObject *self, PyObject *args)
 {
-    const char* paramId;
+    const char *paramId;
     float value;
 
     if (PyArg_ParseTuple(args, "sf", &paramId, &value) < 0)
@@ -430,8 +434,7 @@ static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-
-static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args)
+static PyObject *PyLAppModel_Update(PyLAppModelObject *self, PyObject *args)
 {
 
     self->model->Update();
@@ -439,7 +442,7 @@ static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObject* args)
+static PyObject *PyLAppModel_SetAutoBreathEnable(PyLAppModelObject *self, PyObject *args)
 {
     bool enable;
 
@@ -454,7 +457,7 @@ static PyObject* PyLAppModel_SetAutoBreathEnable(PyLAppModelObject* self, PyObje
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObject* args)
+static PyObject *PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject *self, PyObject *args)
 {
     bool enable;
 
@@ -469,6 +472,41 @@ static PyObject* PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject* self, PyObjec
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_GetParameterCount(PyLAppModelObject *self, PyObject *args)
+{
+    return PyLong_FromLong(self->model->GetParameterCount());
+}
+
+static PyObject *module_live2d_v3_params = nullptr;
+static PyObject *class_parameter = nullptr;
+
+static PyObject *PyLAppModel_GetParameter(PyLAppModelObject *self, PyObject *args)
+{
+    int index;
+    if (PyArg_ParseTuple(args, "i", &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    Parameter param = self->model->GetParameter(index);
+
+    PyObject *instance = PyObject_CallObject(class_parameter, NULL);
+    if (instance == NULL)
+    {
+        PyErr_Print();
+        return NULL;
+    }
+
+    PyObject_SetAttrString(instance, "id", PyUnicode_FromString(param.id.c_str()));
+    PyObject_SetAttrString(instance, "type", PyLong_FromLong(param.type));
+    PyObject_SetAttrString(instance, "value", PyFloat_FromDouble(param.value));
+    PyObject_SetAttrString(instance, "max", PyFloat_FromDouble(param.maxValue));
+    PyObject_SetAttrString(instance, "min", PyFloat_FromDouble(param.minValue));
+    PyObject_SetAttrString(instance, "default", PyFloat_FromDouble(param.defaultValue));
+
+    return instance;
+}
 
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
@@ -491,10 +529,12 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
     {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
     {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
+    {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
+    {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志
 };
 
-// 定义Rectangle类的类型对象
+// 定义LAppModel类的类型对象
 static PyTypeObject PyLAppModelType = {
     PyVarObject_HEAD_INIT(NULL, 0) "live2d.LAppModel", /* tp_name */
     sizeof(PyLAppModelObject),                         /* tp_basicsize */
@@ -538,11 +578,8 @@ static PyTypeObject PyLAppModelType = {
 static PyObject *live2d_init()
 {
     _cubismOption.LogFunction = LAppPal::PrintLn;
-#ifdef LOG_MODE_RELEASE
-    _cubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Off;
-#else
     _cubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Verbose;
-#endif
+
     Csm::CubismFramework::StartUp(&_cubismAllocator, &_cubismOption);
     Csm::CubismFramework::Initialize();
     Py_RETURN_NONE;
@@ -597,7 +634,7 @@ static PyObject *live2d_clear_buffer()
     Py_RETURN_NONE;
 }
 
-static PyObject* live2d_set_log_enable(PyObject* self, PyObject* args)
+static PyObject *live2d_set_log_enable(PyObject *self, PyObject *args)
 {
     bool enable;
     if (!PyArg_ParseTuple(args, "p", &enable))
@@ -609,6 +646,18 @@ static PyObject* live2d_set_log_enable(PyObject* self, PyObject* args)
     setLogEnable(enable);
 
     Py_RETURN_NONE;
+}
+
+#include <iostream>
+#include <fstream>
+#include <cwchar>
+
+std::wstring char_to_wstring(const char *cstr)
+{
+    size_t wlen = mbstowcs(NULL, cstr, 0);
+    std::wstring wstr(wlen, L'\0');
+    mbstowcs(&wstr[0], cstr, wlen);
+    return wstr;
 }
 
 // 定义模块的方法
@@ -648,6 +697,26 @@ PyMODINIT_FUNC PyInit_live2d(void)
         Py_DECREF(m);
         return NULL;
     }
+
+    module_live2d_v3_params = PyImport_ImportModule("live2d.v3.params");
+    if (module_live2d_v3_params == NULL)
+    {
+        PyErr_Print();
+        return NULL;
+    }
+
+    class_parameter = PyObject_GetAttrString(module_live2d_v3_params, "Parameter");
+    if (class_parameter == NULL)
+    {
+        Py_DECREF(module_live2d_v3_params);
+        PyErr_Print();
+        return NULL;
+    }
+
+#ifdef WIN32
+    // 强制utf-8
+    SetConsoleOutputCP(65001);
+#endif
 
     return m;
 }

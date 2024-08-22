@@ -64,8 +64,12 @@ class CMakeBuild(build_ext):
             cmake_args += [
                 "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format("Release", extdir)
             ]
-            if sys.maxsize > 2 ** 32:
+            if platform.python_compiler().find("64 bit") > 0:
+                print("Building for 64 bit")
                 cmake_args += ["-A", "x64"]
+            else:
+                print("Building for 32 bit")
+                cmake_args += ["-A", "Win32"]
             build_args += ["--", "/m"]
         else:
             cmake_args += ["-DCMAKE_BUILD_TYPE=" + "Release"]
