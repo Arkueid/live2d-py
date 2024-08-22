@@ -1,6 +1,6 @@
-<p align="center">
-    <h1 style="text-align: center; font-family: 'Roboto', sans-serif;">live2d-py</h1>
-</p>
+<div align="center" style="style="font-size: 32px; "">
+    <h1>live2d-py</h1>
+</div>
 
 <p align="center" style="font-family: 'Roboto', sans-serif; font-size: 1em; color: #555;">
     <img title="Docker Build Version" src="https://img.shields.io/github/v/release/Arkueid/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
@@ -10,7 +10,8 @@
     <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
 </p>
 
----
+
+
 在 Python 中直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染，提供更高的自由度和拓展性。
 
 Python 的 Live2D 拓展库。基于 Python C++ API 对 Live2D Native (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
