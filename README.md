@@ -1,5 +1,5 @@
-<p align="center" style="font-family: 'Roboto', sans-serif; font-size: 2em;">
-    <strong>live2d-py</strong>
+<p align="center">
+    <h1 style="text-align: center; font-family: 'Roboto', sans-serif;">live2d-py</h1>
 </p>
 
 <p align="center" style="font-family: 'Roboto', sans-serif; font-size: 1em; color: #555;">
