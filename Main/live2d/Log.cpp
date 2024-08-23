@@ -13,18 +13,8 @@
 #define LOG_DEBUG_CONSOLE_FORMAT "\033[34m[DEBUG %s] %s\033[0m\n"
 
 #define TIME_BUFSIZE 20
-#define MAX_LEVEL_HEADER_SIZE 32
-#define MAX_BUFSIZE 1024
-#define MAX_MSG_SIZE (MAX_BUFSIZE - MAX_LEVEL_HEADER_SIZE)
 
-static bool enable = true;
-
-static std::mutex log_lock;
-
-void setLogEnable(bool on)
-{
-    enable = on;
-}
+bool live2dLogEnable = true;
 
 void current_time(char *buf)
 {
@@ -36,23 +26,9 @@ void current_time(char *buf)
     strftime(buf, TIME_BUFSIZE, "%Y-%m-%d %H:%M:%S", timeinfo);
 }
 
-static void WriteConsole(const char *level_fmt, ...)
-{
-    va_list args;
-    va_start(args, level_fmt);
-
-    char buffer[MAX_BUFSIZE];
-
-    std::vsnprintf(buffer, MAX_BUFSIZE, level_fmt, args);
-
-    va_end(args);
-
-    printf(buffer);
-}
-
 void _LOG(const int level, const char *fmt, ...)
 {
-    if (!enable)
+    if (!live2dLogEnable)
         return;
 
     char time_buf[TIME_BUFSIZE];
@@ -61,8 +37,10 @@ void _LOG(const int level, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    char msg_buf[MAX_MSG_SIZE];
-    std::vsnprintf(msg_buf, MAX_MSG_SIZE, fmt, args);
+    int msgSize = std::vsnprintf(NULL, 0, fmt, args) + 1;
+
+    char *msgBuf = (char *)malloc(msgSize * sizeof(char));
+    std::vsnprintf(msgBuf, msgSize, fmt, args);
     va_end(args);
 
     const char *format;
@@ -78,5 +56,8 @@ void _LOG(const int level, const char *fmt, ...)
     {
         format = LOG_ERROR_CONSOLE_FORMAT;
     }
-    WriteConsole(format, time_buf, msg_buf);
+
+    printf(format, time_buf, msgBuf);
+
+    free(msgBuf);
 }

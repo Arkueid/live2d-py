@@ -72,7 +72,7 @@ def main():
     # 获取全部可用参数
     for i in range(model.GetParameterCount()):
         param: Parameter = model.GetParameter(i)
-        print(param.id, param.type, param.value, param.max, param.min, param.default)
+        log.Debug(param.id, param.type, param.value, param.max, param.min, param.default)
 
     while True:
         for event in pygame.event.get():
@@ -131,6 +131,8 @@ def main():
 
     pygame.quit()
     quit()
+
+
 
 
 if __name__ == "__main__":

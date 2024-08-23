@@ -74,14 +74,7 @@ def setLogEnable(enable: bool):
     pass
 
 
-def testWrite(fileName: str):
-    pass
-
-def testRead(fileName: str):
-    pass
-
-
-def testPrint(s: str):
+def logEnable() -> bool:
     pass
 
 

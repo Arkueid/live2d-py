@@ -634,6 +634,8 @@ static PyObject *live2d_clear_buffer()
     Py_RETURN_NONE;
 }
 
+extern bool live2dLogEnable;
+
 static PyObject *live2d_set_log_enable(PyObject *self, PyObject *args)
 {
     bool enable;
@@ -643,41 +645,40 @@ static PyObject *live2d_set_log_enable(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    setLogEnable(enable);
+    live2dLogEnable = enable;
 
     Py_RETURN_NONE;
 }
 
-#include <iostream>
-#include <fstream>
-#include <cwchar>
-
-std::wstring char_to_wstring(const char *cstr)
+static PyObject *live2d_log_enable(PyObject *self, PyObject *args)
 {
-    size_t wlen = mbstowcs(NULL, cstr, 0);
-    std::wstring wstr(wlen, L'\0');
-    mbstowcs(&wstr[0], cstr, wlen);
-    return wstr;
+
+    if (live2dLogEnable)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
 }
 
-// 定义模块的方法
-static PyMethodDef module_methods[] = {
-    {"init", (PyCFunction)live2d_init, METH_VARARGS, "initialize sdk"},
-    {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, "release sdk"},
-    {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, "release sdk"},
-    {"setGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, "configure gl"},
-    {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, "clear buffer"},
-    {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, "clear buffer"},
+// 定义live2d模块的方法
+static PyMethodDef live2d_methods[] = {
+    {"init", (PyCFunction)live2d_init, METH_VARARGS, ""},
+    {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, ""},
+    {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
+    {"setGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, ""},
+    {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
+    {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
+    {"logEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL} // 哨兵
 };
 
-// 定义模块
+// 定义live2d模块
 static struct PyModuleDef liv2d_module = {
     PyModuleDef_HEAD_INIT,
     "live2d",
     "Module that creates live2d objects",
     -1,
-    module_methods};
+    live2d_methods};
+
 
 // 模块初始化函数的实现
 PyMODINIT_FUNC PyInit_live2d(void)
