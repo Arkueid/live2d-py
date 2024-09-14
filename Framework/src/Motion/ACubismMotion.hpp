@@ -10,6 +10,7 @@
 #include "CubismFramework.hpp"
 #include "Id/CubismId.hpp"
 #include "Type/csmVector.hpp"
+#include <functional>
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -26,7 +27,7 @@ class ACubismMotion
 {
 public:
     /// モーション再生終了コールバック関数定義
-    typedef void (*FinishedMotionCallback)(ACubismMotion* self);
+    using FinishedMotionCallback = std::function<void(ACubismMotion*)>;
     /**
      * @brief インスタンスの破棄
      *

@@ -47,7 +47,8 @@
             "Speak": [
                 {
                     "File": "motions/haru_g_idle.motion3.json",
-                    "Sound": ""
+                    "Sound": "",
+                    "Text": ""
                 }
             ],
             "Idle": [

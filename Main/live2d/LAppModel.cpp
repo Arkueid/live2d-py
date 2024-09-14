@@ -352,7 +352,7 @@ void LAppModel::ReleaseExpressions()
 
 void LAppModel::Update()
 {
-        const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
+    const csmFloat32 deltaTimeSeconds = LAppPal::GetDeltaTime();
     _userTimeSeconds += deltaTimeSeconds;
 
     _dragManager->Update(deltaTimeSeconds);
@@ -419,12 +419,11 @@ void LAppModel::Update()
     {
         _pose->UpdateParameters(_model, deltaTimeSeconds);
     }
-
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority, 
-    LAppModel::OnStartMotionHandler onStartMotionHandler,
-    ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority,
+                                                    OnMotionStartCallback onStartMotionHandler,
+                                                    OnMotionFinishCallback onFinishedMotionHandler)
 {
     if (priority == PriorityForce)
     {
@@ -464,7 +463,8 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
         csmByte *buffer;
         csmSizeInt size;
         buffer = CreateBuffer(path.GetRawString(), &size);
-        motion = static_cast<CubismMotion *>(LoadMotion(buffer, size, NULL, onFinishedMotionHandler));
+
+        motion = static_cast<CubismMotion*>(LoadMotion(buffer, size, NULL, onFinishedMotionHandler));
 
         if (motion)
         {
@@ -485,7 +485,8 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
 
         DeleteBuffer(buffer, path.GetRawString());
     }
-    else
+    
+    if (motion)
     {
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
     }
@@ -497,20 +498,22 @@ handler_label:
         onStartMotionHandler(group, no);
     }
 
-    if (!hasMotion) {
-        // 添加空指针判断，如果 motion 文件不存在，直接调用动作结束回调函数 
+    if (!hasMotion)
+    {
+        // 添加空指针判断，如果 motion 文件不存在，直接调用动作结束回调函数
         // 修复模型文件不存在时，导致崩溃
-        if (onFinishedMotionHandler) {
+        if (onFinishedMotionHandler)
+        {
             onFinishedMotionHandler(NULL);
         }
         _motionManager->SetReservePriority(PriorityNone);
         return InvalidMotionQueueEntryHandleValue;
     }
-    
+
     return _motionManager->StartMotionPriority(motion, autoDelete, priority);
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, OnStartMotionHandler onStartMotionHandler, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, OnMotionStartCallback onStartMotionHandler, OnMotionFinishCallback onFinishedMotionHandler)
 {
     if (_modelSetting->GetMotionCount(group) == 0)
     {
@@ -706,15 +709,15 @@ bool LAppModel::IsMotionFinished()
     return _motionManager->IsFinished();
 }
 
-void LAppModel::SetParameterValue(const char* paramId, float value, float weight)
+void LAppModel::SetParameterValue(const char *paramId, float value, float weight)
 {
-    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->SetParameterValue(paramHanle, value, weight);
 }
 
-void LAppModel::AddParameterValue(const char* paramId, float value)
+void LAppModel::AddParameterValue(const char *paramId, float value)
 {
-    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->AddParameterValue(paramHanle, value);
 }
 
@@ -735,13 +738,12 @@ int LAppModel::GetParameterCount()
 
 Parameter LAppModel::GetParameter(int i)
 {
-    Parameter param {
+    Parameter param{
         _model->GetParameterId(i)->GetString().GetRawString(),
         _model->GetParameterType(i),
         _model->GetParameterValue(i),
         _model->GetParameterMaximumValue(i),
         _model->GetParameterMinimumValue(i),
-        _model->GetParameterDefaultValue(i)
-    };
+        _model->GetParameterDefaultValue(i)};
     return param;
 }

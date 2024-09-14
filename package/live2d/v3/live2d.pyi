@@ -148,7 +148,7 @@ class LAppModel:
         """
         pass
 
-    def HitTest(self, hitAreaName: str | Any, x: float | Any, y: float | Any) -> str:
+    def HitTest(self, x: float | Any, y: float | Any) -> str:
         """
         Perform a hit test to determine if a specific area of the model has been clicked.
         
@@ -168,14 +168,14 @@ class LAppModel:
         """
         pass
 
-    def Touch(self, x: int | Any, y: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
+    def Touch(self, x: float | Any, y: float | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y
         """
         pass
 
-    def Drag(self, x: int | Any, y: int | Any) -> None:
+    def Drag(self, x: float | Any, y: float | Any) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y

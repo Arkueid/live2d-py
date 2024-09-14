@@ -14,6 +14,8 @@
 
 基于 Python C++ API 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
+代码使用示例：[package](./package/)
+
 详细使用文档：https://arkueid.github.io/live2d-py-docs/
 
 ## 支持UI库
@@ -62,7 +64,7 @@ pip install live2d_py-0.2.2-cp310-cp310-win32.whl
 ## 简易面部动捕示例
 源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind_mediapipe.py)  
 
-![期末周破防](./docs/video_test.gif)
+![面捕-期末周破防](./docs/video_test.gif)
 
 ![简易动捕](./docs/facial_capture.gif)
 

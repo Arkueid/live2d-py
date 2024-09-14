@@ -101,46 +101,12 @@ static PyObject *PyLAppModel_Draw(PyLAppModelObject *self, PyObject *args)
 typedef Live2D::Cubism::Framework::ACubismMotion::FinishedMotionCallback FinishedMotionCallback;
 typedef Live2D::Cubism::Framework::ACubismMotion ACubismMotion;
 
-// 全局回调函数，任何时刻只可能有一个 motion 在播放
-// 而优先权高的 motion 会顶替当前 motion，当前 motion 作废
-static PyObject *g_start_callback;
-static PyObject *g_finish_callback;
-
-static void default_start_call_back(const char *group, int no)
-{
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-    PyObject *result = PyObject_CallFunction(g_start_callback, "si", group, no);
-    if (result != NULL)
-        Py_XDECREF(result);
-
-    // Py_DECREF(g_start_callback);
-    // g_start_callback = nullptr;
-    PyGILState_Release(gstate);
-};
-
-static void default_finish_call_back(ACubismMotion *self)
-{
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-    PyObject *result = PyObject_CallFunction(g_finish_callback, NULL);
-
-    if (result != NULL)
-        Py_XDECREF(result);
-
-    // Py_DECREF(g_finish_callback);
-    // g_finish_callback = nullptr;
-    PyGILState_Release(gstate);
-};
-
 static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args, PyObject *kwargs)
 {
     const char *group;
     int no, priority;
     PyObject *onStartHandler = nullptr;
     PyObject *onFinishHandler = nullptr;
-    LAppModel::OnStartMotionHandler s_call = nullptr;
-    FinishedMotionCallback f_call = nullptr;
 
     static char *kwlist[] = {(char *)"group", (char *)"no", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "sii|OO", kwlist, &group, &no, &priority, &onStartHandler, &onFinishHandler)))
@@ -156,10 +122,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
-        g_start_callback = onStartHandler;
-        s_call = isNone ? nullptr : default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
@@ -170,13 +133,25 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_finish_callback);
-        Py_INCREF(onFinishHandler);
-        g_finish_callback = onFinishHandler;
-        f_call = isNone ? nullptr : default_finish_call_back;
+        Py_XINCREF(onFinishHandler);
     }
 
-    Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority, s_call, f_call);
+    auto onStartCallback = [=](const char* group, int no)
+        {
+            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onStartHandler);
+        };
+
+    auto onFinishCallback = [=](Csm::ACubismMotion*) {
+            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onFinishHandler);
+        };
+
+    Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority, onStartCallback, onFinishCallback);
 
     Py_RETURN_NONE;
 }
@@ -188,27 +163,21 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 
     PyObject *onStartHandler = nullptr;
     PyObject *onFinishHandler = nullptr;
-    LAppModel::OnStartMotionHandler s_call = nullptr;
-    FinishedMotionCallback f_call = nullptr;
 
     static char *kwlist[] = {(char *)"group", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
     }
-
     if (onStartHandler != nullptr)
     {
         bool isNone = Py_IsNone(onStartHandler);
         if (!isNone && !PyCallable_Check(onStartHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
-        g_start_callback = onStartHandler;
-        s_call = isNone ? nullptr : default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
@@ -216,16 +185,29 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
         bool isNone = Py_IsNone(onFinishHandler);
         if (!isNone && !PyCallable_Check(onFinishHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_finish_callback);
-        Py_INCREF(onFinishHandler);
-        g_finish_callback = onFinishHandler;
-        f_call = isNone ? nullptr : default_finish_call_back;
+        Py_XINCREF(onFinishHandler);
     }
 
-    self->model->StartRandomMotion(group, priority, s_call, f_call);
+    auto onStartCallback = [=](const char* group, int no)
+        {
+            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onStartHandler);
+        };
+
+    auto onFinishCallback = [=](Csm::ACubismMotion*) 
+        {
+            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onFinishHandler);
+        };
+
+    self->model->StartRandomMotion(group, priority, onStartCallback, onFinishCallback);
 
     Py_RETURN_NONE;
 }
@@ -283,33 +265,24 @@ static PyObject *PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject *self, 
 
 static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyObject *kwargs)
 {
-    int mx, my;
-    PyObject *onStartMotionHandler = nullptr;
-    PyObject *onFinishMotionHandler = nullptr;
-
+    float mx, my;
     PyObject *onStartHandler = nullptr;
     PyObject *onFinishHandler = nullptr;
-    LAppModel::OnStartMotionHandler s_call = nullptr;
-    FinishedMotionCallback f_call = nullptr;
 
     static char *kwlist[] = {(char *)"mx", (char *)"my", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ff|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
     }
-
     if (onStartHandler != nullptr)
     {
         bool isNone = Py_IsNone(onStartHandler);
         if (!isNone && !PyCallable_Check(onStartHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
-        g_start_callback = onStartHandler;
-        s_call = isNone ? nullptr : default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
@@ -317,26 +290,38 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
         bool isNone = Py_IsNone(onFinishHandler);
         if (!isNone && !PyCallable_Check(onFinishHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_finish_callback);
-        Py_INCREF(onFinishHandler);
-        g_finish_callback = onFinishHandler;
-        f_call = isNone ? nullptr : default_finish_call_back;
+        Py_XINCREF(onFinishHandler);
     }
 
-    float xf = (float)mx;
-    float yf = (float)my;
-    self->matrixManager.ScreenToScene(&xf, &yf);
+    auto onStartCallback = [=](const char* group, int no)
+        {
+            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onStartHandler);
+        };
 
-    csmString hitArea = self->model->HitTest(xf, yf);
+    auto onFinishCallback = [=](Csm::ACubismMotion*)
+        {
+            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onFinishHandler);
+        };
+
+
+    self->matrixManager.ScreenToScene(&mx, &my);
+
+    csmString hitArea = self->model->HitTest(mx, my);
     if (strlen(hitArea.GetRawString()) != 0)
     {
         Info("hit area: [%s]", hitArea.GetRawString());
         if (strcmp(hitArea.GetRawString(), HIT_AREA_HEAD) == 0)
             self->model->SetRandomExpression();
-        self->model->StartRandomMotion(hitArea.GetRawString(), MOTION_PRIORITY_FORCE, s_call, f_call);
+        self->model->StartRandomMotion(hitArea.GetRawString(), MOTION_PRIORITY_FORCE, onStartCallback, onFinishCallback);
     }
 
     Py_RETURN_NONE;
@@ -344,17 +329,15 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
 static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
 {
-    int mx, my;
-    if (!(PyArg_ParseTuple(args, "ii", &mx, &my)))
+    float mx, my;
+    if (!(PyArg_ParseTuple(args, "ff", &mx, &my)))
     {
         return NULL;
     }
 
-    float xf = (float)mx;
-    float yf = (float)my;
-    self->matrixManager.ScreenToScene(&xf, &yf);
+    self->matrixManager.ScreenToScene(&mx, &my);
 
-    self->model->SetDragging(xf, yf);
+    self->model->SetDragging(mx, my);
 
     Py_RETURN_NONE;
 }
@@ -678,7 +661,6 @@ static struct PyModuleDef liv2d_module = {
     "Module that creates live2d objects",
     -1,
     live2d_methods};
-
 
 // 模块初始化函数的实现
 PyMODINIT_FUNC PyInit_live2d(void)

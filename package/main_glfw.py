@@ -38,12 +38,16 @@ def main():
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 
+    model.StartMotion("TapBody", 3, 3, lambda group,no: print("start 1"), lambda : print("end 1"))
+
+    model.StartMotion("TapBody", 4, 3, lambda group,no: print("start 2"), lambda : print("end 2"))
+
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
         live2d.clearBuffer()
-        model.CalcParameters()
         model.Update()
+        model.Draw()
 
         glfw.swap_buffers(window)
 
