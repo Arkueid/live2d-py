@@ -64,6 +64,8 @@ def main():
 
         model.Update()
         if params:
+            # 较大程度的解決抖动问题，Params类中的smooth_factor控制平滑度
+            params.update_params(params)
             # 面捕贴合程度取决于面部特征识别和参数计算算法
             model.SetParameterValue(StandardParams.ParamEyeLOpen, params.EyeLOpen, 1)
             model.SetParameterValue(StandardParams.ParamEyeROpen, params.EyeROpen, 1)
