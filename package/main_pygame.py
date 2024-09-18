@@ -27,8 +27,7 @@ def main():
     pygame.mixer.init()
     live2d.init()
 
-
-    display = (700, 500)
+    display = (300, 300)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
     model = live2d.LAppModel()
@@ -48,7 +47,7 @@ def main():
     # 关闭自动呼吸
     # model.SetAutoBreathEnable(False)
 
-    model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE)
+    model.StartMotion("cry02", 0, live2d.MotionPriority.FORCE, onStartMotionHandler=None, onFinishMotionHandler=on_finish_motion_callback)
 
     while True:
         for event in pygame.event.get():

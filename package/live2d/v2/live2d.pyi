@@ -46,6 +46,10 @@ def setLogEnable(enable: bool):
     pass
 
 
+def logEnable() -> bool:
+    pass
+
+
 class LAppModel:
     
     def __init__(self):

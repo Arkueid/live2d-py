@@ -12,6 +12,10 @@
 #include <Python.h>
 #include <Live2DModelOpenGL.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 struct PyLAppModelObject
 {
     PyObject_HEAD LAppModel *model;
@@ -130,7 +134,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
     if (onStartHandler != nullptr)
     {
         isStartNull = Py_IsNone(onStartHandler);
-        if (!PyCallable_Check(onStartHandler))
+        if (!isStartNull && !PyCallable_Check(onStartHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
@@ -141,7 +145,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
     if (onFinishHandler != nullptr)
     {
         isFinishNull = Py_IsNone(onFinishHandler);
-        if (!PyCallable_Check(onFinishHandler))
+        if (!isFinishNull && !PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
@@ -149,23 +153,25 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         Py_INCREF(onFinishHandler);
     }
 
-    auto s_call = [=](const char* group, int no) 
-        {
-            if (isStartNull) return;
-            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onStartHandler);
-        };
+    auto s_call = [=](const char *group, int no)
+    {
+        if (isStartNull)
+            return;
+        PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onStartHandler);
+    };
 
-    auto f_call = [=]() 
-        {
-            if (isFinishNull) return;
-            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onFinishHandler);
-        };
+    auto f_call = [=]()
+    {
+        if (isFinishNull)
+            return;
+        PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onFinishHandler);
+    };
 
     self->model->startMotion(group, no, priority, s_call, f_call);
 
@@ -191,7 +197,7 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
     if (onStartHandler != nullptr)
     {
         isStartNull = Py_IsNone(onStartHandler);
-        if (!PyCallable_Check(onStartHandler))
+        if (!isStartNull && !PyCallable_Check(onStartHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
@@ -202,7 +208,7 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
     if (onFinishHandler != nullptr)
     {
         isFinishNull = Py_IsNone(onFinishHandler);
-        if (!PyCallable_Check(onFinishHandler))
+        if (!isFinishNull && !PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
@@ -210,23 +216,25 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
         Py_INCREF(onFinishHandler);
     }
 
-    auto s_call = [=](const char* group, int no) 
-        {
-            if (isStartNull) return;
-            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onStartHandler);
-        };
+    auto s_call = [=](const char *group, int no)
+    {
+        if (isStartNull)
+            return;
+        PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onStartHandler);
+    };
 
-    auto f_call = [=]() 
-        {
-            if (isFinishNull) return;
-            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onFinishHandler);
-        };
+    auto f_call = [=]()
+    {
+        if (isFinishNull)
+            return;
+        PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onFinishHandler);
+    };
 
     self->model->startRandomMotion(group, priority, s_call, f_call);
 
@@ -280,10 +288,11 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
     bool isStartNull = true, isFinishNull = true;
 
+
     if (onStartHandler != nullptr)
     {
         isStartNull = Py_IsNone(onStartHandler);
-        if (!PyCallable_Check(onStartHandler))
+        if (!isStartNull && !PyCallable_Check(onStartHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
@@ -294,7 +303,7 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
     if (onFinishHandler != nullptr)
     {
         isFinishNull = Py_IsNone(onFinishHandler);
-        if (!PyCallable_Check(onFinishHandler))
+        if (!isFinishNull && !PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
@@ -302,23 +311,25 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
         Py_INCREF(onFinishHandler);
     }
 
-    auto s_call = [=](const char* group, int no) 
-        {
-            if (isStartNull) return;
-            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onStartHandler);
-        };
+    auto s_call = [=](const char *group, int no)
+    {
+        if (isStartNull)
+            return;
+        PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onStartHandler);
+    };
 
-    auto f_call = [=]() 
-        {
-            if (isFinishNull) return;
-            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onFinishHandler);
-        };
+    auto f_call = [=]()
+    {
+        if (isFinishNull)
+            return;
+        PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onFinishHandler);
+    };
 
     mx = self->matrixManager.transformDeviceToViewX(mx);
     my = self->matrixManager.transformDeviceToViewY(my);
@@ -394,9 +405,9 @@ static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args)
+static PyObject *PyLAppModel_SetParameterValue(PyLAppModelObject *self, PyObject *args)
 {
-    const char* paramId;
+    const char *paramId;
     float value, weight;
 
     if (PyArg_ParseTuple(args, "sff", &paramId, &value, &weight) < 0)
@@ -410,9 +421,9 @@ static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
+static PyObject *PyLAppModel_AddParameterValue(PyLAppModelObject *self, PyObject *args)
 {
-    const char* paramId;
+    const char *paramId;
     float value;
 
     if (PyArg_ParseTuple(args, "sf", &paramId, &value) < 0)
@@ -545,12 +556,21 @@ static PyObject *live2d_set_log_enbale(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *live2d_log_enbale(PyObject *self, PyObject *args)
+{
+    if (live2dLogEnable)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 // 定义模块的方法
 static PyMethodDef module_methods[] = {
     {"init", (PyCFunction)live2d_init, METH_VARARGS, "initialize sdk"},
     {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, "release sdk"},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, "clear buffer"},
     {"setLogEnable", (PyCFunction)live2d_set_log_enbale, METH_VARARGS, "set log mode"},
+    {"logEnable", (PyCFunction)live2d_log_enbale, METH_VARARGS, "get log enable"},
     {NULL, NULL, 0, NULL} // 哨兵
 };
 
@@ -581,5 +601,8 @@ PyMODINIT_FUNC PyInit_live2d(void)
         return NULL;
     }
 
+#ifdef WIN32
+    SetConsoleOutputCP(65001);
+#endif
     return m;
 }

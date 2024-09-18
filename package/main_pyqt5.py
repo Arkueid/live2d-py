@@ -28,8 +28,6 @@ class Win(QOpenGLWidget):
         # 创建模型
         self.model = live2d.LAppModel()
 
-        # 加载模型参数
-        
         # 适用于 2 的模型
         self.model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 

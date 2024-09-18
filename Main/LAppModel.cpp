@@ -277,6 +277,10 @@ label:
 		mainMotionMgr->setReservePriority(PRIORITY_NONE);
 		return 0;
 	}
+	else
+	{
+		currentFinishCallback = f_call;
+	}
 
 	return mainMotionMgr->startMotionPrio(motion, autoDelete, priority);
 }
