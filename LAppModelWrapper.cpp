@@ -528,6 +528,8 @@ static PyObject *live2d_clear_buffer()
     Py_RETURN_NONE;
 }
 
+extern bool live2dLogEnable;
+
 static PyObject *live2d_set_log_enbale(PyObject *self, PyObject *args)
 {
     bool enable;
@@ -536,7 +538,7 @@ static PyObject *live2d_set_log_enbale(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "invalid param");
     }
 
-    setLogEnable(enable);
+    live2dLogEnable = enable;
 
     Py_RETURN_NONE;
 }
