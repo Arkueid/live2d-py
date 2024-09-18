@@ -114,10 +114,12 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         return NULL;
     }
 
+    bool isStartNull, isFinishNull;
+
     if (onStartHandler != nullptr)
     {
-        bool isNone = Py_IsNone(onStartHandler);
-        if (!isNone && !PyCallable_Check(onStartHandler))
+        isStartNull = Py_IsNone(onStartHandler);
+        if (!isStartNull && !PyCallable_Check(onStartHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
@@ -127,8 +129,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
 
     if (onFinishHandler != nullptr)
     {
-        bool isNone = Py_IsNone(onFinishHandler);
-        if (!isNone && !PyCallable_Check(onFinishHandler))
+        isFinishNull = Py_IsNone(onFinishHandler);
+        if (!isFinishNull && !PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
@@ -136,22 +138,27 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         Py_XINCREF(onFinishHandler);
     }
 
-    auto onStartCallback = [=](const char* group, int no)
-        {
-            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onStartHandler);
-        };
+    auto onStartCallback = [=](const char *group, int no)
+    {
+        if (isStartNull) return;
+        PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onStartHandler);
+    };
 
-    auto onFinishCallback = [=](Csm::ACubismMotion*) {
-            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onFinishHandler);
-        };
+    auto onFinishCallback = [=](Csm::ACubismMotion *)
+    {
+        if (isFinishNull) return;
+        PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onFinishHandler);
+    };
 
-    Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority, onStartCallback, onFinishCallback);
+    Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority,
+                                                                        onStartCallback,
+                                                                        onFinishCallback);
 
     Py_RETURN_NONE;
 }
@@ -169,12 +176,14 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
     {
         return NULL;
     }
+   bool isStartNull, isFinishNull;
+
     if (onStartHandler != nullptr)
     {
-        bool isNone = Py_IsNone(onStartHandler);
-        if (!isNone && !PyCallable_Check(onStartHandler))
+        isStartNull = Py_IsNone(onStartHandler);
+        if (!isStartNull && !PyCallable_Check(onStartHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
         Py_XINCREF(onStartHandler);
@@ -182,30 +191,32 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 
     if (onFinishHandler != nullptr)
     {
-        bool isNone = Py_IsNone(onFinishHandler);
-        if (!isNone && !PyCallable_Check(onFinishHandler))
+        isFinishNull = Py_IsNone(onFinishHandler);
+        if (!isFinishNull && !PyCallable_Check(onFinishHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
         }
         Py_XINCREF(onFinishHandler);
     }
 
-    auto onStartCallback = [=](const char* group, int no)
-        {
-            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onStartHandler);
-        };
+    auto onStartCallback = [=](const char *group, int no)
+    {
+        if (isStartNull) return;
+        PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onStartHandler);
+    };
 
-    auto onFinishCallback = [=](Csm::ACubismMotion*) 
-        {
-            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onFinishHandler);
-        };
+    auto onFinishCallback = [=](Csm::ACubismMotion *)
+    {
+        if (isFinishNull) return;
+        PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onFinishHandler);
+    };
 
     self->model->StartRandomMotion(group, priority, onStartCallback, onFinishCallback);
 
@@ -274,12 +285,14 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
     {
         return NULL;
     }
+   bool isStartNull, isFinishNull;
+
     if (onStartHandler != nullptr)
     {
-        bool isNone = Py_IsNone(onStartHandler);
-        if (!isNone && !PyCallable_Check(onStartHandler))
+        isStartNull = Py_IsNone(onStartHandler);
+        if (!isStartNull && !PyCallable_Check(onStartHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
         Py_XINCREF(onStartHandler);
@@ -287,31 +300,32 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
     if (onFinishHandler != nullptr)
     {
-        bool isNone = Py_IsNone(onFinishHandler);
-        if (!isNone && !PyCallable_Check(onFinishHandler))
+        isFinishNull = Py_IsNone(onFinishHandler);
+        if (!isFinishNull && !PyCallable_Check(onFinishHandler))
         {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
+            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
         }
         Py_XINCREF(onFinishHandler);
     }
 
-    auto onStartCallback = [=](const char* group, int no)
-        {
-            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onStartHandler);
-        };
+    auto onStartCallback = [=](const char *group, int no)
+    {
+        if (isStartNull) return;
+        PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onStartHandler);
+    };
 
-    auto onFinishCallback = [=](Csm::ACubismMotion*)
-        {
-            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
-            if (result != NULL)
-                Py_XDECREF(result);
-            Py_XDECREF(onFinishHandler);
-        };
-
+    auto onFinishCallback = [=](Csm::ACubismMotion *)
+    {
+        if (isFinishNull) return;
+        PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
+        if (result != NULL)
+            Py_XDECREF(result);
+        Py_XDECREF(onFinishHandler);
+    };
 
     self->matrixManager.ScreenToScene(&mx, &my);
 
@@ -626,7 +640,6 @@ static PyObject *live2d_clear_buffer(PyObject *self, PyObject *args)
 
     Py_RETURN_NONE;
 }
-
 
 extern bool live2dLogEnable;
 

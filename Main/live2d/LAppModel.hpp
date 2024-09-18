@@ -83,7 +83,7 @@ public:
      * @param[in]   onFinishedMotionHandler     モーション再生終了時に呼び出されるコールバック関数。NULLの場合、呼び出されない。
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
-    Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar *group, Csm::csmInt32 no, Csm::csmInt32 priority, OnMotionStartCallback onStartMotionHandler = NULL, OnMotionFinishCallback onFinishedMotionHandler = OnMotionFinishCallback());
+    Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar *group, Csm::csmInt32 no, Csm::csmInt32 priority, OnMotionStartCallback onStartMotionHandler = NULL, OnMotionFinishCallback onFinishedMotionHandler = NULL);
 
     /**
      * @brief   ランダムに選ばれたモーションの再生を開始する。
@@ -93,7 +93,7 @@ public:
      * @param[in]   onFinishedMotionHandler     モーション再生終了時に呼び出されるコールバック関数。NULLの場合、呼び出されない。
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
-    Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar *group, Csm::csmInt32 priority, OnMotionStartCallback onStartMotionHandler = NULL, OnMotionFinishCallback onFinishedMotionHandler = OnMotionFinishCallback());
+    Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar *group, Csm::csmInt32 priority, OnMotionStartCallback onStartMotionHandler = NULL, OnMotionFinishCallback onFinishedMotionHandler = NULL);
 
     /**
      * @brief   引数で指定した表情モーションをセットする
