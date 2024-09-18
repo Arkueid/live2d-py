@@ -39,11 +39,11 @@ def main():
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 
-    model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda : print("end 2"))
+    model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda : print("end 1"))
 
     model.StartMotion("TapBody", 4, 3, onFinishMotionHandler=lambda : print("end 2"))
 
-    model.StartRandomMotion("TapBody", 3)
+    model.StartRandomMotion("TapBody", 3, onStartMotionHandler=lambda group, no: print(f"start 1 {group} {no}"), onFinishMotionHandler=lambda : print("end 3"))
 
     while not glfw.window_should_close(window):
         glfw.poll_events()

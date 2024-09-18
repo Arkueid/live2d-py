@@ -114,7 +114,7 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         return NULL;
     }
 
-    bool isStartNull, isFinishNull;
+    bool isStartNull = true, isFinishNull = true;
 
     if (onStartHandler != nullptr)
     {
@@ -140,7 +140,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
 
     auto onStartCallback = [=](const char *group, int no)
     {
-        if (isStartNull) return;
+        if (isStartNull)
+            return;
         PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
         if (result != NULL)
             Py_XDECREF(result);
@@ -149,7 +150,8 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
 
     auto onFinishCallback = [=](Csm::ACubismMotion *)
     {
-        if (isFinishNull) return;
+        if (isFinishNull)
+            return;
         PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
         if (result != NULL)
             Py_XDECREF(result);
@@ -176,7 +178,7 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
     {
         return NULL;
     }
-   bool isStartNull, isFinishNull;
+    bool isStartNull = true, isFinishNull = true;
 
     if (onStartHandler != nullptr)
     {
@@ -202,7 +204,8 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 
     auto onStartCallback = [=](const char *group, int no)
     {
-        if (isStartNull) return;
+        if (isStartNull)
+            return;
         PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
         if (result != NULL)
             Py_XDECREF(result);
@@ -211,7 +214,8 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 
     auto onFinishCallback = [=](Csm::ACubismMotion *)
     {
-        if (isFinishNull) return;
+        if (isFinishNull)
+            return;
         PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
         if (result != NULL)
             Py_XDECREF(result);
@@ -285,7 +289,8 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
     {
         return NULL;
     }
-   bool isStartNull, isFinishNull;
+
+    bool isStartNull = true, isFinishNull = true;
 
     if (onStartHandler != nullptr)
     {
@@ -311,7 +316,8 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
     auto onStartCallback = [=](const char *group, int no)
     {
-        if (isStartNull) return;
+        if (isStartNull)
+            return;
         PyObject *result = PyObject_CallFunction(onStartHandler, "si", group, no);
         if (result != NULL)
             Py_XDECREF(result);
@@ -320,7 +326,8 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
     auto onFinishCallback = [=](Csm::ACubismMotion *)
     {
-        if (isFinishNull) return;
+        if (isFinishNull)
+            return;
         PyObject *result = PyObject_CallFunction(onFinishHandler, NULL);
         if (result != NULL)
             Py_XDECREF(result);
@@ -674,7 +681,7 @@ static PyMethodDef live2d_methods[] = {
     {"setGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, ""},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
-    {"logEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
+    {"logEnable", (PyCFunction)live2d_log_enable, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL} // 哨兵
 };
 
