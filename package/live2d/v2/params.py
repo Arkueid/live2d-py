@@ -33,3 +33,15 @@ class StandardParams:
     PARAM_BUST_Y = "PARAM_BUST_Y"
     PARAM_BASE_X = "PARAM_BASE_X"
     PARAM_BASE_Y = "PARAM_BASE_Y"
+
+
+class Parameter:
+
+    def __init__(self):
+        self.id: str = ""
+        # [DEPRECATED] never used in models versioned cubism 2.1
+        self.type: int = 0  
+        self.value: float = 0
+        self.max: float = 0
+        self.min: float = 0
+        self.default: float = 0

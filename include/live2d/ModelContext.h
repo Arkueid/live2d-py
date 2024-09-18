@@ -195,6 +195,42 @@ namespace live2d
 	# endif
 			return (*floatParamListPtr)[ paramIndex ] ;
 		}
+
+		// 获取参数个数
+		inline int getParamCount() 
+		{
+			return floatParamListPtr->size();
+		}
+
+		// 获取参数id
+		inline ParamID* getParamID(int index) 
+		{
+			return (*floatParamIDListPtr)[index];
+		}
+
+		// 获取参数当前值
+		inline float getParamValue(int index)
+		{
+			return (*savedFloatParamListPtr)[index];
+		}
+
+		// 获取参数最小值
+		inline float getParamMinValue(int index)
+		{
+			return getParamMin(index);
+		}
+
+		// 获取参数最大值
+		inline float getParamMaxValue(int index)
+		{
+			return getParamMax(index);
+		}
+
+		// 获取参数默认值
+		inline float getParamDefaultValue(int index)
+		{
+			return getParamFloat(index);
+		}
 		
 		// DirectXデバイスロスト時に呼び出す
 		void deviceLost( ) ;

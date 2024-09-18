@@ -1,4 +1,5 @@
 from enum import Enum
+from params import Parameter
 from typing import Any
 
 class MotionPriority(Enum):
@@ -107,4 +108,10 @@ class LAppModel:
         pass
 
     def AddParameterValue(self, paramId: str, value: float):
+        pass
+
+    def GetParameterCount() -> int:
+        pass
+
+    def GetParameter(index: int) -> Parameter:
         pass

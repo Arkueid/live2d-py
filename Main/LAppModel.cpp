@@ -1,3 +1,5 @@
+#include "LAppModel.h"
+#include "LAppModel.h"
 /**
  *
  *  You can modify and use this source freely
@@ -412,4 +414,21 @@ void LAppModel::addParameterValue(const char* paramId, float value)
 		live2DModel->getParamIndex(paramId),
 		value
 	);
+}
+
+int LAppModel::getParameterCount()
+{
+	return live2DModel->getModelContext()->getParamCount();
+}
+
+Parameter LAppModel::getParameter(int index)
+{
+	ModelContext* context = live2DModel->getModelContext();
+	return Parameter{
+		context->getParamID(index)->toChar(),
+		context->getParamValue(index),
+		context->getParamMaxValue(index),
+		context->getParamMinValue(index),
+		context->getParamDefaultValue(index)
+	};
 }

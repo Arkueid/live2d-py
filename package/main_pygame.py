@@ -5,6 +5,7 @@ from pygame.locals import *
 
 import live2d.v2 as live2d
 import live2d.utils.log as log
+from live2d.v2.params import Parameter
 import resouces
 
 live2d.setLogEnable(True)
@@ -49,6 +50,11 @@ def main():
     # model.SetAutoBreathEnable(False)
 
     model.StartMotion("cry02", 0, live2d.MotionPriority.FORCE, onStartMotionHandler=None, onFinishMotionHandler=on_finish_motion_callback)
+
+    # 打印参数
+    for i in range(model.GetParameterCount()):
+        param: Parameter = model.GetParameter(i)
+        log.Debug(param.id, param.value, param.max, param.min, param.default)
 
     while True:
         for event in pygame.event.get():

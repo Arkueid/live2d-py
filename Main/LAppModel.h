@@ -16,6 +16,15 @@
 
 #include <functional>
 
+struct Parameter
+{
+	std::string id;
+	float value;
+	float maxValue;
+	float minValue;
+	float defaultValue;
+};
+
 using OnMotionStartCallback = std::function<void(const char*, int)>;
 using OnMotionFinishCallback = std::function<void(void)>;
 
@@ -51,6 +60,11 @@ public:
 	void setParameterValue(const char* paramId, float value, float weight);
 	
 	void addParameterValue(const char* paramId, float value);
+
+	int getParameterCount();
+
+	Parameter getParameter(int index);
+
 
 private:
 	ModelSetting *modelSetting;

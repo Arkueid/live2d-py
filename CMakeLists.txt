@@ -35,7 +35,7 @@ target_link_libraries(${LIB_NAME} PRIVATE Python::Python live2d)
 target_include_directories(${LIB_NAME} PRIVATE ${PROJECT_ROOT}/include)
 
 
-# Configure for Linux / Windows
+# Configure for Windows
 set(MODULE_NAME ${LIB_NAME}.dll)
 set(OUTPUT_NAME live2d.pyd)
 

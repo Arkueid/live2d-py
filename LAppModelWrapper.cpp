@@ -288,7 +288,6 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
     bool isStartNull = true, isFinishNull = true;
 
-
     if (onStartHandler != nullptr)
     {
         isStartNull = Py_IsNone(onStartHandler);
@@ -437,6 +436,41 @@ static PyObject *PyLAppModel_AddParameterValue(PyLAppModelObject *self, PyObject
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_GetParameterCount(PyLAppModelObject *self, PyObject *args)
+{
+    return PyLong_FromLong(self->model->getParameterCount());
+}
+
+static PyObject *module_live2d_v2_params = nullptr;
+static PyObject *class_parameter = nullptr;
+
+static PyObject *PyLAppModel_GetParameter(PyLAppModelObject *self, PyObject *args)
+{
+    int index;
+    if (PyArg_ParseTuple(args, "i", &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    Parameter param = self->model->getParameter(index);
+
+    PyObject *instance = PyObject_CallObject(class_parameter, NULL);
+    if (instance == NULL)
+    {
+        PyErr_Print();
+        return NULL;
+    }
+
+    PyObject_SetAttrString(instance, "id", PyUnicode_FromString(param.id.c_str()));
+    PyObject_SetAttrString(instance, "value", PyFloat_FromDouble(param.value));
+    PyObject_SetAttrString(instance, "max", PyFloat_FromDouble(param.maxValue));
+    PyObject_SetAttrString(instance, "min", PyFloat_FromDouble(param.minValue));
+    PyObject_SetAttrString(instance, "default", PyFloat_FromDouble(param.defaultValue));
+
+    return instance;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -456,6 +490,8 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"Draw", (PyCFunction)PyLAppModel_Draw, METH_VARARGS, ""},
     {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
     {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
+    {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
+    {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志
 };
 
@@ -598,6 +634,21 @@ PyMODINIT_FUNC PyInit_live2d(void)
     {
         Py_DECREF(&PyLAppModelType);
         Py_DECREF(m);
+        return NULL;
+    }
+
+    module_live2d_v2_params = PyImport_ImportModule("live2d.v2.params");
+    if (module_live2d_v2_params == NULL)
+    {
+        PyErr_Print();
+        return NULL;
+    }
+
+    class_parameter = PyObject_GetAttrString(module_live2d_v2_params, "Parameter");
+    if (class_parameter == NULL)
+    {
+        Py_DECREF(module_live2d_v2_params);
+        PyErr_Print();
         return NULL;
     }
 
