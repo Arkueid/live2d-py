@@ -32,7 +32,7 @@ def dispose() -> None:
     pass
 
 
-def clearBuffer() -> None:
+def clearBuffer(r: float = 0.0, g: float = 0.0, b: float = 0.0, a: float = 0.0) -> None:
     """
     glClearColor(0.0, 0.0, 0.0, 0.0)
         

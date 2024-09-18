@@ -568,9 +568,19 @@ static PyObject *live2d_dispose()
     Py_RETURN_NONE;
 }
 
-static PyObject *live2d_clear_buffer()
+static PyObject *live2d_clear_buffer(PyObject* self, PyObject* args)
 {
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    // 默认为黑色
+    float r = 0.0, g = 0.0, b = 0.0, a = 0.0;
+
+    // 解析传入的参数，允许指定颜色
+    if (!PyArg_ParseTuple(args, "|ffff", &r, &g, &b, &a))
+    {
+        return NULL;
+    }
+
+    // 设置清屏颜色
+    glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearDepth(1.0);
 
