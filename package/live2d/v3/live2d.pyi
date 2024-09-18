@@ -59,7 +59,7 @@ def setGLProperties() -> None:
     pass
 
 
-def clearBuffer() -> None:
+def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     """
     glClearColor(0.0, 0.0, 0.0, 0.0)
 
