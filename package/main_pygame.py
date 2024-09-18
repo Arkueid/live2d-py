@@ -32,7 +32,8 @@ def main():
 
     model = live2d.LAppModel()
 
-    model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+    # 中文路径测试
+    model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/户山香澄/kasumi2.model.json"))
 
     model.Resize(*display)
 

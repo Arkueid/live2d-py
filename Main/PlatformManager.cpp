@@ -59,7 +59,9 @@ L2DTextureDesc* PlatformManager::loadTexture(ALive2DModel* model, int no, const 
 
 	int width, height, channels;
 	assert(textureCount <= 10);
-	unsigned char* data = stbi_load(path, &width, &height, &channels, 0);
+	int size;
+	unsigned char* bytes = FileManager::loadFile(path, &size);
+	unsigned char* data = stbi_load_from_memory(bytes, size, &width, &height, &channels, 0);
 
 	assert(data != NULL);
 

@@ -4,6 +4,10 @@ set(LOCAL_INCLUDE_PATH ${PROJECT_ROOT}/include)
 set(FRAMEWORK_PATH ${PROJECT_ROOT}/Framework)
 set(GLEW_PATH ${PROJECT_ROOT}/glew)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 add_subdirectory(${GLEW_PATH}/build/cmake ${CMAKE_BINARY_DIR}/glew_s)
 
 add_subdirectory(${FRAMEWORK_PATH} ${CMAKE_BINARY_DIR}/Framework)
