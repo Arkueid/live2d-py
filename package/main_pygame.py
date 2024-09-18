@@ -130,7 +130,7 @@ def main():
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
-        live2d.clearBuffer()
+        live2d.clearBuffer(0.0, 0.0, 1.0, 0.0)
         model.Draw()
         draw()
 
