@@ -59,7 +59,7 @@ def main():
         if cnt < 1:
             cnt += 1
             model.StartMotion(
-                "Speak", 0, live2d.MotionPriority.FORCE.value, start_callback
+                "Speak", 0, live2d.MotionPriority.FORCE, start_callback
             )
 
         live2d.clearBuffer()

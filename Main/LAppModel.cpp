@@ -219,7 +219,7 @@ void LAppModel::update()
 
 }
 
-int LAppModel::startMotion(const char group[], int no, int priority, OnStartMotionCallback s_call, OnFinishMotionCallback f_call)
+int LAppModel::startMotion(const char group[], int no, int priority, OnMotionStartCallback s_call, OnMotionFinishCallback f_call)
 {
 	if (priority == PRIORITY_FORCE)
 	{
@@ -258,8 +258,6 @@ int LAppModel::startMotion(const char group[], int no, int priority, OnStartMoti
 		autoDelete = true;
 	}
 
-	currentFinishCallback = f_call;
-
 	motion->setFadeIn(modelSetting->getMotionFadeIn(group, no));
 	motion->setFadeOut(modelSetting->getMotionFadeOut(group, no));
 
@@ -283,7 +281,7 @@ label:
 	return mainMotionMgr->startMotionPrio(motion, autoDelete, priority);
 }
 
-int LAppModel::startRandomMotion(const char name[], int priority, OnStartMotionCallback s_call, OnFinishMotionCallback f_call)
+int LAppModel::startRandomMotion(const char name[], int priority, OnMotionStartCallback s_call, OnMotionFinishCallback f_call)
 {
 	if (modelSetting->getMotionNum(name) == 0)
 		return -1;

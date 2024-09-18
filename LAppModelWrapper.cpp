@@ -112,46 +112,12 @@ static PyObject *PyLAppModel_Draw(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-// 全局回调函数，任何时刻只可能有一个 motion 在播放
-// 而优先权高的 motion 会顶替当前 motion，当前 motion 作废
-static PyObject *g_start_callback;
-static PyObject *g_finish_callback;
-
-static void default_start_call_back(const char *group, int no)
-{
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-    PyObject *result = PyObject_CallFunction(g_start_callback, "si", group, no);
-    if (result != NULL)
-        Py_XDECREF(result);
-
-    // Py_DECREF(g_start_callback);
-    // g_start_callback = nullptr;
-    PyGILState_Release(gstate);
-};
-
-static void default_finish_call_back()
-{
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-    PyObject *result = PyObject_CallFunction(g_finish_callback, NULL);
-
-    if (result != NULL)
-        Py_XDECREF(result);
-
-    // Py_DECREF(g_finish_callback);
-    // g_finish_callback = nullptr;
-    PyGILState_Release(gstate);
-};
-
 static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args, PyObject *kwargs)
 {
     const char *group;
     int no, priority;
     PyObject *onStartHandler = nullptr;
     PyObject *onFinishHandler = nullptr;
-    LAppModel::OnStartMotionCallback s_call = nullptr;
-    LAppModel::OnFinishMotionCallback f_call = nullptr;
 
     static char *kwlist[] = {(char *)"group", (char *)"no", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "sii|OO", kwlist, &group, &no, &priority, &onStartHandler, &onFinishHandler)))
@@ -159,31 +125,47 @@ static PyObject *PyLAppModel_StartMotion(PyLAppModelObject *self, PyObject *args
         return NULL;
     }
 
+    bool isStartNull = true, isFinishNull = true;
+
     if (onStartHandler != nullptr)
     {
+        isStartNull = Py_IsNone(onStartHandler);
         if (!PyCallable_Check(onStartHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_start_callback);
         Py_XINCREF(onStartHandler);
-        g_start_callback = onStartHandler;
-        s_call = default_start_call_back;
     }
 
     if (onFinishHandler != nullptr)
     {
+        isFinishNull = Py_IsNone(onFinishHandler);
         if (!PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_finish_callback);
         Py_INCREF(onFinishHandler);
-        g_finish_callback = onFinishHandler;
-        f_call = default_finish_call_back;
     }
+
+    auto s_call = [=](const char* group, int no) 
+        {
+            if (isStartNull) return;
+            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onStartHandler);
+        };
+
+    auto f_call = [=]() 
+        {
+            if (isFinishNull) return;
+            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onFinishHandler);
+        };
 
     self->model->startMotion(group, no, priority, s_call, f_call);
 
@@ -197,8 +179,6 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
 
     PyObject *onStartHandler = nullptr;
     PyObject *onFinishHandler = nullptr;
-    LAppModel::OnStartMotionCallback s_call = nullptr;
-    LAppModel::OnFinishMotionCallback f_call = nullptr;
 
     static char *kwlist[] = {(char *)"group", (char *)"priority", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "si|OO", kwlist, &group, &priority, &onStartHandler, &onFinishHandler)))
@@ -206,31 +186,47 @@ static PyObject *PyLAppModel_StartRandomMotion(PyLAppModelObject *self, PyObject
         return NULL;
     }
 
+    bool isStartNull = true, isFinishNull = true;
+
     if (onStartHandler != nullptr)
     {
+        isStartNull = Py_IsNone(onStartHandler);
         if (!PyCallable_Check(onStartHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
-            return NULL;
-        }
-        Py_XDECREF(g_start_callback);
-        Py_XINCREF(onStartHandler);
-        g_start_callback = onStartHandler;
-        s_call = default_start_call_back;
-    }
-
-    if (onFinishHandler != nullptr)
-    {
-        if (!PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_finish_callback);
-        Py_XINCREF(onFinishHandler);
-        g_finish_callback = onFinishHandler;
-        f_call = default_finish_call_back;
+        Py_XINCREF(onStartHandler);
     }
+
+    if (onFinishHandler != nullptr)
+    {
+        isFinishNull = Py_IsNone(onFinishHandler);
+        if (!PyCallable_Check(onFinishHandler))
+        {
+            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
+            return NULL;
+        }
+        Py_INCREF(onFinishHandler);
+    }
+
+    auto s_call = [=](const char* group, int no) 
+        {
+            if (isStartNull) return;
+            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onStartHandler);
+        };
+
+    auto f_call = [=]() 
+        {
+            if (isFinishNull) return;
+            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onFinishHandler);
+        };
 
     self->model->startRandomMotion(group, priority, s_call, f_call);
 
@@ -272,53 +268,62 @@ static PyObject *PyLAppModel_HitTest(PyLAppModelObject *self, PyObject *args)
 
 static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyObject *kwargs)
 {
-    int mx, my;
-    PyObject *onStartMotionHandler = nullptr;
-    PyObject *onFinishMotionHandler = nullptr;
-
+    float mx, my;
     PyObject *onStartHandler = nullptr;
     PyObject *onFinishHandler = nullptr;
-    LAppModel::OnStartMotionCallback s_call = nullptr;
-    LAppModel::OnFinishMotionCallback f_call = nullptr;
 
     static char *kwlist[] = {(char *)"mx", (char *)"my", (char *)"onStartMotionHandler", (char *)"onFinishMotionHandler", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ff|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
     {
         return NULL;
     }
 
+    bool isStartNull = true, isFinishNull = true;
+
     if (onStartHandler != nullptr)
     {
+        isStartNull = Py_IsNone(onStartHandler);
         if (!PyCallable_Check(onStartHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 3 must be callable.");
-            return NULL;
-        }
-        Py_XDECREF(g_start_callback);
-        Py_XINCREF(onStartHandler);
-        g_start_callback = onStartHandler;
-        s_call = default_start_call_back;
-    }
-
-    if (onFinishHandler != nullptr)
-    {
-        if (!PyCallable_Check(onFinishHandler))
         {
             PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
             return NULL;
         }
-        Py_XDECREF(g_finish_callback);
-        Py_XINCREF(onFinishHandler);
-        g_finish_callback = onFinishHandler;
-        f_call = default_finish_call_back;
+        Py_XINCREF(onStartHandler);
     }
 
-    float xf = (float)mx;
-    float yf = (float)my;
-    xf = self->matrixManager.transformDeviceToViewX(xf);
-    yf = self->matrixManager.transformDeviceToViewY(yf);
+    if (onFinishHandler != nullptr)
+    {
+        isFinishNull = Py_IsNone(onFinishHandler);
+        if (!PyCallable_Check(onFinishHandler))
+        {
+            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
+            return NULL;
+        }
+        Py_INCREF(onFinishHandler);
+    }
 
-    std::string hitArea = self->model->hitTest(xf, yf);
+    auto s_call = [=](const char* group, int no) 
+        {
+            if (isStartNull) return;
+            PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onStartHandler);
+        };
+
+    auto f_call = [=]() 
+        {
+            if (isFinishNull) return;
+            PyObject* result = PyObject_CallFunction(onFinishHandler, NULL);
+            if (result != NULL)
+                Py_XDECREF(result);
+            Py_XDECREF(onFinishHandler);
+        };
+
+    mx = self->matrixManager.transformDeviceToViewX(mx);
+    my = self->matrixManager.transformDeviceToViewY(my);
+
+    std::string hitArea = self->model->hitTest(mx, my);
     if (!hitArea.empty())
     {
         Info("hit area: [%s]", hitArea.c_str());
@@ -332,19 +337,16 @@ static PyObject *PyLAppModel_Touch(PyLAppModelObject *self, PyObject *args, PyOb
 
 static PyObject *PyLAppModel_Drag(PyLAppModelObject *self, PyObject *args)
 {
-    int mx, my;
-    if (!(PyArg_ParseTuple(args, "ii", &mx, &my)))
+    float mx, my;
+    if (!(PyArg_ParseTuple(args, "ff", &mx, &my)))
     {
         return NULL;
     }
 
-    float xf = (float)mx;
-    float yf = (float)my;
+    mx = self->matrixManager.transformDeviceToViewX(mx);
+    my = self->matrixManager.transformDeviceToViewY(my);
 
-    xf = self->matrixManager.transformDeviceToViewX(xf);
-    yf = self->matrixManager.transformDeviceToViewY(yf);
-
-    self->model->setDrag(xf, yf);
+    self->model->setDrag(mx, my);
 
     Py_RETURN_NONE;
 }

@@ -3,11 +3,9 @@ import os
 import pygame
 from pygame.locals import *
 
-import live2d.v3 as live2d
-import live2d.log as log
+import live2d.v2 as live2d
+import live2d.utils.log as log
 import resouces
-
-# import live2d.v2 as live2d
 
 live2d.setLogEnable(True)
 
@@ -33,16 +31,9 @@ def main():
     display = (700, 500)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
-    if live2d.LIVE2D_VERSION == 3:
-        live2d.glewInit()
-        live2d.setGLProperties()
-
     model = live2d.LAppModel()
 
-    if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
-    else:
-        model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+    model.LoadModelJson(os.path.join(resouces.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 
     model.Resize(*display)
 
@@ -56,6 +47,8 @@ def main():
     # model.SetAutoBlinkEnable(False)
     # 关闭自动呼吸
     # model.SetAutoBreathEnable(False)
+
+    model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE)
 
     while True:
         for event in pygame.event.get():
@@ -87,15 +80,14 @@ def main():
             if event.type == pygame.MOUSEMOTION:
                 model.Drag(*pygame.mouse.get_pos())
 
-
         if not running:
             break
 
-        model.CalcParameters()
+        model.Update()
         model.SetOffset(dx, dy)
         model.SetScale(scale)
         live2d.clearBuffer()
-        model.Update()
+        model.Draw()
         draw()
 
     live2d.dispose()

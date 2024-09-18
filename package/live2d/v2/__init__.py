@@ -1,22 +1,20 @@
 from .live2d import *
 
-from enum import Enum
+
+class MotionPriority:
+    NONE: int = 0
+    IDLE: int = 1
+    NORMAL: int = 2
+    FORCE: int = 3
 
 
-class MotionPriority(Enum):
-    NONE = 0
-    IDLE = 1
-    NORMAL = 2
-    FORCE = 3
+class MotionGroup:
+    IDLE: str = "Idle"
+    TAP_HEAD: str = "TapHead"
 
 
-class MotionGroup(Enum):
-    IDLE = "Idle"
-    TAP_HEAD = "TapHead"
-
-
-class HitArea(Enum):
-    HEAD = MotionGroup.TAP_HEAD.value
+class HitArea:
+    HEAD: str = MotionGroup.TAP_HEAD
 
 
 LIVE2D_VERSION = 2

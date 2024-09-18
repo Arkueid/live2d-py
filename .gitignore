@@ -388,3 +388,5 @@ FodyWeavers.xsd
 
 build
 !glew/build
+
+.venv

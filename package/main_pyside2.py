@@ -1,10 +1,9 @@
-from PySide2.QtGui import QMouseEvent
+from PyQt5.QtGui import QMouseEvent
 import live2d.v2 as live2d
 import os
 import resouces
-from PySide2.QtCore import QTimerEvent
-from PySide2.QtWidgets import QApplication
-from PySide2.QtWidgets import QOpenGLWidget
+from PyQt5.QtCore import QTimerEvent
+from PyQt5.QtWidgets import QApplication, QOpenGLWidget
 
 
 def callback():
@@ -52,14 +51,14 @@ class Win(QOpenGLWidget):
     def timerEvent(self, a0: QTimerEvent | None) -> None:
 
         if self.a == 0:  # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE)
             self.a += 1
 
         self.update()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         # 传入鼠标点击位置的窗口坐标
-        self.model.Touch(event.pos().x(), event.pos().y());
+        self.model.Touch(event.pos().x(), event.pos().y())
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         self.model.Drag(event.pos().x(), event.pos().y())

@@ -14,7 +14,7 @@ set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 set(CMAKE_CONFIGURATION_TYPES "Release")
 
 # 寻找Python
-set(CMAKE_PREFIX_PATH D:/Python/x86/3.10)
+set(CMAKE_PREFIX_PATH D:/Python/x86/3.12.0)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -24,14 +24,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_compile_options("/utf-8" "/wd4018" "/wd4244" "/wd4996" "/wd4828")
   add_link_options("/NODEFAULTLIB:LIBCMT")
 endif()  
-
-if(ENABLE_LOG)
-message("Runtime log: on")
-# 关闭 log 输出
-else()
-message("Runtime log: off")
-add_compile_definitions(LOG_MODE_RELEASE)
-endif()
 
 find_package(Python REQUIRED COMPONENTS Development)
 message("Python_LIBRARIES " ${Python_LIBRARIES})

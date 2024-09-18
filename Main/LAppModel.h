@@ -14,11 +14,14 @@
 #include "ModelSetting.h"
 #include "L2DViewMatrix.h"
 
+#include <functional>
+
+using OnMotionStartCallback = std::function<void(const char*, int)>;
+using OnMotionFinishCallback = std::function<void(void)>;
+
 class LAppModel : public live2d::framework::L2DBaseModel
 {
 public:
-	typedef void (*OnStartMotionCallback)(const char *, int);
-	typedef void (*OnFinishMotionCallback)(void);
 
 	LAppModel();
 	~LAppModel(void);
@@ -31,8 +34,8 @@ public:
 	void setCenter(float x, float y);
 	void setScale(float scale);
 
-	int startMotion(const char name[], int no, int priority, OnStartMotionCallback s_call = NULL, OnFinishMotionCallback f_call = NULL);
-	int startRandomMotion(const char name[], int priority, OnStartMotionCallback s_call = NULL, OnFinishMotionCallback f_call = NULL);
+	int startMotion(const char name[], int no, int priority, OnMotionStartCallback s_call = NULL, OnMotionFinishCallback f_call = NULL);
+	int startRandomMotion(const char name[], int priority, OnMotionStartCallback s_call = NULL, OnMotionFinishCallback f_call = NULL);
 
 	void setExpression(const char name[]);
 	void setRandomExpression();
@@ -53,9 +56,9 @@ private:
 	ModelSetting *modelSetting;
 	std::string modelHomeDir;
 
-	OnFinishMotionCallback currentFinishCallback;
-
 	live2d::framework::L2DMatrix44 _projection;
+
+	OnMotionFinishCallback currentFinishCallback;
 
 	float _offx;
 	float _offy;

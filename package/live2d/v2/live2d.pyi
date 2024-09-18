@@ -78,16 +78,16 @@ class LAppModel:
     def SetRandomExpression(self) -> None:
         pass
     
-    def HitTest(self, hitAreaName: str | Any, x: float | Any, y: float | Any) -> str:
+    def HitTest(self, x: float | Any, y: float | Any) -> str:
         pass
     
     def HasMocConsistencyFromFile(self, mocFileName: str | Any) -> bool:
         pass
 
-    def Touch(self, x: int | Any, y: int | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
+    def Touch(self, x: float | Any, y: float | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         pass
 
-    def Drag(self, x: int | Any, y: int | Any) -> None:
+    def Drag(self, x: float | Any, y: float | Any) -> None:
         pass
 
     def IsMotionFinished(self) -> bool:
