@@ -13,18 +13,14 @@ import resources
 live2d.setLogEnable(True)
 
 
-def draw():
-    pygame.display.flip()
-    pygame.time.wait(10)
-
-
 def main():
     pygame.init()
     pygame.mixer.init()
     live2d.init()
 
     display = (700, 500)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL | NOFRAME)
+    pygame.display.set_caption("pygame window")
 
     live2d.glewInit()
     live2d.setGLProperties()
@@ -130,9 +126,10 @@ def main():
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
-        live2d.clearBuffer(0.0, 0.0, 1.0, 0.0)
+        live2d.clearBuffer(1.0, 0.0, 0.0, 0.0)
         model.Draw()
-        draw()
+        pygame.display.flip()
+        # pygame.time.wait(10)
 
     live2d.dispose()
 

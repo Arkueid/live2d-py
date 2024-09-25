@@ -35,6 +35,6 @@ def Error(*args, **kwargs):
         print(
             time.strftime(f"{RED}[ERROR  %Y-%m-%d %H:%M:%S]", time.localtime(time.time())),
             *args,
-            RESET
+            RESET,
             **kwargs
         )

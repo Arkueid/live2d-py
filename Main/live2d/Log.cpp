@@ -52,7 +52,7 @@ void _LOG(const int level, const char *fmt, ...)
     {
         format = LOG_INFO_CONSOLE_FORMAT;
     }
-    else if (level == LogLevel::ERROR)
+    else if (level == LogLevel::_ERROR)
     {
         format = LOG_ERROR_CONSOLE_FORMAT;
     }

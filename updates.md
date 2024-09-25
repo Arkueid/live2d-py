@@ -1,5 +1,14 @@
 # 更新内容
 
+## 2024/9/24
+* 更正`HitTest`的参数类型
+* 移除动态库内全局动作回调函数
+* 添加`live2d.clearBuffer`的可选背景色参数 by [@96bearli]
+* 修正`live2d.utils.log.logEnable`与动态库的状态同步
+* 修复简易面捕的抖动问题 by [@96bearli]
+
+[@96bearli]: https://github.com/96bearli
+
 ## 2024/8/22
 添加：
 

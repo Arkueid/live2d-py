@@ -73,3 +73,9 @@ pip install live2d_py-0.2.2-cp310-cp310-win32.whl
 见 [live2d-desktop](https://github.com/Arkueid/Live2DMascot)
 
 ![alt](./docs/2.png)
+
+## 贡献
+
+感谢 [@96bearli] 为本项目提供的帮助和支持。
+
+[@96bearli]: https://github.com/96bearli

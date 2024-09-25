@@ -16,13 +16,12 @@ def init_window(width, height, title):
         glfw.terminate()
         return None
 
-    glfw.make_context_current(window)
     return window
 
 
 # 渲染循环
 def main():
-    window = init_window(270, 200, "Simple GLFW Window")
+    window = init_window(270, 200, "pyside6")
     if not window:
         print("Failed to create GLFW window")
         return

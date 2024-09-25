@@ -1,3 +1,8 @@
+#include <GL/glew.h>
+#ifdef WIN32
+#include <GL/wglew.h>
+#endif // WIN32
+
 #include <LAppModel.hpp>
 #include <CubismFramework.hpp>
 #include <LAppPal.hpp>
@@ -682,8 +687,7 @@ static PyMethodDef live2d_methods[] = {
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
     {"logEnable", (PyCFunction)live2d_log_enable, METH_VARARGS, ""},
-    {NULL, NULL, 0, NULL} // 哨兵
-};
+    {NULL, NULL, 0, NULL}};
 
 // 定义live2d模块
 static struct PyModuleDef liv2d_module = {
@@ -729,7 +733,7 @@ PyMODINIT_FUNC PyInit_live2d(void)
 
 #ifdef WIN32
     // 强制utf-8
-    SetConsoleOutputCP(65001);
+    // SetConsoleOutputCP(65001);
 #endif
 
     return m;

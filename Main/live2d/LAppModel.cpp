@@ -537,12 +537,12 @@ void LAppModel::DoDraw()
 
 void LAppModel::Draw(CubismMatrix44 &matrix)
 {
-    _model->Update();
-
     if (_model == NULL)
     {
         return;
     }
+
+    _model->Update();
 
     matrix.MultiplyByMatrix(_modelMatrix);
 
