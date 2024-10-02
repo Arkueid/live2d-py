@@ -153,6 +153,12 @@ public:
 
     Parameter GetParameter(int i);
 
+    int GetPartCount();
+
+    Csm::csmString GetPartId(int idx);
+    
+    void SetPartOpacity(int idx, float opacity);
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。

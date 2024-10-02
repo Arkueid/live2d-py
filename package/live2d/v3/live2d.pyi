@@ -1,4 +1,5 @@
 from enum import Enum
+from tkinter import NO
 from typing import Any
 from params import Parameter
 
@@ -244,4 +245,16 @@ class LAppModel:
         pass
 
     def GetParameter(index: int) -> Parameter:
+        pass
+
+    def GetPartCount() -> int:
+        pass
+
+    def GetPartId() -> str:
+        pass
+
+    def GetPartIds() -> list[str]:
+        pass
+
+    def SetPartOpacity(index: int, opacity: float) -> None:
         pass
