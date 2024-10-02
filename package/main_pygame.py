@@ -69,9 +69,11 @@ def main():
             param.id, param.type, param.value, param.max, param.min, param.default
         )
 
+    # 设置 part 透明度
     log.Debug(f"Part Count: {model.GetPartCount()}")
     partIds = model.GetPartIds()
     log.Debug(f"Part Ids: {partIds}")
+    log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
     model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
 
     while True:

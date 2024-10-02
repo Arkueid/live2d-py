@@ -1,5 +1,4 @@
 from enum import Enum
-from tkinter import NO
 from typing import Any
 from params import Parameter
 
@@ -250,7 +249,7 @@ class LAppModel:
     def GetPartCount() -> int:
         pass
 
-    def GetPartId() -> str:
+    def GetPartId(index: int) -> str:
         pass
 
     def GetPartIds() -> list[str]:
