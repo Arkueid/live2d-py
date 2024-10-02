@@ -517,6 +517,54 @@ static PyObject *PyLAppModel_GetParameter(PyLAppModelObject *self, PyObject *arg
     return instance;
 }
 
+// GetPartCount() -> int
+static PyObject* PyLAppModel_GetPartCount(PyLAppModelObject* self, PyObject* args)
+{
+    return PyLong_FromLong(self->model->GetPartCount());
+}
+
+// GetPartId(index: int) -> str
+static PyObject* PyLAppModel_GetPartId(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    if (PyArg_ParseTuple(args, "i", &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    return PyUnicode_FromString(self->model->GetPartId(index).GetRawString());
+}
+
+// GetPartIds() -> tuple[str]
+static PyObject* PyLAppModel_GetPartIds(PyLAppModelObject* self, PyObject* args)
+{
+    const int size = self->model->GetPartCount();
+
+    PyObject* list = PyList_New(size);
+
+    for (int i = 0; i < size; ++i) {
+        PyList_SetItem(list, i, PyUnicode_FromString(self->model->GetPartId(i).GetRawString()));
+    }
+
+    return list;
+}
+
+// SetPartOpacity(id: str, opacity: float) -> None
+static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float opacity;
+    if (PyArg_ParseTuple(args, "if", &index, &opacity) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    self->model->SetPartOpacity(index, opacity);
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -533,13 +581,20 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
-    {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
-    {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
     {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
+    
     {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
     {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
+
+    {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
+    {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
     {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
     {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
+
+    {"GetPartCount", (PyCFunction)PyLAppModel_GetPartCount, METH_VARARGS, ""},
+    {"GetPartId", (PyCFunction)PyLAppModel_GetPartId, METH_VARARGS, ""},
+    {"GetPartIds", (PyCFunction)PyLAppModel_GetPartIds, METH_VARARGS, ""},
+    {"SetPartOpacity", (PyCFunction)PyLAppModel_SetPartOpacity, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志
 };
 

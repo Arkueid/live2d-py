@@ -747,3 +747,18 @@ Parameter LAppModel::GetParameter(int i)
         _model->GetParameterDefaultValue(i)};
     return param;
 }
+
+int LAppModel::GetPartCount()
+{
+    return _model->GetPartCount();
+}
+
+Csm::csmString LAppModel::GetPartId(int idx)
+{
+    return _model->GetPartId(idx)->GetString();
+}
+
+void LAppModel::SetPartOpacity(int idx, float opacity)
+{
+    _model->SetPartOpacity(idx, opacity);
+}

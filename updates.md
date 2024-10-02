@@ -1,5 +1,36 @@
 # 更新内容
 
+## 2024/10/2
+
+添加`Part`透明度控制
+
+```python
+class LAppModel:
+    ...
+
+    def GetPartCount() -> int:
+        pass
+
+    def GetPartId(index: int) -> str:
+        pass
+
+    def GetPartIds() -> list[str]:
+        pass
+
+    def SetPartOpacity(index: int, opacity: float) -> None:
+        pass
+```
+
+用例： 
+
+```python
+# 设置 part 透明度
+log.Debug(f"Part Count: {model.GetPartCount()}")
+partIds = model.GetPartIds()
+log.Debug(f"Part Ids: {partIds}")
+model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
+```
+
 ## 2024/9/24
 * 更正`HitTest`的参数类型
 * 移除动态库内全局动作回调函数
