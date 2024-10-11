@@ -24,10 +24,11 @@ class LAppModel:
 用例： 
 
 ```python
-# 设置 part 透明度
 log.Debug(f"Part Count: {model.GetPartCount()}")
+#  获取模型的 part id 列表（字符串列表）
 partIds = model.GetPartIds()
 log.Debug(f"Part Ids: {partIds}")
+# 通过 part id 在列表中的 index 来设置其透明度
 model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
 ```
 
