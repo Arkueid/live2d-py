@@ -43,17 +43,17 @@
 
 ## 安装方式
 
-通过 PyPi 安装
+通过 [PyPI](https://pypi.org/project/live2d-py/) 安装
 ```shell
 pip install live2d-py
 ```
 
-在发行版中下载源码进行构建安装
+在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载源码进行构建安装
 ```shell
 pip install live2d_py-0.2.2.tar.gz
 ```
 
-在发行版中下载对应版本的 `whl` 文件并安装
+在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装
 ```shell
 pip install live2d_py-0.2.2-cp310-cp310-win32.whl
 ```
