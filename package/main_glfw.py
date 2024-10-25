@@ -15,6 +15,8 @@ def init_window(width, height, title):
     if not window:
         glfw.terminate()
         return None
+    
+    glfw.make_context_current(window)
 
     return window
 
@@ -28,15 +30,11 @@ def main():
 
     live2d.init()
 
-    if live2d.LIVE2D_VERSION == 3:
-        live2d.glewInit()
-        live2d.setGLProperties()
+    live2d.glewInit()
+    live2d.setGLProperties()
 
     model = live2d.LAppModel()
-    if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
-    else:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
     model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda : print("end 1"))
 
