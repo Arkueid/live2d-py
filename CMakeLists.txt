@@ -11,6 +11,9 @@ set(LIB_NAME LAppModelWrapper)
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
+# prevent python root dir being shadowed by registry
+set(Python3_FIND_REGISTRY "NEVER")
+
 set(CMAKE_CONFIGURATION_TYPES "Release")
 
 if(DEFINED PYTHON_INSTALLATION_PATH)
@@ -19,7 +22,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
 else()
     # 寻找Python
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
+    set(CMAKE_PREFIX_PATH D:/Python/x86/3.8)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -30,8 +33,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Zi")
   add_compile_options("/utf-8" "/wd4018" "/wd4244" "/wd4996")
   add_link_options("/NODEFAULTLIB:LIBCMT" "/DEBUG")
-
-
 else()
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
@@ -46,7 +47,7 @@ message("Runtime log: off")
 add_compile_definitions(LOG_MODE_RELEASE)
 endif()
 
-find_package(Python REQUIRED COMPONENTS Development)
+find_package(Python3 REQUIRED Development)
 
 message("Python_LIBRARIES " ${Python_LIBRARIES})
 
@@ -54,7 +55,7 @@ add_subdirectory(Main)
 
 # 创建Python扩展模块
 add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
-target_link_libraries(LAppModelWrapper PRIVATE Python::Python live2d)
+target_link_libraries(LAppModelWrapper PRIVATE Python3::Python live2d)
 
 # Configure for Linux / Windows
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
