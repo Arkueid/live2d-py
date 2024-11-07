@@ -459,7 +459,7 @@ static PyObject *PyLAppModel_SetAutoBreathEnable(PyLAppModelObject *self, PyObje
 {
     bool enable;
 
-    if (PyArg_ParseTuple(args, "p", &enable) < 0)
+    if (PyArg_ParseTuple(args, "b", &enable) < 0)
     {
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
@@ -474,7 +474,7 @@ static PyObject *PyLAppModel_SetAutoBlinkEnable(PyLAppModelObject *self, PyObjec
 {
     bool enable;
 
-    if (PyArg_ParseTuple(args, "p", &enable) < 0)
+    if (PyArg_ParseTuple(args, "b", &enable) < 0)
     {
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
@@ -712,12 +712,10 @@ static PyObject *live2d_clear_buffer(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-extern bool live2dLogEnable;
-
 static PyObject *live2d_set_log_enable(PyObject *self, PyObject *args)
 {
     bool enable;
-    if (!PyArg_ParseTuple(args, "p", &enable))
+    if (!PyArg_ParseTuple(args, "b", &enable))
     {
         PyErr_SetString(PyExc_TypeError, "invalid param");
         return NULL;

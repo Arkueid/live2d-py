@@ -23,7 +23,7 @@ def init_window(width, height, title):
 
 # 渲染循环
 def main():
-    window = init_window(270, 200, "pyside6")
+    window = init_window(270, 200, "glfw")
     if not window:
         print("Failed to create GLFW window")
         return

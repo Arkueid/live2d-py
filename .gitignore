@@ -412,6 +412,8 @@ Resources/v3/草莓兔兔 试用
 
 test
 
+**.db
+
 .vscode
 
-**.db
+!.vscode/launch.json

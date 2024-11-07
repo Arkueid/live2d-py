@@ -7,6 +7,7 @@ enum LogLevel
     _ERROR
 };
 
+extern bool live2dLogEnable;
 
 void _LOG(const int format, const char *fmt, ...);
 

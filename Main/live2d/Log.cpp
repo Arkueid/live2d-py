@@ -35,10 +35,13 @@ void _LOG(const int level, const char *fmt, ...)
     current_time(time_buf);
 
     va_list args;
+    // 获取长度
     va_start(args, fmt);
-
     int msgSize = std::vsnprintf(NULL, 0, fmt, args) + 1;
+    va_end(args);
 
+    // 重置，真正开始写入
+    va_start(args, fmt);
     char *msgBuf = (char *)malloc(msgSize * sizeof(char));
     std::vsnprintf(msgBuf, msgSize, fmt, args);
     va_end(args);
