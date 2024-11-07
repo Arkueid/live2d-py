@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.13)
 project(LAppModelWrapper)
 
 # set(CMAKE_BUILD_TYPE "Release")
-set(ENABLE_LOG TRUE)
 
 message("${CMAKE_BUILD_TYPE}")
 
@@ -14,15 +13,13 @@ set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 # prevent python root dir being shadowed by registry
 set(Python3_FIND_REGISTRY "NEVER")
 
-set(CMAKE_CONFIGURATION_TYPES "Release")
-
 if(DEFINED PYTHON_INSTALLATION_PATH)
     message("Found PYTHON_INSTALLATION_PATH in environment variables")
     set(CMAKE_PREFIX_PATH ${PYTHON_INSTALLATION_PATH})
 else()
     # 寻找Python
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Python/x86/3.8)
+    set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -38,14 +35,6 @@ else()
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/static/${CMAKE_BUILD_TYPE})
 endif()  
-
-if(ENABLE_LOG)
-message("Runtime log: on")
-# 关闭 log 输出
-else()
-message("Runtime log: off")
-add_compile_definitions(LOG_MODE_RELEASE)
-endif()
 
 find_package(Python3 REQUIRED Development)
 

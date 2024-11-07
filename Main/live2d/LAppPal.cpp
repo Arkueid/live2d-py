@@ -65,8 +65,7 @@ csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
     file.close();
 
     if(outSize) {
-        *outSize = size;
-        Debug("%d", outSize);
+        *outSize = static_cast<unsigned int>(size);
     }
     
     return reinterpret_cast<csmByte*>(buf);

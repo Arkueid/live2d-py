@@ -417,3 +417,5 @@ test
 .vscode
 
 !.vscode/launch.json
+
+Resources/v2
