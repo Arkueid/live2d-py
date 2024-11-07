@@ -416,6 +416,12 @@ test
 
 .vscode
 
-!.vscode/launch.json
+!?.vscode/launch.json
 
 Resources/v2
+
+!package/audio1.wav
+
+!package/audio2.wav
+
+!package/test.mp4
