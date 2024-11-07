@@ -18,8 +18,10 @@
 
 详细使用文档：https://arkueid.github.io/live2d-py-docs/
 
-## 支持UI库
-理论上支持所有能使用 OpenGL 进行绘制的UI库：PyQt5 / PySide2 / PySide6 / GLFW / FreeGlut / Qfluentwidgets ...
+加载 Cubism 2.1 及以下版本的 Live2D 模型使用 [v2](https://github.com/Arkueid/live2d-py/tree/v2) 分支
+
+## 兼容UI库
+理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / FreeGlut / Qfluentwidgets ...
 
 ## 基本操作
 * 加载模型
@@ -53,7 +55,7 @@ pip install live2d-py
 pip install live2d_py-0.2.2.tar.gz
 ```
 
-在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装
+在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装（推荐）
 ```shell
 pip install live2d_py-0.2.2-cp310-cp310-win32.whl
 ```

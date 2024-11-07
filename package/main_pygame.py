@@ -1,4 +1,9 @@
-from operator import le
+# gdb 联合调试 live2d.so
+# 需要使用 Debug 配置编译 LAppModelWrapper
+# import ptvsd
+# ptvsd.enable_attach(address=('127.0.0.1', 10010), redirect_output=True)
+# ptvsd.wait_for_attach()
+
 import os
 
 import pygame
@@ -13,13 +18,12 @@ import resources
 
 live2d.setLogEnable(True)
 
-
 def main():
     pygame.init()
     pygame.mixer.init()
     live2d.init()
 
-    display = (700, 500)
+    display = (200, 200)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 

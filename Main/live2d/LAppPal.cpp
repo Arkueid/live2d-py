@@ -36,7 +36,7 @@ csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
     const char* pathStr = filePath.c_str();
     std::filesystem::path path = std::filesystem::u8path(filePath);
 
-    int size = 0;
+    size_t size = 0;
     if (std::filesystem::exists(path))
     {
         size = std::filesystem::file_size(path);
@@ -64,7 +64,9 @@ csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
     file.read(buf, size);
     file.close();
 
-    if(outSize) *outSize = size;
+    if(outSize) {
+        *outSize = static_cast<unsigned int>(size);
+    }
     
     return reinterpret_cast<csmByte*>(buf);
 }
