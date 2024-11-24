@@ -50,17 +50,12 @@
 pip install live2d-py
 ```
 
-2. 在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载源码进行构建安装
-```shell
-pip install live2d_py-0.X.X.tar.gz
-```
-
-3. 在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装（推荐）
+2. 在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装（推荐）
 ```shell
 pip install live2d_py-0.X.X-cpXXX-cpXXX-win32.whl
 ```
 
-4. 克隆本仓库，自行编译构建，参考 [编译](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E7%BC%96%E8%AF%91.html)
+3. 从源码构建，参考 [安装#源码构建](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E5%AE%89%E8%A3%85.html#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA)
 
 
 ## 简易面部动捕示例
