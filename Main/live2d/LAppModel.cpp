@@ -83,7 +83,7 @@ void LAppModel::LoadAssets(const csmChar *fileName)
     // 因此改用 cpp17 的标准库
     std::filesystem::path p = std::filesystem::u8path(fileName);
     // ensure trailing EOS
-    _modelHomeDir = p.parent_path().string().c_str();
+    _modelHomeDir = p.parent_path().generic_u8string().c_str();
     _modelHomeDir += "/";
 
     Info("load model setting: %s", fileName);

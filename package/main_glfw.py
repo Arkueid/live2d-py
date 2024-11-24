@@ -34,7 +34,7 @@ def main():
     live2d.setGLProperties()
 
     model = live2d.LAppModel()
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/波奇酱2.0/波奇酱2.0.model3.json"))
 
     model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda: print("end 1"))
 
