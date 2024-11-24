@@ -1,10 +1,15 @@
-from PySide6.QtGui import QMouseEvent
-import live2d.v3 as live2d
 import os
-import resources
-from PySide6.QtCore import QTimerEvent
-from PySide6.QtWidgets import QApplication
+
+import PIL.Image as Image
+import numpy as np
+import OpenGL.GL as gl
+from PySide6.QtCore import QTimerEvent, Qt
+from PySide6.QtGui import QMouseEvent, QCursor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide6.QtWidgets import QApplication
+
+import live2d.v3 as live2d
+import resources
 
 
 def callback():
@@ -16,10 +21,17 @@ class Win(QOpenGLWidget):
 
     def __init__(self) -> None:
         super().__init__()
-        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
-        # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.isInLA = False
+        self.clickInLA = False
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint 
+                            # | Qt.WindowType.Tool
+                            )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
         self.resize(270, 200)
+        self.read = False
+        self.clickX = -1
+        self.clickY = -1
 
     def initializeGL(self) -> None:
         # 将当前窗口作为 OpenGL 的上下文
@@ -36,7 +48,7 @@ class Win(QOpenGLWidget):
         # 加载模型参数
 
         # 适用于 3 的模型
-        self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+        self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"))
 
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))
@@ -45,33 +57,102 @@ class Win(QOpenGLWidget):
         if self.model:
             # 使模型的参数按窗口大小进行更新
             self.model.Resize(w, h)
-    
+
     def paintGL(self) -> None:
-        
+
         live2d.clearBuffer()
 
         self.model.Update()
 
         self.model.Draw()
-    
-    def timerEvent(self, a0: QTimerEvent | None) -> None:
 
-        if self.a == 0: # 测试一次播放动作和回调函数
+        if not self.read:
+            self.savePng('screenshot.png')
+
+            self.read = True
+
+    def savePng(self, fName):
+        data = gl.glReadPixels(0, 0, self.width(), self.height(), gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
+        data = np.frombuffer(data, dtype=np.uint8).reshape(self.height(), self.width(), 4)
+        data = np.flipud(data)
+        new_data = np.zeros_like(data)
+        for rid, row in enumerate(data):
+            for cid, col in enumerate(row):
+                color = None
+                new_data[rid][cid] = col
+                if cid > 0 and data[rid][cid - 1][3] == 0 and col[3] != 0:
+                    color = new_data[rid][cid - 1]
+                elif cid > 0 and data[rid][cid - 1][3] != 0 and col[3] == 0:
+                    color = new_data[rid][cid]
+                if color is not None:
+                    color[0] = 255
+                    color[1] = 0
+                    color[2] = 0
+                    color[3] = 255
+                color = None
+                if rid > 0:
+                    if data[rid - 1][cid][3] == 0 and col[3] != 0:
+                        color = new_data[rid - 1][cid]
+                    elif data[rid - 1][cid][3] != 0 and col[3] == 0:
+                        color = new_data[rid][cid]
+                elif col[3] != 0:
+                    color = new_data[rid][cid]
+                if color is not None:
+                    color[0] = 255
+                    color[1] = 0
+                    color[2] = 0
+                    color[3] = 255
+        img = Image.fromarray(new_data, 'RGBA')
+        img.save(fName)
+
+    def timerEvent(self, a0: QTimerEvent | None) -> None:
+        if not self.isVisible():
+            return
+
+        if self.a == 0:  # 测试一次播放动作和回调函数
             self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value, onFinishMotionHandler=callback)
             self.a += 1
-        
-        self.update() 
+
+        local_x, local_y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()
+        if self.isInL2DArea(local_x, local_y):
+            self.isInLA = True
+            # print("in l2d area")
+        else:
+            self.isInLA = False
+            # print("out of l2d area")
+
+        self.update()
+
+    def isInL2DArea(self, click_x, click_y):
+        h = self.height()
+        alpha = gl.glReadPixels(click_x, h - click_y, 1, 1, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)[3]
+        return alpha > 0
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
+        x, y = event.scenePosition().x(), event.scenePosition().y()
         # 传入鼠标点击位置的窗口坐标
-        self.model.Touch(event.pos().x(), event.pos().y());
+        if self.isInL2DArea(x, y):
+            self.clickInLA = True
+            self.clickX, self.clickY = x, y
+            print("pressed")
+
+    def mouseReleaseEvent(self, event):
+        x, y = event.scenePosition().x(), event.scenePosition().y()
+        # if self.isInL2DArea(x, y):
+        if self.isInLA:
+            self.model.Touch(x, y)
+            self.clickInLA = False
+            print("released")
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        self.model.Drag(event.pos().x(), event.pos().y())
+        x, y = event.scenePosition().x(), event.scenePosition().y()
+        if self.clickInLA:
+            self.move(int(self.x() + x - self.clickX), int(self.y() + y - self.clickY))
 
 
 if __name__ == "__main__":
     import sys
+
     live2d.init()
 
     app = QApplication(sys.argv)

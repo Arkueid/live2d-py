@@ -414,10 +414,6 @@ test
 
 **.db
 
-.vscode
-
-!?.vscode/launch.json
-
 Resources/v2
 
 !package/audio1.wav

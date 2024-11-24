@@ -1,5 +1,5 @@
 import os.path
-from tarfile import NUL
+
 import resources
 
 import glfw
@@ -15,7 +15,7 @@ def init_window(width, height, title):
     if not window:
         glfw.terminate()
         return None
-    
+
     glfw.make_context_current(window)
 
     return window
@@ -36,11 +36,14 @@ def main():
     model = live2d.LAppModel()
     model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
 
-    model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda : print("end 1"))
+    model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda: print("end 1"))
 
-    model.StartMotion("TapBody", 4, 3, onFinishMotionHandler=lambda : print("end 2"))
+    model.StartMotion("TapBody", 4, 3, onFinishMotionHandler=lambda: print("end 2"))
 
-    model.StartRandomMotion("TapBody", 3, onStartMotionHandler=lambda group, no: print(f"start 1 {group} {no}"), onFinishMotionHandler=lambda : print("end 3"))
+    model.StartRandomMotion("TapBody", 3, onStartMotionHandler=lambda group, no: print(f"start 1 {group} {no}"),
+                            onFinishMotionHandler=lambda: print("end 3"))
+
+    read = False
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
@@ -50,6 +53,7 @@ def main():
         model.Draw()
 
         glfw.swap_buffers(window)
+
 
     glfw.terminate()
     live2d.dispose()

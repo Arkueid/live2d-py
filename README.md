@@ -4,13 +4,12 @@
 
 <p align="center" style="font-family: 'Roboto', sans-serif; font-size: 1em; color: #555;">
     <img title="Docker Build Version" src="https://img.shields.io/github/v/release/Arkueid/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
-    <img title="Python Version" src="https://img.shields.io/badge/python-3.12-blue" alt="Python Version" style="margin: 0 10px;">
-    <img title="Python Version" src="https://img.shields.io/badge/python-3.10.11-blue" alt="Python Version" style="margin: 0 10px;">
-    <img title="CMake" src="https://img.shields.io/badge/CMake-3.13-orange" alt="CMake" style="margin: 0 10px;">
+    <img title="Python Version" src="https://img.shields.io/badge/python-3.10+-blue" alt="Python Version" style="margin: 0 10px;">
+    <img title="CMake" src="https://img.shields.io/badge/CMake-3.13+-orange" alt="CMake" style="margin: 0 10px;">
     <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
 </p>
 
-使用 Python 直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染，提供更高的自由度和拓展性。
+使用 Python 直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染。
 
 基于 Python C++ API 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
@@ -23,13 +22,14 @@
 ## 兼容UI库
 理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / FreeGlut / Qfluentwidgets ...
 
-## 基本操作
+## 支持功能
 * 加载模型
-* 鼠标拖拽视线
-* 鼠标点击触发动作
-* 动作播放回调函数
+* 视线跟踪
+* 点击交互
+* 动作播放回调
 * 口型同步
 * 模型各部分参数控制
+* 各部件透明度控制
 
 ## 平台支持
 
@@ -45,30 +45,28 @@
 
 ## 安装方式
 
-通过 [PyPI](https://pypi.org/project/live2d-py/) 安装
+1. 通过 [PyPI](https://pypi.org/project/live2d-py/) 安装
 ```shell
 pip install live2d-py
 ```
 
-在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载源码进行构建安装
+2. 在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载源码进行构建安装
 ```shell
-pip install live2d_py-0.2.2.tar.gz
+pip install live2d_py-0.X.X.tar.gz
 ```
 
-在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装（推荐）
+3. 在 [Release](https://github.com/Arkueid/live2d-py/releases/latest) 中下载对应版本的 `whl` 文件并安装（推荐）
 ```shell
-pip install live2d_py-0.2.2-cp310-cp310-win32.whl
+pip install live2d_py-0.X.X-cpXXX-cpXXX-win32.whl
 ```
 
-克隆本仓库，自行编译构建，参考 [安装/编译](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E5%AE%89%E8%A3%85.html#%E7%BC%96%E8%AF%91)
+4. 克隆本仓库，自行编译构建，参考 [编译](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E7%BC%96%E8%AF%91.html)
 
 
 ## 简易面部动捕示例
 源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind_mediapipe.py)  
 
 ![面捕-期末周破防](./docs/video_test.gif)
-
-![简易动捕](./docs/facial_capture.gif)
 
 ## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览
 
