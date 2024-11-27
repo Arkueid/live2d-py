@@ -23,7 +23,7 @@ def main():
     pygame.mixer.init()
     live2d.init()
 
-    display = (200, 200)
+    display = (400, 500)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
@@ -34,7 +34,7 @@ def main():
 
     # 加载中文路径模型
     model.LoadModelJson(
-        os.path.join(resources.RESOURCES_DIRECTORY, "v3/Hiyori/Hiyori.model3.json")
+        os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json")
     )
 
     model.Resize(*display)
@@ -67,18 +67,18 @@ def main():
         log.Info("motion finished")
 
     # 获取全部可用参数
-    for i in range(model.GetParameterCount()):
-        param: Parameter = model.GetParameter(i)
-        log.Debug(
-            param.id, param.type, param.value, param.max, param.min, param.default
-        )
+    # for i in range(model.GetParameterCount()):
+    #     param: Parameter = model.GetParameter(i)
+    #     log.Debug(
+    #         param.id, param.type, param.value, param.max, param.min, param.default
+    #     )
 
     # 设置 part 透明度
-    log.Debug(f"Part Count: {model.GetPartCount()}")
-    partIds = model.GetPartIds()
-    log.Debug(f"Part Ids: {partIds}")
-    log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
-    model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
+    # log.Debug(f"Part Count: {model.GetPartCount()}")
+    # partIds = model.GetPartIds()
+    # log.Debug(f"Part Ids: {partIds}")
+    # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
+    # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
 
     while True:
         for event in pygame.event.get():
@@ -87,7 +87,7 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                model.Touch(x, y, on_start_motion_callback, on_finish_motion_callback)
+                model.HitPart(x, y)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:

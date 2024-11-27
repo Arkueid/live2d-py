@@ -29,21 +29,21 @@ def init() -> None:
     """
     初始化 Cubism Framework
     """
-    pass
+    ...
 
 
 def dispose() -> None:
     """
     释放 Cubism Framework
     """
-    pass
+    ...
 
 
 def glewInit() -> None:
     """
     基于 Glew 实现的 live2d, 使用模型前应初始化 Glew
     """
-    pass
+    ...
 
 
 def setGLProperties() -> None:
@@ -56,7 +56,7 @@ def setGLProperties() -> None:
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     """
-    pass
+    ...
 
 
 def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
@@ -67,15 +67,15 @@ def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     
     glClearDepth(1.0)
     """
-    pass
+    ...
 
 
 def setLogEnable(enable: bool):
-    pass
+    ...
 
 
 def logEnable() -> bool:
-    pass
+    ...
 
 
 class LAppModel:
@@ -86,7 +86,7 @@ class LAppModel:
     """
 
     def __init__(self):
-        pass
+        ...
 
     def LoadModelJson(self, fileName: str | Any) -> None:
         """
@@ -94,7 +94,7 @@ class LAppModel:
         
         :param fileName: Name of the model's JSON configuration file.
         """
-        pass
+        ...
 
     def Resize(self, ww: int | Any, wh: int | Any) -> None:
         """
@@ -108,7 +108,7 @@ class LAppModel:
         """
         绘制模型
         """
-        pass
+        ...
 
     def StartMotion(self, group: str | Any, no: int | Any, priority: int | Any, onStartMotionHandler=None,
                     onFinishMotionHandler=None) -> None:
@@ -121,7 +121,7 @@ class LAppModel:
         :param onStartMotionHandler: Optional callback function that gets called when the motion starts.
         :param onFinishMotionHandler: Optional callback function that gets called when the motion finishes.
         """
-        pass
+        ...
 
     def StartRandomMotion(self, group: str | Any, priority: int | Any, onStartMotionHandler=None,
                           onFinishMotionHandler=None) -> None:
@@ -132,7 +132,7 @@ class LAppModel:
         :param priority: Priority of the motion. Higher priority motions can interrupt lower priority ones.
         :param onFinishedMotionHandler: Optional callback function that gets called when the motion finishes.
         """
-        pass
+        ...
 
     def SetExpression(self, expressionID: str | Any) -> None:
         """
@@ -140,13 +140,13 @@ class LAppModel:
         
         :param expressionID: Identifier for the expression to be set.
         """
-        pass
+        ...
 
     def SetRandomExpression(self) -> None:
         """
         Set a random expression for the model.
         """
-        pass
+        ...
 
     def HitTest(self, x: float | Any, y: float | Any) -> str:
         """
@@ -157,7 +157,7 @@ class LAppModel:
         :param y: Y coordinate of the click.
         :return: The hit area name if a hit is detected, otherwise an empty string.
         """
-        pass
+        ...
 
     def HasMocConsistencyFromFile(self, mocFileName: str | Any) -> bool:
         """
@@ -166,28 +166,28 @@ class LAppModel:
         :param mocFileName: Name of the MOC file to check.
         :return: True if the MOC file is consistent, otherwise False.
         """
-        pass
+        ...
 
     def Touch(self, x: float | Any, y: float | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y
         """
-        pass
+        ...
 
     def Drag(self, x: float | Any, y: float | Any) -> None:
         """
         :param x: global_mouse_x - window_x
         :param y: global_mouse_y - window_y
         """
-        pass
+        ...
 
     def IsMotionFinished(self) -> bool:
         """
         当前正在播放的动作是否已经结束
         :return:
         """
-        pass
+        ...
 
     def SetOffset(self, dx: float | Any, dy: float | Any) -> None:
         """
@@ -196,7 +196,7 @@ class LAppModel:
         :param dy:
         :return:
         """
-        pass
+        ...
 
     def SetScale(self, scale: float | Any) -> None:
         """
@@ -204,7 +204,7 @@ class LAppModel:
         :param scale: 缩放比例
         :return:
         """
-        pass
+        ...
 
     def SetParameterValue(self, paramId: str, value: float, weight: float) -> None:
         """
@@ -214,46 +214,49 @@ class LAppModel:
         :param value: 所有可操作参数见官方文档: https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
         :param weight: 当前传入的值和原值的比例，最终值=原值*(1-weight)+传入值*weight
         """
-        pass
+        ...
 
     def AddParameterValue(self, paramId: str, value: float) -> None:
         """
         最终值=原值+value
         """
-        pass
+        ...
 
     def Update(self) -> None:
         """
         初始化呼吸、动作、姿势、表情、各部分透明度等必要的参数值
         """
-        pass
+        ...
 
     def SetAutoBreathEnable(self, enable: bool) -> None:
         """
         开启自动呼吸
         """
-        pass
+        ...
 
     def SetAutoBlinkEnable(self, enable: bool) -> None:
         """
         开启自动眨眼
         """
-        pass
+        ...
 
     def GetParameterCount(self) -> int:
-        pass
+        ...
 
     def GetParameter(self, index: int) -> Parameter:
-        pass
+        ...
 
     def GetPartCount(self) -> int:
-        pass
+        ...
 
     def GetPartId(self, index: int) -> str:
-        pass
+        ...
 
     def GetPartIds(self) -> list[str]:
-        pass
+        ...
 
     def SetPartOpacity(self, index: int, opacity: float) -> None:
-        pass
+        ...
+
+    def HitPart(self, x: float, y: float) -> None:
+        ...
