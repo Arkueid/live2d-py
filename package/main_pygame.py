@@ -16,8 +16,8 @@ from live2d.utils.lipsync import WavHandler
 from live2d.v3.params import StandardParams, Parameter
 import resources
 
-
 live2d.setLogEnable(True)
+
 
 def main():
     pygame.init()
@@ -80,23 +80,31 @@ def main():
     # log.Debug(f"Part Ids: {partIds}")
     # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
     # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
+
     currentTopClickedPartId = None
 
+    def getHitFeedback(x, y):
+        hitPartIds = model.HitPart(x, y)
+        if currentTopClickedPartId is not None:
+            model.SetPartOpacity(partIds.index(currentTopClickedPartId), 1)
+        if len(hitPartIds) > 0:
+            ret = hitPartIds[0]
+            model.SetPartOpacity(partIds.index(ret), 0.5)
+            return ret
+
+    # TODO: 初次绘制前调用 HitPart 会导致崩溃
+    firstDraw = True
     while True:
         for event in pygame.event.get():
+            if firstDraw:
+                continue
             if event.type == pygame.QUIT:
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                t = time.time()
-                hitPartIds = model.HitPart(x, y)
-                if currentTopClickedPartId is not None:
-                    model.SetPartOpacity(partIds.index(currentTopClickedPartId), 1)
-                if len(hitPartIds) > 0:
-                    currentTopClickedPartId = hitPartIds[0]
-                    model.SetPartOpacity(partIds.index(currentTopClickedPartId), 0.5)
-                log.Debug(f"hit test cost: {time.time() - t}")
+                currentTopClickedPartId = getHitFeedback(x, y)
+                # model.Touch(x, y)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -118,7 +126,9 @@ def main():
 
             if event.type == pygame.MOUSEMOTION:
                 # 实现拖拽
-                # model.Drag(*pygame.mouse.get_pos())
+                model.Drag(*pygame.mouse.get_pos())
+                # 测试性能？
+                # currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
                 pass
 
         if not running:
@@ -151,6 +161,7 @@ def main():
         model.Draw()
         pygame.display.flip()
         pygame.time.wait(10)
+        firstDraw = False
 
     live2d.dispose()
 
@@ -159,4 +170,5 @@ def main():
 
 
 if __name__ == "__main__":
+    currentTopClickedPartId = None
     main()
