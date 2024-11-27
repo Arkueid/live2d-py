@@ -5,6 +5,7 @@
 # ptvsd.wait_for_attach()
 
 import os
+import time
 
 import pygame
 from pygame.locals import *
@@ -75,10 +76,11 @@ def main():
 
     # 设置 part 透明度
     # log.Debug(f"Part Count: {model.GetPartCount()}")
-    # partIds = model.GetPartIds()
+    partIds = model.GetPartIds()
     # log.Debug(f"Part Ids: {partIds}")
     # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
     # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
+    currentTopClickedPartId = None
 
     while True:
         for event in pygame.event.get():
@@ -87,7 +89,14 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                model.HitPart(x, y)
+                t = time.time()
+                hitPartIds = model.HitPart(x, y)
+                if currentTopClickedPartId is not None:
+                    model.SetPartOpacity(partIds.index(currentTopClickedPartId), 1)
+                if len(hitPartIds) > 0:
+                    currentTopClickedPartId = hitPartIds[0]
+                    model.SetPartOpacity(partIds.index(currentTopClickedPartId), 0.5)
+                log.Debug(f"hit test cost: {time.time() - t}")
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:

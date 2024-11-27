@@ -1,17 +1,8 @@
 #pragma once
-#include <ctime>
 
 extern bool live2dLogEnable;
 
-
-inline const char* currentTime()
-{
-    // 2024-11-07 14:05:06
-    static char buffer[20];
-    time_t t = time(nullptr);
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
-    return buffer;
-}
+const char* currentTime();
 
 #define Debug(fmt, ...) do { \
     if (live2dLogEnable) { \

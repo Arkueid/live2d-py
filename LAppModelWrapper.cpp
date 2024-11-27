@@ -589,8 +589,14 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
     }
 
     self->matrixManager.ScreenToScene(&x, &y);
-    self->model->HitPart2(x, y);
-    Py_RETURN_NONE;
+    std::vector<std::string> hitPartIds = self->model->HitPart(x, y);
+    PyObject* list = PyList_New(hitPartIds.size());
+    int i = 0;
+    for (auto& id : hitPartIds)
+    {
+        PyList_SetItem(list, i++, PyUnicode_FromString(id.c_str()));
+    }
+    return list;
 }
 
 // 包装模块方法的方法列表

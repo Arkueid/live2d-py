@@ -777,93 +777,9 @@ void LAppModel::SetPartOpacity(int idx, float opacity)
 
 using namespace Live2D::Cubism::Core;
 
-static bool isInPolygon(const csmFloat32 px, const csmFloat32 py, const csmFloat32* vertices,
-                        const csmInt32 vertexCount)
-{
-    csmFloat32 left = vertices[0];
-    csmFloat32 right = vertices[0];
-    csmFloat32 top = vertices[1];
-    csmFloat32 bottom = vertices[1];
-
-    for (csmInt32 i = 1; i < vertexCount; i++)
-    {
-        csmFloat32 x = vertices[i * 2];
-        csmFloat32 y = vertices[i * 2 + 1];
-
-        left = std::min(x, left);
-
-        right = std::max(x, right);
-
-        top = std::min(y, top);
-
-        bottom = std::max(y, bottom);
-    }
-
-    return (px >= left && px <= right && py >= top && py <= bottom);
-}
-
-// TODO
-static int currentPartIndex = -1;
-
-void LAppModel::HitPart(float x, float y)
-{
-    // 比较粗略的碰撞检测
-    // 获取 drawable 的正方形轮廓，判断点是否在其中
-    x = _modelMatrix->InvertTransformX(x);
-    y = _modelMatrix->InvertTransformY(y);
-    int drawableCout = _model->GetDrawableCount();
-    int* drawableIndices = new int[drawableCout];
-    // 记录本次点击过的部件
-    // 多个 part index 可能对应同一个 part id，所以用 part id set
-    std::unordered_set<std::string> partHit;
-    const int* renderOrders = _model->GetDrawableRenderOrders();
-    for (int i = 0; i < drawableCout; i++)
-    {
-        // 最上层最晚绘制
-        drawableIndices[drawableCout - 1 - renderOrders[i]] = i;
-    }
-    bool clicked = false;
-    for (int i = 0; i < drawableCout; i++)
-    {
-        int drawableIndex = drawableIndices[i];
-        if (_model->GetDrawableOpacity(drawableIndex) == 0.0f)
-        {
-            continue;
-        }
-        int vectorCount = _model->GetDrawableVertexCount(drawableIndex);
-        const csmFloat32* vertices = _model->GetDrawableVertices(drawableIndex);
-        int partIndex = _model->GetDrawableParentPartIndex(drawableIndex);
-        const char* partId = _model->GetPartId(partIndex)->GetString().GetRawString();
-        if (partHit.find(partId) != partHit.end())
-        {
-            continue;
-        }
-        if (isInPolygon(x, y, vertices, vectorCount))
-        {
-            partHit.insert(partId);
-            if (!clicked)
-            {
-                if (currentPartIndex != -1)
-                {
-                    _model->SetPartOpacity(currentPartIndex, 1.0f);
-                }
-                currentPartIndex = partIndex;
-                _model->SetPartOpacity(currentPartIndex, 0.5f);
-                clicked = true;
-            }
-        }
-    }
-    delete[] drawableIndices;
-    printf("[");
-    for (auto it = partHit.begin(); it != partHit.end(); it++)
-    {
-        printf("%s, ", it->c_str());
-    }
-    printf("]\n");
-}
-
 static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVector2 p2, const csmVector2 p)
 {
+    // https://github.com/Arkueid/live2d-py/issues/18
     const float dX = p.X - p2.X;
     const float dY = p.Y - p2.Y;
     const float dX21 = p2.X - p1.X;
@@ -875,7 +791,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
     return s >= 0 && t >= 0 && s + t <= D;
 }
 
-void LAppModel::HitPart2(float x, float y)
+std::vector<std::string> LAppModel::HitPart(float x, float y)
 {
     x = _modelMatrix->InvertTransformX(x);
     y = _modelMatrix->InvertTransformY(y);
@@ -887,8 +803,9 @@ void LAppModel::HitPart2(float x, float y)
         // 绘制顺序，先绘制的被后绘制的覆盖
         drawableIndices[drawableCount - 1 - renderOrders[i]] = i;
     }
-    std::unordered_set<std::string> partHit;
-    bool clicked = false;
+    // 多个 part index 可能指向同一个 part id，所以用 part id set
+    std::unordered_set<const char*> hitParts;
+    std::vector<std::string> partIds;
     for (int i = 0; i < drawableCount; i++)
     {
         int drawableIndex = drawableIndices[i];
@@ -899,7 +816,7 @@ void LAppModel::HitPart2(float x, float y)
         int partIndex = _model->GetDrawableParentPartIndex(drawableIndex);
         const char* partId = _model->GetPartId(partIndex)->GetString().GetRawString();
         // 已经点击过的部件
-        if (partHit.find(partId) != partHit.end())
+        if (hitParts.find(partId) != hitParts.end())
         {
             continue;
         }
@@ -910,6 +827,7 @@ void LAppModel::HitPart2(float x, float y)
         // 三角形顶点索引
         const csmUint16* indices = _model->GetDrawableVertexIndices(drawableIndex);
         const int triangleCount = indexCount / 3;
+
         for (int j = 0; j < triangleCount; j++)
         {
             if (!isInTriangle(vertices[indices[j * 3]], vertices[indices[j * 3 + 1]], vertices[indices[j * 3 + 2]],
@@ -917,51 +835,11 @@ void LAppModel::HitPart2(float x, float y)
             {
                 continue;
             }
-
-            if (!clicked) // 最上层的部件被点击，设置半透明反馈
-            {
-                if (currentPartIndex != -1)
-                {
-                    _model->SetPartOpacity(currentPartIndex, 1.0f);
-                }
-                currentPartIndex = partIndex;
-                _model->SetPartOpacity(currentPartIndex, 0.5f);
-                clicked = true;
-            }
-            partHit.insert(partId);
+            hitParts.insert(partId);
+            partIds.emplace_back(partId);
             break;
         }
     }
-
     delete[] drawableIndices;
-
-    printf("[");
-    for (auto it = partHit.begin(); it != partHit.end(); it++)
-    {
-        printf("%s, ", it->c_str());
-    }
-    printf("]\n");
-}
-
-void LAppModel::HitPart3(float x, float y)
-{
-    // 探索数据结构
-    int drawableCount = _model->GetDrawableCount();
-    const csmInt32 vertexCount = _model->GetDrawableVertexCount(0);
-    const csmVector2* positions = _model->GetDrawableVertexPositions(0);
-    const csmInt32 indexCount = _model->GetDrawableVertexIndexCount(0);
-    const csmUint16* indices = _model->GetDrawableVertexIndices(0);
-    printf("[");
-    for (int i = 0; i < vertexCount; i++)
-    {
-        printf("(%f, %f), ", positions[i].X, positions[i].Y);
-    }
-    printf("]\n");
-
-    printf("%d[", indexCount);
-    for (int i = 0; i < indexCount / 3; i++)
-    {
-        printf("(%d, %d, %d), ", indices[i * 3], indices[i * 3 + 1], indices[i * 3 + 2]);
-    }
-    printf("]\n");
+    return partIds;
 }

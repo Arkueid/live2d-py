@@ -1,66 +1,12 @@
-// #include "Log.hpp"
-//
-// #include <iostream>
-// #include <fstream>
-// #include <stdio.h>
-// #include <time.h>
-// #include <stdarg.h>
-// #include <string.h>
-// #include <mutex>
-//
-// #define LOG_INFO_CONSOLE_FORMAT "[INFO  %s] %s\n"
-// #define LOG_ERROR_CONSOLE_FORMAT "\033[31m[ERROR %s] %s\033[0m\n"
-// #define LOG_DEBUG_CONSOLE_FORMAT "\033[34m[DEBUG %s] %s\033[0m\n"
-//
-// #define TIME_BUFSIZE 20
-//
+#include <ctime>
+
 bool live2dLogEnable = true;
-//
-// void current_time(char *buf)
-// {
-//     time_t rawtime;
-//     struct tm *timeinfo;
-//     time(&rawtime);
-//     timeinfo = localtime(&rawtime);
-//
-//     strftime(buf, TIME_BUFSIZE, "%Y-%m-%d %H:%M:%S", timeinfo);
-// }
-//
-// void _LOG(const int level, const char *fmt, ...)
-// {
-//     if (!live2dLogEnable)
-//         return;
-//
-//     char time_buf[TIME_BUFSIZE];
-//     current_time(time_buf);
-//
-//     va_list args;
-//     // 获取长度
-//     va_start(args, fmt);
-//     int msgSize = std::vsnprintf(NULL, 0, fmt, args) + 1;
-//     va_end(args);
-//
-//     // 重置，真正开始写入
-//     va_start(args, fmt);
-//     char *msgBuf = (char *)malloc(msgSize * sizeof(char));
-//     std::vsnprintf(msgBuf, msgSize, fmt, args);
-//     va_end(args);
-//
-//     const char *format;
-//     if (level == LogLevel::DEBUG)
-//     {
-//         format = LOG_DEBUG_CONSOLE_FORMAT;
-//     }
-//     else if (level == LogLevel::INFO)
-//     {
-//         format = LOG_INFO_CONSOLE_FORMAT;
-//     }
-//     else if (level == LogLevel::_ERROR)
-//     {
-//         format = LOG_ERROR_CONSOLE_FORMAT;
-//     }
-//
-//     printf(format, time_buf, msgBuf);
-//
-//     free(msgBuf);
-// }
+
+const char* currentTime()
+{
+    // 2024-11-07 14:05:06
+    static char buffer[20];
+    time_t t = time(nullptr);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+    return buffer;
+}

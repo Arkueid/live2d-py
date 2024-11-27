@@ -258,5 +258,5 @@ class LAppModel:
     def SetPartOpacity(self, index: int, opacity: float) -> None:
         ...
 
-    def HitPart(self, x: float, y: float) -> None:
+    def HitPart(self, x: float, y: float) -> list[str]:
         ...
