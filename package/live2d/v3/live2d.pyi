@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Any
-from params import Parameter
+from .params import Parameter
 
 
 class MotionPriority(Enum):
