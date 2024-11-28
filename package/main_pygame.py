@@ -5,6 +5,7 @@
 # ptvsd.wait_for_attach()
 
 import os
+import time
 
 import pygame
 from pygame.locals import *
@@ -15,15 +16,15 @@ from live2d.utils.lipsync import WavHandler
 from live2d.v3.params import StandardParams, Parameter
 import resources
 
-
 live2d.setLogEnable(True)
+
 
 def main():
     pygame.init()
     pygame.mixer.init()
     live2d.init()
 
-    display = (200, 200)
+    display = (400, 500)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
@@ -34,7 +35,7 @@ def main():
 
     # 加载中文路径模型
     model.LoadModelJson(
-        os.path.join(resources.RESOURCES_DIRECTORY, "v3/Hiyori/Hiyori.model3.json")
+        os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json")
     )
 
     model.Resize(*display)
@@ -46,9 +47,9 @@ def main():
     scale: float = 1.0
 
     # 关闭自动眨眼
-    model.SetAutoBlinkEnable(True)
+    model.SetAutoBlinkEnable(False)
     # 关闭自动呼吸
-    model.SetAutoBreathEnable(True)
+    model.SetAutoBreathEnable(False)
 
     wavHandler = WavHandler()
     lipSyncN = 2.5
@@ -67,18 +68,31 @@ def main():
         log.Info("motion finished")
 
     # 获取全部可用参数
-    for i in range(model.GetParameterCount()):
-        param: Parameter = model.GetParameter(i)
-        log.Debug(
-            param.id, param.type, param.value, param.max, param.min, param.default
-        )
+    # for i in range(model.GetParameterCount()):
+    #     param: Parameter = model.GetParameter(i)
+    #     log.Debug(
+    #         param.id, param.type, param.value, param.max, param.min, param.default
+    #     )
 
     # 设置 part 透明度
-    log.Debug(f"Part Count: {model.GetPartCount()}")
+    # log.Debug(f"Part Count: {model.GetPartCount()}")
     partIds = model.GetPartIds()
-    log.Debug(f"Part Ids: {partIds}")
-    log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
-    model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
+    # log.Debug(f"Part Ids: {partIds}")
+    # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
+    # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
+
+    currentTopClickedPartId = None
+
+    def getHitFeedback(x, y):
+        t = time.time()
+        hitPartIds = model.HitPart(x, y, False)
+        print(f"hit part cost: {time.time() - t}s")
+        print(f"hit parts: {hitPartIds}")
+        if currentTopClickedPartId is not None:
+            model.SetPartOpacity(partIds.index(currentTopClickedPartId), 1)
+        if len(hitPartIds) > 0:
+            ret = hitPartIds[0]
+            return ret
 
     while True:
         for event in pygame.event.get():
@@ -87,7 +101,9 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                model.Touch(x, y, on_start_motion_callback, on_finish_motion_callback)
+                currentTopClickedPartId = getHitFeedback(x, y)
+                log.Info(f"Clicked Part: {currentTopClickedPartId}")
+                # model.Touch(x, y)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -109,13 +125,19 @@ def main():
 
             if event.type == pygame.MOUSEMOTION:
                 # 实现拖拽
-                # model.Drag(*pygame.mouse.get_pos())
-                pass
+                model.Drag(*pygame.mouse.get_pos())
+                # 测试性能？
+                currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
+                # pass
 
         if not running:
             break
 
         model.Update()
+
+        if currentTopClickedPartId is not None:
+            model.SetPartOpacity(partIds.index(currentTopClickedPartId), 0.5)
+
         if wavHandler.Update():
             # 利用 wav 响度更新 嘴部张合
             model.AddParameterValue(
@@ -134,7 +156,7 @@ def main():
             audioPlayed = True
 
         # 一般通过设置 param 去除水印
-        model.SetParameterValue("Param14", 1, 1)
+        # model.SetParameterValue("Param14", 1, 1)
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
@@ -150,4 +172,5 @@ def main():
 
 
 if __name__ == "__main__":
+    currentTopClickedPartId = None
     main()

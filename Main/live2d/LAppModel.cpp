@@ -7,6 +7,7 @@
  */
 
 #include "LAppModel.hpp"
+#include <algorithm>
 #include <fstream>
 #include <vector>
 #include <CubismModelSettingJson.hpp>
@@ -23,6 +24,7 @@
 
 #include <Log.hpp>
 #include <filesystem>
+#include <unordered_set>
 
 using namespace Live2D::Cubism::Framework;
 using namespace Live2D::Cubism::Framework::DefaultParameterId;
@@ -30,14 +32,13 @@ using namespace LAppDefine;
 
 namespace
 {
-    csmByte *CreateBuffer(const csmChar *path, csmSizeInt *size)
+    csmByte* CreateBuffer(const csmChar* path, csmSizeInt* size)
     {
-
         Info("create buffer: %s ", path);
         return LAppPal::LoadFileAsBytes(path, size);
     }
 
-    void DeleteBuffer(csmByte *buffer, const csmChar *path = "")
+    void DeleteBuffer(csmByte* buffer, const csmChar* path = "")
     {
         Info("delete buffer: %s", path);
         LAppPal::ReleaseBytes(buffer);
@@ -71,13 +72,13 @@ LAppModel::~LAppModel()
 
     for (csmInt32 i = 0; i < _modelSetting->GetMotionGroupCount(); i++)
     {
-        const csmChar *group = _modelSetting->GetMotionGroupName(i);
+        const csmChar* group = _modelSetting->GetMotionGroupName(i);
         ReleaseMotionGroup(group);
     }
     delete (_modelSetting);
 }
 
-void LAppModel::LoadAssets(const csmChar *fileName)
+void LAppModel::LoadAssets(const csmChar* fileName)
 {
     // linux 下不支持对 "XXX/XXX.model.json/../" 的解析
     // 因此改用 cpp17 的标准库
@@ -91,8 +92,8 @@ void LAppModel::LoadAssets(const csmChar *fileName)
     csmSizeInt size;
     const csmString path = fileName;
 
-    csmByte *buffer = CreateBuffer(path.GetRawString(), &size);
-    ICubismModelSetting *setting = new CubismModelSettingJson(buffer, size);
+    csmByte* buffer = CreateBuffer(path.GetRawString(), &size);
+    ICubismModelSetting* setting = new CubismModelSettingJson(buffer, size);
     DeleteBuffer(buffer, path.GetRawString());
 
     SetupModel(setting);
@@ -108,14 +109,14 @@ void LAppModel::LoadAssets(const csmChar *fileName)
     SetupTextures();
 }
 
-void LAppModel::SetupModel(ICubismModelSetting *setting)
+void LAppModel::SetupModel(ICubismModelSetting* setting)
 {
     _updating = true;
     _initialized = false;
 
     _modelSetting = setting;
 
-    csmByte *buffer;
+    csmByte* buffer;
     csmSizeInt size;
 
     // Cubism Model
@@ -145,7 +146,7 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
             path = _modelHomeDir + path;
 
             buffer = CreateBuffer(path.GetRawString(), &size);
-            ACubismMotion *motion = LoadExpression(buffer, size, name.GetRawString());
+            ACubismMotion* motion = LoadExpression(buffer, size, name.GetRawString());
 
             if (motion)
             {
@@ -199,7 +200,9 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
         breathParameters.PushBack(CubismBreath::BreathParameterData(_idParamAngleY, 0.0f, 8.0f, 3.5345f, 0.5f));
         breathParameters.PushBack(CubismBreath::BreathParameterData(_idParamAngleZ, 0.0f, 10.0f, 5.5345f, 0.5f));
         breathParameters.PushBack(CubismBreath::BreathParameterData(_idParamBodyAngleX, 0.0f, 4.0f, 15.5345f, 0.5f));
-        breathParameters.PushBack(CubismBreath::BreathParameterData(CubismFramework::GetIdManager()->GetId(ParamBreath), 0.5f, 0.5f, 3.2345f, 0.5f));
+        breathParameters.PushBack(
+            CubismBreath::BreathParameterData(CubismFramework::GetIdManager()->GetId(ParamBreath), 0.5f, 0.5f, 3.2345f,
+                                              0.5f));
 
         _breath->SetParameters(breathParameters);
     }
@@ -247,7 +250,7 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
 
     for (csmInt32 i = 0; i < _modelSetting->GetMotionGroupCount(); i++)
     {
-        const csmChar *group = _modelSetting->GetMotionGroupName(i);
+        const csmChar* group = _modelSetting->GetMotionGroupName(i);
         PreloadMotionGroup(group);
     }
 
@@ -257,7 +260,7 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     _initialized = true;
 }
 
-void LAppModel::PreloadMotionGroup(const csmChar *group)
+void LAppModel::PreloadMotionGroup(const csmChar* group)
 {
     const csmInt32 count = _modelSetting->GetMotionCount(group);
 
@@ -280,10 +283,10 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
 
         path = _modelHomeDir + path;
 
-        csmByte *buffer;
+        csmByte* buffer;
         csmSizeInt size;
         buffer = CreateBuffer(path.GetRawString(), &size);
-        CubismMotion *tmpMotion = static_cast<CubismMotion *>(LoadMotion(buffer, size, name.GetRawString()));
+        CubismMotion* tmpMotion = static_cast<CubismMotion*>(LoadMotion(buffer, size, name.GetRawString()));
 
         if (tmpMotion)
         {
@@ -311,7 +314,7 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
     }
 }
 
-void LAppModel::ReleaseMotionGroup(const csmChar *group) const
+void LAppModel::ReleaseMotionGroup(const csmChar* group) const
 {
     const csmInt32 count = _modelSetting->GetMotionCount(group);
     for (csmInt32 i = 0; i < count; i++)
@@ -332,7 +335,7 @@ void LAppModel::ReleaseMotionGroup(const csmChar *group) const
  */
 void LAppModel::ReleaseMotions()
 {
-    for (csmMap<csmString, ACubismMotion *>::const_iterator iter = _motions.Begin(); iter != _motions.End(); ++iter)
+    for (csmMap<csmString, ACubismMotion*>::const_iterator iter = _motions.Begin(); iter != _motions.End(); ++iter)
     {
         ACubismMotion::Delete(iter->Second);
     }
@@ -347,7 +350,8 @@ void LAppModel::ReleaseMotions()
  */
 void LAppModel::ReleaseExpressions()
 {
-    for (csmMap<csmString, ACubismMotion *>::const_iterator iter = _expressions.Begin(); iter != _expressions.End(); ++iter)
+    for (csmMap<csmString, ACubismMotion*>::const_iterator iter = _expressions.Begin(); iter != _expressions.End(); ++
+         iter)
     {
         ACubismMotion::Delete(iter->Second);
     }
@@ -426,7 +430,7 @@ void LAppModel::Update()
     }
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt32 no, csmInt32 priority,
+CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt32 no, csmInt32 priority,
                                                     OnMotionStartCallback onStartMotionHandler,
                                                     OnMotionFinishCallback onFinishedMotionHandler)
 {
@@ -447,7 +451,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
 
     // ex) idle_0
     csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, no);
-    CubismMotion *motion = static_cast<CubismMotion *>(_motions[name.GetRawString()]);
+    CubismMotion* motion = static_cast<CubismMotion*>(_motions[name.GetRawString()]);
     csmBool autoDelete = false;
 
     csmBool hasMotion = true;
@@ -465,7 +469,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
 
         path = _modelHomeDir + path;
 
-        csmByte *buffer;
+        csmByte* buffer;
         csmSizeInt size;
         buffer = CreateBuffer(path.GetRawString(), &size);
 
@@ -490,7 +494,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
 
         DeleteBuffer(buffer, path.GetRawString());
     }
-    
+
     if (motion)
     {
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
@@ -518,7 +522,9 @@ handler_label:
     return _motionManager->StartMotionPriority(motion, autoDelete, priority);
 }
 
-CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar *group, csmInt32 priority, OnMotionStartCallback onStartMotionHandler, OnMotionFinishCallback onFinishedMotionHandler)
+CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar* group, csmInt32 priority,
+                                                          OnMotionStartCallback onStartMotionHandler,
+                                                          OnMotionFinishCallback onFinishedMotionHandler)
 {
     if (_modelSetting->GetMotionCount(group) == 0)
     {
@@ -540,7 +546,7 @@ void LAppModel::DoDraw()
     GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->DrawModel();
 }
 
-void LAppModel::Draw(CubismMatrix44 &matrix)
+void LAppModel::Draw(CubismMatrix44& matrix)
 {
     if (_model == NULL)
     {
@@ -556,7 +562,7 @@ void LAppModel::Draw(CubismMatrix44 &matrix)
     DoDraw();
 }
 
-csmBool LAppModel::HitTest(const csmChar *hitAreaName, csmFloat32 x, csmFloat32 y)
+csmBool LAppModel::HitTest(const csmChar* hitAreaName, csmFloat32 x, csmFloat32 y)
 {
     // 透明時は当たり判定なし。
     if (_opacity < 1)
@@ -594,9 +600,9 @@ Csm::csmString LAppModel::HitTest(Csm::csmFloat32 x, Csm::csmFloat32 y)
     return "";
 }
 
-void LAppModel::SetExpression(const csmChar *expressionID)
+void LAppModel::SetExpression(const csmChar* expressionID)
 {
-    ACubismMotion *motion = _expressions[expressionID];
+    ACubismMotion* motion = _expressions[expressionID];
     if (_debugMode)
     {
         Info("expression: [%s]", expressionID);
@@ -621,7 +627,7 @@ void LAppModel::SetRandomExpression()
     }
 
     csmInt32 no = rand() % _expressions.GetSize();
-    csmMap<csmString, ACubismMotion *>::const_iterator map_ite;
+    csmMap<csmString, ACubismMotion*>::const_iterator map_ite;
     csmInt32 i = 0;
     for (map_ite = _expressions.Begin(); map_ite != _expressions.End(); map_ite++)
     {
@@ -658,7 +664,7 @@ void LAppModel::SetupTextures()
         csmString texturePath = _modelSetting->GetTextureFileName(modelTextureNumber);
         texturePath = _modelHomeDir + texturePath;
 
-        LAppTextureManager::TextureInfo *texture = _textureManager.CreateTextureFromPngFile(texturePath.GetRawString());
+        LAppTextureManager::TextureInfo* texture = _textureManager.CreateTextureFromPngFile(texturePath.GetRawString());
         const csmInt32 glTextueNumber = texture->id;
 
         // OpenGL
@@ -672,21 +678,21 @@ void LAppModel::SetupTextures()
 #endif
 }
 
-void LAppModel::MotionEventFired(const csmString &eventValue)
+void LAppModel::MotionEventFired(const csmString& eventValue)
 {
     CubismLogInfo("%s is fired on LAppModel!!", eventValue.GetRawString());
 }
 
-Csm::Rendering::CubismOffscreenSurface_OpenGLES2 &LAppModel::GetRenderBuffer()
+Csm::Rendering::CubismOffscreenSurface_OpenGLES2& LAppModel::GetRenderBuffer()
 {
     return _renderBuffer;
 }
 
-csmBool LAppModel::HasMocConsistencyFromFile(const csmChar *mocFileName)
+csmBool LAppModel::HasMocConsistencyFromFile(const csmChar* mocFileName)
 {
     CSM_ASSERT(strcmp(mocFileName, ""));
 
-    csmByte *buffer;
+    csmByte* buffer;
     csmSizeInt size;
 
     csmString path = mocFileName;
@@ -714,15 +720,15 @@ bool LAppModel::IsMotionFinished()
     return _motionManager->IsFinished();
 }
 
-void LAppModel::SetParameterValue(const char *paramId, float value, float weight)
+void LAppModel::SetParameterValue(const char* paramId, float value, float weight)
 {
-    const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->SetParameterValue(paramHanle, value, weight);
 }
 
-void LAppModel::AddParameterValue(const char *paramId, float value)
+void LAppModel::AddParameterValue(const char* paramId, float value)
 {
-    const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
+    const Csm::CubismId* paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->AddParameterValue(paramHanle, value);
 }
 
@@ -749,7 +755,8 @@ Parameter LAppModel::GetParameter(int i)
         _model->GetParameterValue(i),
         _model->GetParameterMaximumValue(i),
         _model->GetParameterMinimumValue(i),
-        _model->GetParameterDefaultValue(i)};
+        _model->GetParameterDefaultValue(i)
+    };
     return param;
 }
 
@@ -766,4 +773,118 @@ Csm::csmString LAppModel::GetPartId(int idx)
 void LAppModel::SetPartOpacity(int idx, float opacity)
 {
     _model->SetPartOpacity(idx, opacity);
+}
+
+using namespace Live2D::Cubism::Core;
+
+static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVector2 p2, const csmVector2 p)
+{
+    // https://github.com/Arkueid/live2d-py/issues/18
+    // 情况1：
+    //  要检测的三角形很多，说明模型很精细，那么一定程度上三角形的面积会很小，
+    //  只有少量的三角形的范围检测会失败，增加的额外计算量不会太大，
+    //  因此只需要简单判断范围即可回避大量浮点计算
+    // 情况2：
+    //  要检测的三角形比较少，说明模型很粗糙，那么总的计算量就会相对较少，
+    //  增加几次范围检测理论上是可以接受的
+    // 总结为：需要计算叉积的实际三角形其实不会很多，因此范围检测可以避免大部分计算
+
+    // 范围检测
+    if (p.X < std::min({p0.X, p1.X, p2.X}))
+    {
+        return false;
+    }
+    if (p.X > std::max({p0.X, p1.X, p2.X}))
+    {
+        return false;
+    }
+    if (p.Y < std::min({p0.Y, p1.Y, p2.Y}))
+    {
+        return false;
+    }
+    if (p.Y > std::max({p0.Y, p1.Y, p2.Y}))
+    {
+        return false;
+    }
+
+    // 叉积检测
+    const float dX = p.X - p2.X;
+    const float dY = p.Y - p2.Y;
+    const float dX21 = p2.X - p1.X;
+    const float dY12 = p1.Y - p2.Y;
+    const float D = dY12 * (p0.X - p2.X) + dX21 * (p0.Y - p2.Y);
+    const float s = dY12 * dX + dX21 * dY;
+    const float t = (p2.Y - p0.Y) * dX + (p0.X - p2.X) * dY;
+    if (D < 0) return s <= 0 && t <= 0 && s + t >= D;
+    return s >= 0 && t >= 0 && s + t <= D;
+}
+
+std::vector<std::string> LAppModel::HitPart(float x, float y, bool topOnly)
+{
+    x = _modelMatrix->InvertTransformX(x);
+    y = _modelMatrix->InvertTransformY(y);
+    const csmInt32 drawableCount = _model->GetDrawableCount();
+    const csmInt32* renderOrders = _model->GetDrawableRenderOrders();
+    int* drawableIndices = new int[drawableCount];
+    for (csmInt32 i = 0; i < drawableCount; i++)
+    {
+        // 绘制顺序，先绘制的被后绘制的覆盖
+        drawableIndices[drawableCount - 1 - renderOrders[i]] = i;
+    }
+    // 多个 part index 可能指向同一个 part id，所以用 part id set
+    std::unordered_set<const char*> hitParts;
+    std::vector<std::string> partIds;
+    bool topClicked = false;
+
+    for (int i = 0; i < drawableCount; i++)
+    {
+        int drawableIndex = drawableIndices[i];
+        if (_model->GetDrawableOpacity(drawableIndex) == 0.0f)
+        {
+            continue;
+        }
+        int partIndex = _model->GetDrawableParentPartIndex(drawableIndex);
+        if (partIndex == -1)
+        {
+            // 绘制对象不属于 part
+            continue;
+        }
+        const char* partId = _model->GetPartId(partIndex)->GetString().GetRawString();
+        if (_model->GetPartOpacity(partIndex) == 0.0f)
+        {
+            continue;
+        }
+        // 已经点击过的部件
+        if (hitParts.find(partId) != hitParts.end())
+        {
+            continue;
+        }
+        // 顶点连线个数，3个顶点一个三角形，一定是3的整数倍
+        const int indexCount = _model->GetDrawableVertexIndexCount(drawableIndex);
+        // 顶点坐标
+        const csmVector2* vertices = _model->GetDrawableVertexPositions(drawableIndex);
+        // 三角形顶点索引
+        const csmUint16* indices = _model->GetDrawableVertexIndices(drawableIndex);
+        const int triangleCount = indexCount / 3;
+
+        for (int j = 0; j < triangleCount; j++)
+        {
+            if (!isInTriangle(vertices[indices[j * 3]], vertices[indices[j * 3 + 1]], vertices[indices[j * 3 + 2]],
+                              {x, y}))
+            {
+                continue;
+            }
+            partIds.emplace_back(partId);
+            hitParts.insert(partIds.back().c_str());
+            topClicked = true;
+            break;
+        }
+
+        if (topOnly && topClicked)
+        {
+            break;
+        }
+    }
+    delete[] drawableIndices;
+    return partIds;
 }
