@@ -258,5 +258,12 @@ class LAppModel:
     def SetPartOpacity(self, index: int, opacity: float) -> None:
         ...
 
-    def HitPart(self, x: float, y: float) -> list[str]:
+    def HitPart(self, x: float, y: float, topOnly: bool = False) -> list[str]:
+        """
+        
+        :param x: 屏幕坐标 x
+        :param y: 屏幕坐标 y
+        :param topOnly: 只返回最顶部的 part id
+        :return: part id 列表
+        """
         ...

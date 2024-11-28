@@ -582,14 +582,15 @@ static PyObject* PyLAppModel_SetPartOpacity(PyLAppModelObject* self, PyObject* a
 static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
 {
     float x, y;
-    if (PyArg_ParseTuple(args, "ff", &x, &y) < 0)
+    bool topOnly = false;
+    if (PyArg_ParseTuple(args, "ff|b", &x, &y, &topOnly) < 0)
     {
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
     }
 
     self->matrixManager.ScreenToScene(&x, &y);
-    std::vector<std::string> hitPartIds = self->model->HitPart(x, y);
+    std::vector<std::string> hitPartIds = self->model->HitPart(x, y, topOnly);
     PyObject* list = PyList_New(hitPartIds.size());
     int i = 0;
     for (auto& id : hitPartIds)

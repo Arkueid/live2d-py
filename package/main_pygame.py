@@ -47,9 +47,9 @@ def main():
     scale: float = 1.0
 
     # 关闭自动眨眼
-    model.SetAutoBlinkEnable(True)
+    model.SetAutoBlinkEnable(False)
     # 关闭自动呼吸
-    model.SetAutoBreathEnable(True)
+    model.SetAutoBreathEnable(False)
 
     wavHandler = WavHandler()
     lipSyncN = 2.5
@@ -84,26 +84,25 @@ def main():
     currentTopClickedPartId = None
 
     def getHitFeedback(x, y):
-        hitPartIds = model.HitPart(x, y)
+        t = time.time()
+        hitPartIds = model.HitPart(x, y, False)
+        print(f"hit part cost: {time.time() - t}s")
+        print(f"hit parts: {hitPartIds}")
         if currentTopClickedPartId is not None:
             model.SetPartOpacity(partIds.index(currentTopClickedPartId), 1)
         if len(hitPartIds) > 0:
             ret = hitPartIds[0]
-            model.SetPartOpacity(partIds.index(ret), 0.5)
             return ret
 
-    # TODO: 初次绘制前调用 HitPart 会导致崩溃
-    firstDraw = True
     while True:
         for event in pygame.event.get():
-            if firstDraw:
-                continue
             if event.type == pygame.QUIT:
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
                 currentTopClickedPartId = getHitFeedback(x, y)
+                log.Info(f"Clicked Part: {currentTopClickedPartId}")
                 # model.Touch(x, y)
 
             if event.type == pygame.KEYDOWN:
@@ -128,13 +127,17 @@ def main():
                 # 实现拖拽
                 model.Drag(*pygame.mouse.get_pos())
                 # 测试性能？
-                # currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
-                pass
+                currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
+                # pass
 
         if not running:
             break
 
         model.Update()
+
+        if currentTopClickedPartId is not None:
+            model.SetPartOpacity(partIds.index(currentTopClickedPartId), 0.5)
+
         if wavHandler.Update():
             # 利用 wav 响度更新 嘴部张合
             model.AddParameterValue(
@@ -153,7 +156,7 @@ def main():
             audioPlayed = True
 
         # 一般通过设置 param 去除水印
-        model.SetParameterValue("Param14", 1, 1)
+        # model.SetParameterValue("Param14", 1, 1)
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
@@ -161,7 +164,6 @@ def main():
         model.Draw()
         pygame.display.flip()
         pygame.time.wait(10)
-        firstDraw = False
 
     live2d.dispose()
 

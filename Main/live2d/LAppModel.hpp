@@ -170,7 +170,7 @@ public:
      * @param y y in scene
      * @return 当前点击的 part no
      */
-    std::vector<std::string> HitPart(float x, float y);
+    std::vector<std::string> HitPart(float x, float y, bool topOnly);
 
 protected:
     /**

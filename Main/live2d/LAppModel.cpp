@@ -780,6 +780,34 @@ using namespace Live2D::Cubism::Core;
 static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVector2 p2, const csmVector2 p)
 {
     // https://github.com/Arkueid/live2d-py/issues/18
+    // 情况1：
+    //  要检测的三角形很多，说明模型很精细，那么一定程度上三角形的面积会很小，
+    //  只有少量的三角形的范围检测会失败，增加的额外计算量不会太大，
+    //  因此只需要简单判断范围即可回避大量浮点计算
+    // 情况2：
+    //  要检测的三角形比较少，说明模型很粗糙，那么总的计算量就会相对较少，
+    //  增加几次范围检测理论上是可以接受的
+    // 总结为：需要计算叉积的实际三角形其实不会很多，因此范围检测可以避免大部分计算
+
+    // 范围检测
+    if (p.X < std::min({p0.X, p1.X, p2.X}))
+    {
+        return false;
+    }
+    if (p.X > std::max({p0.X, p1.X, p2.X}))
+    {
+        return false;
+    }
+    if (p.Y < std::min({p0.Y, p1.Y, p2.Y}))
+    {
+        return false;
+    }
+    if (p.Y > std::max({p0.Y, p1.Y, p2.Y}))
+    {
+        return false;
+    }
+
+    // 叉积检测
     const float dX = p.X - p2.X;
     const float dY = p.Y - p2.Y;
     const float dX21 = p2.X - p1.X;
@@ -791,7 +819,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
     return s >= 0 && t >= 0 && s + t <= D;
 }
 
-std::vector<std::string> LAppModel::HitPart(float x, float y)
+std::vector<std::string> LAppModel::HitPart(float x, float y, bool topOnly)
 {
     x = _modelMatrix->InvertTransformX(x);
     y = _modelMatrix->InvertTransformY(y);
@@ -806,6 +834,8 @@ std::vector<std::string> LAppModel::HitPart(float x, float y)
     // 多个 part index 可能指向同一个 part id，所以用 part id set
     std::unordered_set<const char*> hitParts;
     std::vector<std::string> partIds;
+    bool topClicked = false;
+
     for (int i = 0; i < drawableCount; i++)
     {
         int drawableIndex = drawableIndices[i];
@@ -814,7 +844,16 @@ std::vector<std::string> LAppModel::HitPart(float x, float y)
             continue;
         }
         int partIndex = _model->GetDrawableParentPartIndex(drawableIndex);
+        if (partIndex == -1)
+        {
+            // 绘制对象不属于 part
+            continue;
+        }
         const char* partId = _model->GetPartId(partIndex)->GetString().GetRawString();
+        if (_model->GetPartOpacity(partIndex) == 0.0f)
+        {
+            continue;
+        }
         // 已经点击过的部件
         if (hitParts.find(partId) != hitParts.end())
         {
@@ -835,8 +874,14 @@ std::vector<std::string> LAppModel::HitPart(float x, float y)
             {
                 continue;
             }
-            hitParts.insert(partId);
             partIds.emplace_back(partId);
+            hitParts.insert(partIds.back().c_str());
+            topClicked = true;
+            break;
+        }
+
+        if (topOnly && topClicked)
+        {
             break;
         }
     }
