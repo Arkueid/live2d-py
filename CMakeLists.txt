@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.13)
 
 project(LAppModelWrapper)
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  execute_process(
+      COMMAND chcp 65001
+  )
+endif()
+
 # set(CMAKE_BUILD_TYPE "Release")
 
 message("${CMAKE_BUILD_TYPE}")
