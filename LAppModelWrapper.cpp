@@ -47,7 +47,7 @@ static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* k
     g_model[self->key] = self->model;
 
     self->matrixManager.Initialize();
-    Info("[M] allocate model: %p", self->key);
+    Info("[M] allocate LAppModel(at=%p)", self->model);
 
     PyGILState_Release(gstate);
     return 0;
@@ -500,7 +500,7 @@ static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject
 }
 
 static PyObject* module_live2d_v3_params = nullptr;
-static PyObject* class_parameter = nullptr;
+static PyObject* class_live2d_v3_parameter = nullptr;
 
 static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* args)
 {
@@ -513,7 +513,7 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
 
     Parameter param = self->model->GetParameter(index);
 
-    PyObject* instance = PyObject_CallObject(class_parameter, NULL);
+    PyObject* instance = PyObject_CallObject(class_live2d_v3_parameter, NULL);
     if (instance == NULL)
     {
         PyErr_Print();
@@ -805,15 +805,18 @@ PyMODINIT_FUNC PyInit_live2d(void)
         return NULL;
     }
 
-    module_live2d_v3_params = PyImport_ImportModule("live2d.v3.params");
+    // assume that module `params` is already imported in `live2d/v3/__init__.py`
+    PyObject* module_name = PyUnicode_FromString("live2d.v3.params");
+    module_live2d_v3_params = PyImport_GetModule(module_name);
     if (module_live2d_v3_params == NULL)
     {
         PyErr_Print();
         return NULL;
     }
 
-    class_parameter = PyObject_GetAttrString(module_live2d_v3_params, "Parameter");
-    if (class_parameter == NULL)
+
+    class_live2d_v3_parameter = PyObject_GetAttrString(module_live2d_v3_params, "Parameter");
+    if (class_live2d_v3_parameter == NULL)
     {
         Py_DECREF(module_live2d_v3_params);
         PyErr_Print();
@@ -821,8 +824,8 @@ PyMODINIT_FUNC PyInit_live2d(void)
     }
 
 #ifdef WIN32
-    // 强制utf-8
-    // SetConsoleOutputCP(65001);
+    // windows 下强制utf-8
+    SetConsoleOutputCP(65001);
 #endif
 
     return m;

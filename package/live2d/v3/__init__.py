@@ -1,3 +1,4 @@
+from .params import * # pyinstaller may not find it (hidden import)
 from .live2d import *
 
 from enum import Enum
