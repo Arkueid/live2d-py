@@ -71,7 +71,8 @@ pip install live2d_py-0.X.X-cpXXX-cpXXX-win32.whl
 
 ## 贡献
 
-感谢 [@96bearli]，[@Ovizro] 为本项目提供的帮助和支持。
+特别感谢 [@96bearli]，[@Ovizro], [@AnyaCoder] 为本项目提供的帮助和支持。
 
 [@96bearli]: https://github.com/96bearli
 [@Ovizro]: https://github.com/Ovizro
+[@AnyaCoder]: https://github.com/AnyaCoder
