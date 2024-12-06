@@ -148,8 +148,8 @@ def main():
             # 以红色通道为例：r = 255 - (255 - 原色.r) * (255 - screenColor.r) / 255
             # 通道数值越大，该通道颜色对最终结果的贡献越大，下面的调用即为突出蓝色的效果
             # model.SetPartScreenColor(pidx, .0, 0., 1.0, 1)
-            
-            # result = multiplyColor * 原色
+
+            # r = multiplyColor.r * 原色.r / 255
             # 下面即为仅保留蓝色通道的结果
             model.SetPartMultiplyColor(pidx, .0, .0, 1., .9)
 
