@@ -172,6 +172,16 @@ public:
      */
     std::vector<std::string> HitPart(float x, float y, bool topOnly);
 
+    void setPartMultiplyColor(int partNo, float r, float g, float b, float a);
+
+    void getPartMultiplyColor(int partNo, float& r, float& g, float& b, float& a);
+
+    void setPartScreenColor(int partNo, float r, float g, float b, float a);
+
+    void getPartScreenColor(int partNo, float& r, float& g, float& b, float& a);
+
+
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。

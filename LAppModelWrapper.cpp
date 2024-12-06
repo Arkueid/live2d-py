@@ -600,6 +600,63 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
     return list;
 }
 
+static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float r, g, b, a;
+    if (PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+    self->model->setPartMultiplyColor(index, r, g, b, a);
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_GetPartMultiplyColor(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    if (PyArg_ParseTuple(args, "i", &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    float r, g, b, a;
+    self->model->getPartMultiplyColor(index, r, g, b, a);
+    return Py_BuildValue("ffff", r, g, b, a);
+}
+
+static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float r, g, b, a;
+    if (PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+    self->model->setPartScreenColor(index, r, g, b, a);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+
+    if (PyArg_ParseTuple(args, "i", &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+  
+    float r, g, b, a;
+    self->model->getPartScreenColor(index, r, g, b, a);
+
+    return Py_BuildValue("ffff", r, g, b, a);
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -631,6 +688,12 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"GetPartIds", (PyCFunction)PyLAppModel_GetPartIds, METH_VARARGS, ""},
     {"SetPartOpacity", (PyCFunction)PyLAppModel_SetPartOpacity, METH_VARARGS, ""},
     {"HitPart", (PyCFunction)PyLAppModel_HitPart, METH_VARARGS, ""},
+
+    {"SetPartMultiplyColor", (PyCFunction)PyLAppModel_SetPartMultiplyColor, METH_VARARGS, ""},
+    {"GetPartMultiplyColor", (PyCFunction)PyLAppModel_GetPartMultiplyColor, METH_VARARGS, ""},
+
+    {"SetPartScreenColor", (PyCFunction)PyLAppModel_SetPartScreenColor, METH_VARARGS, ""},
+    {"GetPartScreenColor", (PyCFunction)PyLAppModel_GetPartScreenColor, METH_VARARGS, ""},
     {NULL} // 方法列表结束的标志
 };
 

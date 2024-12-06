@@ -25,7 +25,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
 else()
     # 寻找Python
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
+    set(CMAKE_PREFIX_PATH D:/Python/x86/3.12.0)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

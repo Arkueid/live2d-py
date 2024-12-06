@@ -89,7 +89,12 @@ def main():
         print(f"hit part cost: {time.time() - t}s")
         print(f"hit parts: {hitPartIds}")
         if currentTopClickedPartId is not None:
-            model.SetPartOpacity(partIds.index(currentTopClickedPartId), 1)
+            pidx = partIds.index(currentTopClickedPartId)
+            model.SetPartOpacity(pidx, 1)
+            # model.SetPartScreenColor(pidx, 0.0, 0.0, 0.0, 1.0)
+            model.SetPartMultiplyColor(pidx, 1.0, 1.0, 1., 1)
+            # print("Part Screen Color:", model.GetPartScreenColor(pidx))
+            print("Part Multiply Color:", model.GetPartMultiplyColor(pidx))
         if len(hitPartIds) > 0:
             ret = hitPartIds[0]
             return ret
@@ -136,7 +141,17 @@ def main():
         model.Update()
 
         if currentTopClickedPartId is not None:
-            model.SetPartOpacity(partIds.index(currentTopClickedPartId), 0.5)
+            pidx = partIds.index(currentTopClickedPartId)
+            model.SetPartOpacity(pidx, 0.5)
+            # 在此以 255 为最大灰度级
+            # 原色和屏幕色取反并相乘，再取反
+            # 以红色通道为例：r = 255 - (255 - 原色.r) * (255 - screenColor.r) / 255
+            # 通道数值越大，该通道颜色对最终结果的贡献越大，下面的调用即为突出蓝色的效果
+            # model.SetPartScreenColor(pidx, .0, 0., 1.0, 1)
+            
+            # result = multiplyColor * 原色
+            # 下面即为仅保留蓝色通道的结果
+            model.SetPartMultiplyColor(pidx, .0, .0, 1., .9)
 
         if wavHandler.Update():
             # 利用 wav 响度更新 嘴部张合

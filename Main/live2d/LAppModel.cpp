@@ -888,3 +888,41 @@ std::vector<std::string> LAppModel::HitPart(float x, float y, bool topOnly)
     delete[] drawableIndices;
     return partIds;
 }
+
+void LAppModel::setPartMultiplyColor(int partNo, float r, float g, float b, float a)
+{
+    _model->SetPartMultiplyColor(partNo, r, g, b, a);
+    if (_model->GetOverwriteColorForPartMultiplyColors(partNo))
+    {
+        return;
+    }
+    _model->SetOverwriteColorForPartMultiplyColors(partNo, true);
+}
+
+void LAppModel::getPartMultiplyColor(int partNo, float& r, float& g, float& b, float& a)
+{
+    auto color = _model->GetPartMultiplyColor(partNo);
+    r = color.R;
+    g = color.G;
+    b = color.B;
+    a = color.A;
+}
+
+void LAppModel::setPartScreenColor(int partNo, float r, float g, float b, float a)
+{
+    _model->SetPartScreenColor(partNo, r, g, b, a);
+    if (_model->GetOverwriteColorForPartScreenColors(partNo))
+    {
+        return;
+    }
+    _model->SetOverwriteColorForPartScreenColors(partNo, true);
+}
+
+void LAppModel::getPartScreenColor(int partNo, float& r, float& g, float& b, float& a)
+{
+    auto color = _model->GetPartScreenColor(partNo);
+    r = color.R;
+    g = color.G;
+    b = color.B;
+    a = color.A;
+}
