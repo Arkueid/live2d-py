@@ -46,19 +46,6 @@ def glewInit() -> None:
     ...
 
 
-def setGLProperties() -> None:
-    """
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    
-    glEnable(GL_BLEND);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    """
-    ...
-
-
 def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     """
     glClearColor(0.0, 0.0, 0.0, 0.0)

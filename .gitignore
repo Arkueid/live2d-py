@@ -28,8 +28,6 @@ test
 
 **.db
 
-Resources/v2
-
 !package/audio1.wav
 
 !package/audio2.wav

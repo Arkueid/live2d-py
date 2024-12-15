@@ -1,7 +1,7 @@
 import wave
 import numpy as np
 import time
-from .log import Info
+from live2d.v3.log import Info
 
 
 class WavHandler:

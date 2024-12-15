@@ -1,0 +1,64 @@
+﻿from typing import TYPE_CHECKING
+
+from .parts_context import PartsDataContext
+from ..io.iserializable import ISerializable
+from ..type import Array
+
+if TYPE_CHECKING:
+    from ..draw import Mesh
+
+
+class PartsData(ISerializable):
+
+    def __init__(self):
+        self.visible = True
+        self.locked = False
+        self.id = None
+        self.deformerList = None
+        self.drawDataList: list[Mesh] | None = None
+
+    def initDirect(self):
+        self.deformerList = Array()
+        self.drawDataList = Array()
+
+    def read(self, aH):
+        self.locked = aH.readBit()
+        self.visible = aH.readBit()
+        self.id = aH.readObject()
+        self.deformerList = aH.readObject()
+        self.drawDataList = aH.readObject()
+
+    def init(self):
+        aH = PartsDataContext(self)
+        aH.setPartsOpacity(1 if self.isVisible() else 0)
+        return aH
+
+    def setDeformerList(self, aH):
+        self.deformerList = aH
+
+    def setDrawDataList(self, aH):
+        self.drawDataList = aH
+
+    def isVisible(self):
+        return self.visible
+
+    def isLocked(self):
+        return self.locked
+
+    def setVisible(self, aH):
+        self.visible = aH
+
+    def setLocked(self, aH):
+        self.locked = aH
+
+    def getDeformer(self):
+        return self.deformerList
+
+    def getDrawData(self):
+        return self.drawDataList
+
+    def getId(self):
+        return self.id
+
+    def setId(self, aH):
+        self.id = aH

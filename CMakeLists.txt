@@ -14,7 +14,6 @@ message("${CMAKE_BUILD_TYPE}")
 
 set(LIB_NAME LAppModelWrapper)
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-set(RES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
 # prevent python root dir being shadowed by registry
 set(Python3_FIND_REGISTRY "NEVER")
@@ -25,7 +24,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
 else()
     # 寻找Python
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Python/x86/3.12.0)
+    set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

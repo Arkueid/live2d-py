@@ -10,11 +10,14 @@ import time
 import pygame
 from pygame.locals import *
 
-import live2d.v3 as live2d
-import live2d.utils.log as log
-from live2d.utils.lipsync import WavHandler
-from live2d.v3.params import StandardParams, Parameter
+# import live2d.v3 as live2d
+# from live2d.v3 import log, StandardParams
+import live2d.v2 as live2d
+from live2d.v2 import log, StandardParams
+
+
 import resources
+from live2d.utils.lipsync import WavHandler
 
 live2d.setLogEnable(True)
 
@@ -28,15 +31,21 @@ def main():
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
-    live2d.glewInit()
-    live2d.setGLProperties()
+    if live2d.LIVE2D_VERSION == 3:
+        live2d.glewInit()
+        pass
+        # live2d.setGLProperties()
 
     model = live2d.LAppModel()
 
-    # 加载中文路径模型
-    model.LoadModelJson(
-        os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json")
-    )
+    if live2d.LIVE2D_VERSION == 3:
+        model.LoadModelJson(
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/lafei/lafei_4.model3.json")
+        )
+    else:
+        model.LoadModelJson(
+            os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
+        )
 
     model.Resize(*display)
 
@@ -164,7 +173,7 @@ def main():
             model.StartMotion(
                 "",
                 0,
-                live2d.MotionPriority.FORCE.value,
+                live2d.MotionPriority.FORCE,
                 on_start_motion_callback,
                 on_finish_motion_callback,
             )
