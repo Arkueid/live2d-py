@@ -3,7 +3,8 @@ import os.path
 import resources
 
 import glfw
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
+import live2d.v2 as live2d
 
 
 # 窗口初始化
@@ -34,7 +35,11 @@ def main():
     live2d.setGLProperties()
 
     model = live2d.LAppModel()
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/波奇酱2.0/波奇酱2.0.model3.json"))
+
+    if live2d.LIVE2D_VERSION == 3:
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/波奇酱2.0/波奇酱2.0.model3.json"))
+    else:
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 
     model.StartMotion("TapBody", 3, 3, onStartMotionHandler=None, onFinishMotionHandler=lambda: print("end 1"))
 
@@ -44,7 +49,7 @@ def main():
                             onFinishMotionHandler=lambda: print("end 3"))
 
     read = False
-
+    model.Resize(270, 200)
     while not glfw.window_should_close(window):
         glfw.poll_events()
 

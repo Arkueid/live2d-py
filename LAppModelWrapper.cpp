@@ -775,19 +775,6 @@ static PyObject* live2d_glew_init()
     Py_RETURN_NONE;
 }
 
-static PyObject* live2d_set_gl_properties()
-{
-    // テクスチャサンプリング設定
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    // 透過設定
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    Py_RETURN_NONE;
-}
-
 static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args)
 {
     // 默认为黑色
@@ -833,7 +820,6 @@ static PyMethodDef live2d_methods[] = {
     {"init", (PyCFunction)live2d_init, METH_VARARGS, ""},
     {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, ""},
     {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
-    {"setGLProperties", (PyCFunction)live2d_set_gl_properties, METH_VARARGS, ""},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
     {"logEnable", (PyCFunction)live2d_log_enable, METH_VARARGS, ""},

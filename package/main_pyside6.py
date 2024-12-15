@@ -1,14 +1,15 @@
 import os
 
-import PIL.Image as Image
-import numpy as np
 import OpenGL.GL as gl
+import numpy as np
+from PIL import Image
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtGui import QMouseEvent, QCursor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
 
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
+import live2d.v2 as live2d
 import resources
 
 
@@ -17,21 +18,19 @@ def callback():
 
 
 class Win(QOpenGLWidget):
-    model: live2d.LAppModel
 
     def __init__(self) -> None:
         super().__init__()
         self.isInLA = False
         self.clickInLA = False
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint 
-                            # | Qt.WindowType.Tool
-                            )
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
-        self.resize(270, 200)
+        self.resize(640, 480)
         self.read = False
         self.clickX = -1
         self.clickY = -1
+        self.model: live2d.LAppModel | None = None
 
     def initializeGL(self) -> None:
         # 将当前窗口作为 OpenGL 的上下文
@@ -40,27 +39,25 @@ class Win(QOpenGLWidget):
 
         if live2d.LIVE2D_VERSION == 3:
             live2d.glewInit()
-            live2d.setGLProperties()
 
         # 创建模型
         self.model = live2d.LAppModel()
 
-        # 加载模型参数
-
-        # 适用于 3 的模型
-        self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"))
+        if live2d.LIVE2D_VERSION == 3:
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"))
+        else:
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
 
         # 以 fps = 30 的频率进行绘图
         self.startTimer(int(1000 / 30))
 
     def resizeGL(self, w: int, h: int) -> None:
+        # 使模型的参数按窗口大小进行更新
         if self.model:
-            # 使模型的参数按窗口大小进行更新
             self.model.Resize(w, h)
 
     def paintGL(self) -> None:
-
-        live2d.clearBuffer()
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
         self.model.Update()
 
@@ -110,7 +107,7 @@ class Win(QOpenGLWidget):
             return
 
         if self.a == 0:  # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value, onFinishMotionHandler=callback)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinishMotionHandler=callback)
             self.a += 1
 
         local_x, local_y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()

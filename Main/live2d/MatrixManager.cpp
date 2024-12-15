@@ -46,7 +46,7 @@ Csm::CubismMatrix44 &MatrixManager::GetProjection(LAppModel *model)
 {
     _projection.LoadIdentity();
 
-    if (model->GetModel()->GetCanvasWidth() > 1.0f && _ww < _ww)
+    if (model->GetModel()->GetCanvasWidth() > 1.0f && _ww < _wh)
     {
         // 横に長いモデルを縦長ウィンドウに表示する際モデルの横サイズでscaleを算出する
         model->GetModelMatrix()->SetWidth(2.0f);
