@@ -2,7 +2,7 @@
 from typing import Any
 
 import OpenGL.GL as gl
-from PIL import Image
+import PIL.Image as Image
 
 from .core import Live2DModelOpenGL
 
@@ -22,7 +22,7 @@ class PlatformManager:
         if image.mode != 'RGBA':
             image = image.convert("RGBA")
         image_data = image.tobytes()
-        width, height = image.size
+        width, height = image.width, image.height
         gl.glEnable(gl.GL_TEXTURE_2D)
         texture = gl.glGenTextures(1)
         gl.glBindTexture(gl.GL_TEXTURE_2D, texture)

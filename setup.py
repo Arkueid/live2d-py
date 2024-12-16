@@ -15,7 +15,7 @@ AUTHOR = "Arkueid"
 AUTHOR_EMAIL = "thetardis@qq.com"
 URL = "https://github.com/Arkueid/live2d-py"
 
-INSTALL_REQUIRES = ["numpy", "pyopengl"]
+INSTALL_REQUIRES = ["numpy", "pyopengl", "pillow"]
 
 
 class CMakeExtension(Extension):
@@ -60,9 +60,6 @@ class CMakeBuild(build_ext):
         build_args = ["--config", "Release"]
 
         if platform.system() == "Windows":
-            cmake_args += [
-                "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format("Release", extdir)
-            ]
             if platform.python_compiler().find("64 bit") > 0:
                 print("Building for 64 bit")
                 cmake_args += ["-A", "x64"]
@@ -73,7 +70,6 @@ class CMakeBuild(build_ext):
         else:
             cmake_args += ["-DCMAKE_BUILD_TYPE=" + "Release"]
             build_args += ["--", "-j2"]
-            # raise Exception("Building on Windows is not supported yet")
         build_folder = os.path.abspath(self.build_temp)
 
         if not os.path.exists(build_folder):

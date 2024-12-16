@@ -310,7 +310,7 @@ class LAppModel(L2DBaseModel):
                 continue
 
             dd: 'Mesh' = ddcxt.drawData
-            vertices = ddcxt.transformedPoints
+            vertices = ddcxt.getTransformedPoints()
             indices = dd.indexArray
             size = len(indices)
             for i in range(0, size, 3):
