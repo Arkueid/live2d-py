@@ -15,7 +15,7 @@ AUTHOR = "Arkueid"
 AUTHOR_EMAIL = "thetardis@qq.com"
 URL = "https://github.com/Arkueid/live2d-py"
 
-INSTALL_REQUIRES = ["numpy", "pyopengl"]
+INSTALL_REQUIRES = ["numpy", "pyopengl", "pillow"]
 
 
 class CMakeExtension(Extension):
