@@ -57,7 +57,7 @@ jobs:
     - name: Upload Wheel to Release
       uses: softprops/action-gh-release@v2
       with:
-        # tag_name: v0.2.2-alpha
+        tag_name: v0.3.0
         files: |
           ${{ steps.get_filenames.outputs.WHEEL_FILE }}
 
@@ -65,7 +65,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ matrix.python-version == '3.9.0' && matrix.architecture == 'x86' }}
       with:
-        # tag_name: v0.2.2-alpha
+        tag_name: v0.3.0
         files: |
           ${{ steps.get_filenames.outputs.SDIST_FILE }}
 
