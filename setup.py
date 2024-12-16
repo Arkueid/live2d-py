@@ -31,6 +31,7 @@ def is_virtualenv():
 
 def get_base_python_path(venv_path):
     cfg_content =  open(os.path.join(venv_path, "pyvenv.cfg"), 'r').read()
+    print(cfg_content)
     return re.search("home = (.*)\n", cfg_content).group(1)
 
 
