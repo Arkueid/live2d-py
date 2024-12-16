@@ -31,8 +31,10 @@ def is_virtualenv():
 
 def get_base_python_path(venv_path):
     cfg_content =  open(os.path.join(venv_path, "pyvenv.cfg"), 'r').read()
-    print(cfg_content)
-    return re.search("home = (.*)\n", cfg_content).group(1)
+    # print(cfg_content)
+    # sys.stdout.flush()
+    # return re.search("home = (.*)\n", cfg_content).group(1)
+    return cfg_content
 
 
 class CMakeBuild(build_ext):
@@ -83,6 +85,7 @@ class CMakeBuild(build_ext):
             python_installation_path = os.path.split(sys.executable)[0]
         print("Python installation path: " + python_installation_path)
         sys.stdout.flush()
+        exit()
 
         cmake_args += ["-DPYTHON_INSTALLATION_PATH=" + python_installation_path]
 
