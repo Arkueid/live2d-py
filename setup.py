@@ -30,7 +30,8 @@ def is_virtualenv():
 
 
 def get_base_python_path(venv_path):
-    return re.search("home = (.*)\n", open(os.path.join(venv_path, "pyvenv.cfg"), 'r').read()).group(1)
+    cfg_content =  open(os.path.join(venv_path, "pyvenv.cfg"), 'r').read()
+    return re.search("home = (.*)\n", cfg_content).group(1)
 
 
 class CMakeBuild(build_ext):
