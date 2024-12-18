@@ -3,7 +3,6 @@
 #include <GL/wglew.h>
 #endif // WIN32
 
-#include <LAppModel.hpp>
 #include <CubismFramework.hpp>
 #include <LAppPal.hpp>
 #include <LAppAllocator.hpp>
@@ -12,6 +11,7 @@
 #include <mutex>
 #include <MatrixManager.hpp>
 #include <Default.hpp>
+#include <LAppModel.hpp>
 
 #include <Python.h>
 
