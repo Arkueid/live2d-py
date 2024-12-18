@@ -28,7 +28,7 @@ jobs:
         run: python -m pip install build
       
       - name: Install denpendencies
-        run: apt install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
+        run: sudo apt install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
 
       - name: Build a binary wheel
         run: python -m build --wheel . --outdir dist/
