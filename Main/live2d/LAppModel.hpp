@@ -15,6 +15,7 @@
 
 #include "LAppTextureManager.hpp"
 #include <functional>
+#include <vector>
 
 /**
  * @brief ユーザーが実際に使用するモデルの実装クラス<br>
