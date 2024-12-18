@@ -703,7 +703,7 @@ csmBool LAppModel::HasMocConsistencyFromFile(const csmChar* mocFileName)
     csmBool consistency = CubismMoc::HasMocConsistencyFromUnrevivedMoc(buffer, size);
     if (!consistency)
     {
-        Error("Inconsistent MOC3.");
+        MyError("Inconsistent MOC3.");
     }
     else
     {

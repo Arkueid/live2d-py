@@ -28,7 +28,7 @@ const char* currentTime();
     } \
 } while (0)
 
-#define Error(fmt, ...) do { \
+#define MyError(fmt, ...) do { \
     if (live2dLogEnable) { \
         printf("\033[31m[ERROR %s] ", currentTime());\
         printf(fmt, ##__VA_ARGS__); \
