@@ -1,5 +1,4 @@
-﻿#include "LAppModel.hpp"
-/**
+﻿/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -9,7 +8,6 @@
 #include "LAppModel.hpp"
 #include <algorithm>
 #include <fstream>
-#include <vector>
 #include <CubismModelSettingJson.hpp>
 #include <Motion/CubismMotion.hpp>
 #include <Physics/CubismPhysics.hpp>

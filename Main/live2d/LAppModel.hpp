@@ -15,7 +15,6 @@
 
 #include "LAppTextureManager.hpp"
 #include <functional>
-#include <unordered_set>
 
 /**
  * @brief ユーザーが実際に使用するモデルの実装クラス<br>
