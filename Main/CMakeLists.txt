@@ -13,7 +13,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   # select cubism core platform support
   set(CORE_LIB_NAME linux/libLive2DCubismCore.a)
   add_definitions(-fPIC)
-else(CMAKE_SYSTEM_NAME MATCHES "Windows")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
   # select cubism framework platform support
   set(CSM_TARGET CSM_TARGET_WIN_GL)
   # select cubism core platform support
@@ -24,6 +24,10 @@ else(CMAKE_SYSTEM_NAME MATCHES "Windows")
     message("Host: x86")
     set(CORE_LIB_NAME windows/x86/Live2DCubismCore_MT.lib)
   endif()
+elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+  set(CSM_TARGET CSM_TARGET_MAC_GL)
+  set(CORE_LIB_NAME macos/${ARCHITECTURE}/libLive2DCubismCore.a)
 endif()
 
 # Specify version of compiler.
