@@ -8,7 +8,7 @@ from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
 NAME = "live2d-py"
-VERSION = "0.3.0" # TODO: edit before push
+VERSION = "0.3.0"  # TODO: edit before push
 DESCRIPTION = "Live2D Python SDK"
 LONG_DESCRIPTION = open("README.md", "r", encoding="utf-8").read()
 AUTHOR = "Arkueid"
@@ -47,33 +47,26 @@ class CMakeBuild(build_ext):
         cmake_version = self.get_cmake_version()
         if platform.system() == "Windows":
             if cmake_version < "3.12":
-                sys.stderr.write("CMake >= 3.12 is required on Windows")
+                sys.stderr.write("CMake >= 3.12 is required")
         for ext in self.extensions:
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cmake_args = [
-            "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
-            "-DPYTHON_EXECUTABLE=" + sys.executable
-        ]
+        cmake_args = []
         build_args = ["--config", "Release"]
 
         if platform.system() == "Windows":
-            cmake_args += [
-                "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format("Release", extdir)
-            ]
             if platform.python_compiler().find("64 bit") > 0:
                 print("Building for 64 bit")
                 cmake_args += ["-A", "x64"]
             else:
                 print("Building for 32 bit")
                 cmake_args += ["-A", "Win32"]
-            build_args += ["--", "/m"]
+            # native options
+            build_args += ["--", "/m:2"]
         else:
             cmake_args += ["-DCMAKE_BUILD_TYPE=" + "Release"]
             build_args += ["--", "-j2"]
-            # raise Exception("Building on Windows is not supported yet")
         build_folder = os.path.abspath(self.build_temp)
 
         if not os.path.exists(build_folder):
@@ -112,10 +105,9 @@ setup(
     url=URL,
     install_requires=INSTALL_REQUIRES,
     ext_modules=[CMakeExtension("LAppModelWrapper", ".")],
-    cmdclass=dict(build_ext=CMakeBuild),
+    cmdclass={"build_ext": CMakeBuild},
     packages=find_packages("package"),
     package_data={"": ["*.pyd", "*.so"]},
-    include_package_data=True,
     package_dir={"": "package"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"]
 )

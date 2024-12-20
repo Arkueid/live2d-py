@@ -16,7 +16,7 @@
 
 代码使用示例：[package](./package/)
 
-详细使用文档：https://arkueid.github.io/live2d-py-docs/
+详细使用文档：[Wiki](https://github.com/Arkueid/live2d-py/wiki)
 
 ## 兼容UI库
 
