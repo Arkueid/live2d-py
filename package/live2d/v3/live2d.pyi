@@ -1,28 +1,5 @@
-from enum import Enum
 from typing import Any
 from .params import Parameter
-
-
-class MotionPriority(Enum):
-    """
-    动作优先级
-    """
-    NONE = 0
-    IDLE = 1
-    NORMAL = 2
-    FORCE = 3
-
-
-class MotionGroup(Enum):
-    """
-    内置动作组
-    """
-    IDLE = "Idle"
-    TAP_HEAD = "TapHead"
-
-
-class HitArea(Enum):
-    HEAD = MotionGroup.TAP_HEAD.value
 
 
 def init() -> None:
@@ -90,6 +67,7 @@ class LAppModel:
         :param wh: 画布高度
         :return:
         """
+        ...
 
     def Draw(self) -> None:
         """

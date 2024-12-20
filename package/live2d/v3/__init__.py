@@ -1,7 +1,5 @@
-from .params import * # pyinstaller may not find it (hidden import)
+from .params import *  # pyinstaller may not find it (hidden import)
 from .live2d import *
-
-from enum import Enum
 
 
 class MotionPriority:
@@ -16,9 +14,8 @@ class MotionGroup:
     TAP_HEAD = "TapHead"
 
 
-class HitArea(Enum):
+class HitArea:
     HEAD = MotionGroup.TAP_HEAD
 
 
 LIVE2D_VERSION = 3
-
