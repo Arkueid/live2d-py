@@ -1,7 +1,6 @@
 import wave
 import numpy as np
 import time
-from live2d.v3.log import Info
 
 
 class WavHandler:
@@ -41,7 +40,6 @@ class WavHandler:
                 self.lastOffset = 0
 
         except Exception as e:
-            Info(f"[LipSync]Failed to load wav file due to exception: {e}")
             self.ReleasePcmData()
 
     def ReleasePcmData(self):
