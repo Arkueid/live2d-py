@@ -60,7 +60,7 @@ pip install live2d-py
 pip install live2d_py-0.X.X-cpXXX-cpXXX-win32.whl
 ```
 
-3. 从源码构建，参考 [安装#源码构建](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E5%AE%89%E8%A3%85.html#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA)
+3. 从源码构建，参考 [安装#源码构建](https://github.com/Arkueid/live2d-py/wiki/%E5%AE%89%E8%A3%85#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA)
 
 ## 简易面部动捕示例
 
