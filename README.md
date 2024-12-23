@@ -35,10 +35,10 @@
 
 ## 平台支持
 
-| `live2d-py` | 支持的live2d模型        | 实现                | 支持的Python版本                           | 支持平台                     |
-|-------------|--------------------|-------------------|---------------------------------------|--------------------------|
-| `live2d.v2` | Cubism 2.1 以及更早的版本 | 纯 Python 实现       | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本 | Winodws、Linux、MacOS（理论上） |                                                       |
-| `live2d.v3` | Cubism 3.0 及以上版本   | Python C++ API 封装 | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本 | Windows、Linux            |
+| `live2d-py` | 支持的live2d模型        | 实现                    | 支持的Python版本                           | 支持平台                     |
+|-------------|--------------------|-----------------------|---------------------------------------|--------------------------|
+| `live2d.v2` | Cubism 2.1 以及更早的版本 | 纯 Python 实现           | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本 | Winodws、Linux、MacOS（理论上） |                                                       |
+| `live2d.v3` | Cubism 3.0 及以上版本   | Python C Extension 封装 | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本 | Windows、Linux            |
 
 注：
 
@@ -60,21 +60,13 @@ pip install live2d-py
 pip install live2d_py-0.X.X-cpXXX-cpXXX-win32.whl
 ```
 
-3.
-
-从源码构建，参考 [安装#源码构建](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E5%AE%89%E8%A3%85.html#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA)
+3. 从源码构建，参考 [安装#源码构建](https://arkueid.github.io/live2d-py-docs/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/%E5%AE%89%E8%A3%85.html#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA)
 
 ## 简易面部动捕示例
 
 源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind_mediapipe.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
-
-## 基于 live2d-py + qfluentwidgets 实现的桌面应用预览
-
-见 [live2d-desktop](https://github.com/Arkueid/Live2DMascot)
-
-![alt](./docs/2.png)
 
 ## 贡献
 
