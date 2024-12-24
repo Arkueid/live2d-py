@@ -11,9 +11,10 @@ import pygame
 from pygame.locals import *
 
 # import live2d.v3 as live2d
-from live2d.v3 import StandardParams
+# from live2d.v3 import StandardParams
 from live2d.utils import log
 import live2d.v2 as live2d
+from live2d.v2 import StandardParams
 
 
 import resources
@@ -33,8 +34,6 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         live2d.glewInit()
-        pass
-        # live2d.setGLProperties()
 
     model = live2d.LAppModel()
 
@@ -86,7 +85,7 @@ def main():
     # 设置 part 透明度
     # log.Debug(f"Part Count: {model.GetPartCount()}")
     partIds = model.GetPartIds()
-    print(len(partIds))
+    # print(len(partIds))
     # log.Debug(f"Part Ids: {partIds}")
     # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
     # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
@@ -168,6 +167,7 @@ def main():
             model.AddParameterValue(
                 StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN
             )
+            print(wavHandler.GetRms())
 
         if not audioPlayed:
             # 播放一个不存在的动作
