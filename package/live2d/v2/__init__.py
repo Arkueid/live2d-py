@@ -1,4 +1,5 @@
-from .core import Live2D, Live2DGLWrapper, log
+from .core import Live2D, Live2DGLWrapper
+from .core import log as __log
 from .framework import Live2DFramework
 from .lapp_define import MotionGroup, MotionPriority, HitArea
 from .lapp_model import LAppModel
@@ -17,18 +18,14 @@ def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0):
 
 
 def setLogEnable(enable: bool):
-    log.setLogEnable(enable)
+    __log.setLogEnable(enable)
 
 
 def logEnable() -> bool:
-    return log.logEnable()
+    return __log.logEnable()
 
 
 def glewInit():
-    pass
-
-
-def setGLProperties():
     pass
 
 
@@ -38,4 +35,12 @@ def dispose():
 
 LIVE2D_VERSION = 2
 
-__all__ = ['LAppModel', 'MotionPriority', 'MotionGroup', "HitArea", "StandardParams"]
+__all__ = ['LAppModel',
+           'MotionPriority',
+           'MotionGroup',
+           "HitArea",
+           "StandardParams",
+           "init",
+           "glewInit",
+           "clearBuffer",
+           "dispose"]

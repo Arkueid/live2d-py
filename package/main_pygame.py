@@ -11,9 +11,9 @@ import pygame
 from pygame.locals import *
 
 # import live2d.v3 as live2d
-# from live2d.v3 import log, StandardParams
+from live2d.v3 import StandardParams
+from live2d.utils import log
 import live2d.v2 as live2d
-from live2d.v2 import log, StandardParams
 
 
 import resources
@@ -40,7 +40,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/lafei/lafei_4.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json")
         )
     else:
         model.LoadModelJson(
@@ -86,6 +86,7 @@ def main():
     # 设置 part 透明度
     # log.Debug(f"Part Count: {model.GetPartCount()}")
     partIds = model.GetPartIds()
+    print(len(partIds))
     # log.Debug(f"Part Ids: {partIds}")
     # log.Debug(f"Part Id for index 2: {model.GetPartId(2)}")
     # model.SetPartOpacity(partIds.index("PartHairBack"), 0.5)
