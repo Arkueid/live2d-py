@@ -1,5 +1,6 @@
-<div align="center">
-    <h1>live2d-py</h1>
+<div align="center" style="padding-top: 10px">
+    <img src="./docs/koe.svg" alt="koe" width="50px" height="50px">
+    <img src="./docs/logo.svg" alt="live2d-py" height="80px">
 </div>
 
 <p align="center" style="font-family: 'Roboto', sans-serif; font-size: 1em; color: #555;">
