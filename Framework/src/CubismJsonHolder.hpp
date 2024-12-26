@@ -36,7 +36,7 @@ namespace Live2D { namespace Cubism { namespace Framework {
          *
          * @return true if valid; otherwise false
          */
-        csmBool IsValid()
+        csmBool IsValid() const
         {
             return _json;
         }

@@ -176,7 +176,7 @@ void CubismImageVulkan::CreateView(VkDevice device, VkFormat format, VkImageAspe
     }
 }
 
-void CubismImageVulkan::CreateSampler(VkDevice device, float maxAnistropy,
+void CubismImageVulkan::CreateSampler(VkDevice device, csmFloat32 maxAnistropy,
                                       csmUint32 mipLevel)
 {
     VkSamplerCreateInfo samplerInfo{};
@@ -186,7 +186,6 @@ void CubismImageVulkan::CreateSampler(VkDevice device, float maxAnistropy,
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    samplerInfo.anisotropyEnable = VK_TRUE;
     samplerInfo.maxAnisotropy = maxAnistropy;
     samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
@@ -196,6 +195,15 @@ void CubismImageVulkan::CreateSampler(VkDevice device, float maxAnistropy,
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = static_cast<csmFloat32>(mipLevel);
     samplerInfo.mipLodBias = 0.0f;
+
+    if (maxAnistropy >= 1.0f)
+    {
+        samplerInfo.anisotropyEnable = VK_TRUE;
+    }
+    else
+    {
+        samplerInfo.anisotropyEnable = VK_FALSE;
+    }
 
     if (vkCreateSampler(device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
     {

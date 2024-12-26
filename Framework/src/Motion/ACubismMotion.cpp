@@ -23,6 +23,8 @@ ACubismMotion::ACubismMotion()
     , _fadeOutSeconds(-1.0f)
     , _weight(1.0f)
     , _offsetSeconds(0.0f) //再生の開始時刻
+    , _onBeganMotion(NULL)
+    , _onBeganMotionCustomData(NULL)
     , _onFinishedMotion(NULL)
     , _onFinishedMotionCustomData(NULL)
 { }
@@ -76,6 +78,11 @@ void ACubismMotion::SetupMotionQueueEntry(CubismMotionQueueEntry* motionQueueEnt
         motionQueueEntry->SetEndTime((duration <= 0) ? -1 : motionQueueEntry->GetStartTime() + duration);
         //duration == -1 の場合はループする
     }
+
+    if (this->_onBeganMotion != NULL)
+    {
+        this->_onBeganMotion(this);
+    }
 }
 
 csmFloat32 ACubismMotion::UpdateFadeWeight(CubismMotionQueueEntry* motionQueueEntry, csmFloat32 userTimeSeconds)
@@ -83,6 +90,7 @@ csmFloat32 ACubismMotion::UpdateFadeWeight(CubismMotionQueueEntry* motionQueueEn
     if (motionQueueEntry == NULL)
     {
         CubismLogError("motionQueueEntry is null.");
+        return -1;
     }
 
     csmFloat32 fadeWeight = _weight; //現在の値と掛け合わせる割合
@@ -155,6 +163,33 @@ void ACubismMotion::SetOffsetTime(csmFloat32 offsetSeconds)
 const csmVector<const csmString*>& ACubismMotion::GetFiredEvent(csmFloat32 beforeCheckTimeSeconds, csmFloat32 motionTimeSeconds)
 {
     return _firedEventValues;
+}
+
+void ACubismMotion::SetBeganMotionHandler(BeganMotionCallback onBeganMotionHandler)
+{
+    this->_onBeganMotion = onBeganMotionHandler;
+}
+
+ACubismMotion::BeganMotionCallback ACubismMotion::GetBeganMotionHandler() const
+{
+    return this->_onBeganMotion;
+}
+
+void ACubismMotion::SetBeganMotionCustomData(void* onBeganMotionCustomData)
+{
+    this->_onBeganMotionCustomData = onBeganMotionCustomData;
+}
+
+void* ACubismMotion::GetBeganMotionCustomData() const
+{
+    return this->_onBeganMotionCustomData;
+}
+
+void ACubismMotion::SetBeganMotionHandlerAndMotionCustomData(BeganMotionCallback onBeganMotionHandler,
+    void* onBeganMotionCustomData)
+{
+    this->_onBeganMotion = onBeganMotionHandler;
+    this->_onBeganMotionCustomData = onBeganMotionCustomData;
 }
 
 void ACubismMotion::SetFinishedMotionHandler(FinishedMotionCallback onFinishedMotionHandler)

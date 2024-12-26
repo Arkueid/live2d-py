@@ -18,236 +18,183 @@ class CubismMotionQueueEntry;
 struct CubismMotionData;
 
 /**
- * @brief モーションクラス
- *
- * モーションのクラス。
+ * Handles motions.
  */
 class CubismMotion : public ACubismMotion
 {
 public:
     /**
-     * @brief インスタンスの生成
+     * Makes an instance.
      *
-     * インスタンスを作成する。
+     * @param buf buffer containing the loaded motion file
+     * @param size size of the buffer in bytes
+     * @param onFinishedMotionHandler callback function for when motion playback ends
      *
-     * @param[in]   buffer                      motion3.jsonが読み込まれているバッファ
-     * @param[in]   size                        バッファのサイズ
-     * @param[in]   onFinishedMotionHandler     モーション再生終了時に呼び出されるコールバック関数。NULLの場合、呼び出されない。
-     * @return  作成されたインスタンス
+     * @return created instance
      */
-    static CubismMotion* Create(const csmByte* buffer, csmSizeInt size, FinishedMotionCallback onFinishedMotionHandler = NULL);
+    static CubismMotion* Create(const csmByte* buffer, csmSizeInt size, FinishedMotionCallback onFinishedMotionHandler = NULL, BeganMotionCallback onBeganMotionHandler = NULL);
 
     /**
-    * @brief モデルのパラメータの更新の実行
-    *
-    * モデルのパラメータ更新を実行する。
-    *
-    * @param[in]   model               対象のモデル
-    * @param[in]   userTimeSeconds         現在の時刻[秒]
-    * @param[in]   fadeWeight          モーションの重み
-    * @param[in]   motionQueueEntry    CubismMotionQueueManagerで管理されているモーション
-    */
+     * Updates the model parameters.
+     *
+     * @param model model to update
+     * @param userTimeSeconds current time in seconds
+     * @param weight weight during the application of the motion (0.0-1.0)
+     * @param motionQueueEntry motion managed by the CubismMotionQueueManager
+     */
     virtual void        DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 fadeWeight, CubismMotionQueueEntry* motionQueueEntry);
 
     /**
-     * @brirf ループ情報の設定
+     * Sets whether the motion should loop.
      *
-     * ループ情報を設定する。
-     *
-     * @param[in]   loop    ループ情報
+     * @param loop true to set the motion to loop
      */
     void                IsLoop(csmBool loop);
 
     /**
-     * @brief ループ情報の取得
+     * Checks whether the motion is set to loop.
      *
-     * モーションがループするかどうか？
-     *
-     * @retval  true    ループする
-     * @retval  false   ループしない
+     * @return true if the motion is set to loop; otherwise false.
      */
     csmBool             IsLoop() const;
 
     /**
-     * @brief ループ時のフェードイン情報の設定
+     * Sets whether to perform fade-in for looping motion.
      *
-     * ループ時のフェードイン情報を設定する。
-     *
-     * @param[in]   loopFadeIn  ループ時のフェードイン情報
+     * @param loopFadeIn true to perform fade-in for looping motion
      */
     void                IsLoopFadeIn(csmBool loopFadeIn);
 
     /**
-     * @brief ループ時のフェードイン情報の取得
+     * Checks the setting for fade-in of looping motion.
      *
-     * ループ時にフェードインするかどうか？
-     *
-     * @retval  true    する
-     * @retval  false   しない
+     * @return true if fade-in for looping motion is set; otherwise false.
      */
     csmBool             IsLoopFadeIn() const;
 
     /**
-     * @brief モーションの長さの取得
+     * Returns the length of the motion.
      *
-     * モーションの長さを取得する。
+     * @return length of the motion in seconds<br>
+     *         -1 if the motion is looping.
      *
-     * @return  モーションの長さ[秒]
+     * @note When a positive value is returned, the motion ends at the obtained time.<br>
+     *       When -1 is returned, the motion is looping and does not end.
      */
     virtual csmFloat32  GetDuration();
 
     /**
-     * @brief モーションのループ時の長さの取得
+     * Returns the length of one loop of the looping motion.
      *
-     * モーションのループ時の長さを取得する。
+     * @return length of one loop of the looping motion in seconds<br>
+     *         Same value as GetDuration() if the motion is not looping.
      *
-     * @return  モーションのループ時の長さ[秒]
+     * @note Returns -1 if the length of one loop of the looping motion cannot be determined.
      */
     virtual csmFloat32  GetLoopDuration();
 
     /**
-     * @brief パラメータに対するフェードインの時間の設定
+     * Sets the number of seconds for the motion parameter to complete fading in.
      *
-     * パラメータに対するフェードインの時間を設定する。
-     *
-     * @param[in]   parameterId     パラメータID
-     * @param[in]   value           フェードインにかかる時間[秒]
+     * @param parameterId parameter ID
+     * @param value number of seconds for the fade-in to complete
      */
     void        SetParameterFadeInTime(CubismIdHandle parameterId, csmFloat32 value);
 
     /**
-    * @brief パラメータに対するフェードアウトの時間の設定
-    *
-    * パラメータに対するフェードアウトの時間を設定する。
-    *
-    * @param[in]   parameterId     パラメータID
-    * @param[in]   value           フェードアウトにかかる時間[秒]
-    */
+     * Sets the number of seconds for the motion parameter to complete fading out.
+     *
+     * @param parameterId parameter ID
+     * @param value number of seconds for the fade-out to complete
+     */
     void        SetParameterFadeOutTime(CubismIdHandle parameterId, csmFloat32 value);
 
     /**
-    * @brief パラメータに対するフェードインの時間の取得
-    *
-    * パラメータに対するフェードインの時間を取得する。
-    *
-    * @param[in]   parameterId     パラメータID
-    * @return   フェードインにかかる時間[秒]
-    */
+     * Sets the number of seconds for the motion parameter to complete fading in.
+     *
+     * @param parameterId parameter ID
+     * @param value number of seconds for the fade-in to complete
+     */
     csmFloat32    GetParameterFadeInTime(CubismIdHandle parameterId) const;
 
     /**
-    * @brief パラメータに対するフェードアウトの時間の取得
-    *
-    * パラメータに対するフェードアウトの時間を取得する。
-    *
-    * @param[in]   parameterId     パラメータID
-    * @return   フェードアウトにかかる時間[秒]
-    */
+     * Sets the number of seconds for the motion parameter to complete fading out.
+     *
+     * @param parameterId parameter ID
+     * @param value number of seconds for the fade-out to complete
+     */
     csmFloat32    GetParameterFadeOutTime(CubismIdHandle parameterId) const;
 
     /**
-     * @brief 自動エフェクトがかかっているパラメータIDリストの設定
+     * Sets the collections of parameter IDs associated with the eye blink and lip sync settings.
      *
-     * 自動エフェクトがかかっているパラメータIDリストを設定する。
-     *
-     * @param[in]   eyeBlinkParameterIds    自動まばたきがかかっているパラメータIDのリスト
-     * @param[in]   lipSyncParameterIds     リップシンクがかかっているパラメータIDのリスト
+     * @param eyeBlinkParameterIds collection of parameter IDs associated with the eye blink settings
+     * @param lipSyncParameterIds collection of parameter IDs associated with the lip sync settings
      */
     void SetEffectIds(const csmVector<CubismIdHandle>& eyeBlinkParameterIds, const csmVector<CubismIdHandle>& lipSyncParameterIds);
 
     /**
-    * @brief モデルのパラメータ更新
-    *
-    * イベント発火のチェック。
-    * 入力する時間は呼ばれるモーションタイミングを０とした秒数で行う。
-    *
-    * @param[in]   beforeCheckTimeSeconds   前回のイベントチェック時間[秒]
-    * @param[in]   motionTimeSeconds        今回の再生時間[秒]
-    */
+     * Returns the triggered user data events.
+     *
+     * @param beforeCheckTimeSeconds previous playback time in seconds
+     * @param motionTimeSeconds current playback time in seconds
+     *
+     * @return instance of the collection of triggered user data events
+     *
+     * @note The input times should be in seconds, with the motion timing set to zero.
+     */
     virtual const csmVector<const csmString*>& GetFiredEvent(csmFloat32 beforeCheckTimeSeconds, csmFloat32 motionTimeSeconds);
 
     /**
-    * @brief        透明度のカーブが存在するかどうかを確認する
-    *
-    * @retval       true  -> キーが存在する
-    * @retval       false -> キーが存在しない
-    */
+     * Checks whether there is an opacity curve.
+     *
+     * @return true if the key exists; otherwise false.
+     */
     csmBool IsExistModelOpacity() const;
 
     /**
-    * @brief 透明度のカーブのインデックスを返す
-    *
-    *
-    * @return  success：透明度のカーブのインデックス
-    */
+     * Returns the index of the opacity curve.
+     *
+     * @return index of the opacity curve on success
+     */
     csmInt32 GetModelOpacityIndex() const;
 
     /**
-    * @brief 透明度のIdを返す
-    *
-    *
-    * @return  success：透明度のId
-    */
+     * Returns the ID of the opacity.
+     *
+     * @return ID of the opacity on success
+     */
     CubismIdHandle GetModelOpacityId(csmInt32 index);
 
 protected:
-    /**
-     *
-     * @brief 透明度の値を返す
-     *
-     * @param[in]   motionTimeSeconds        現在の再生時間[秒]（未利用）
-     *
-     * @return  success：モーションの現在時間のOpacityの値
-     *
-     * @note  更新後の値を取るにはUpdateParameters() の後に呼び出す。
-     */
     csmFloat32 GetModelOpacityValue() const;
 
 private:
-    /**
-     * @brief コンストラクタ
-     *
-     * コンストラクタ。
-     */
     CubismMotion();
 
-    /**
-     * @brief デストラクタ
-     *
-     * デストラクタ。
-     */
     virtual ~CubismMotion();
 
-    // Prevention of copy Constructor
     CubismMotion(const CubismMotion&);
     CubismMotion& operator=(const CubismMotion&);
 
-    /**
-     * @brief motion3.jsonのパース
-     *
-     * motion3.jsonをパースする。
-     *
-     * @param[in]   motionJson  motion3.jsonが読み込まれているバッファ
-     * @param[in]   size        バッファのサイズ
-     */
     void Parse(const csmByte* motionJson, const csmSizeInt size);
 
-    csmFloat32      _sourceFrameRate;                   ///< ロードしたファイルのFPS。記述が無ければデフォルト値15fpsとなる
-    csmFloat32      _loopDurationSeconds;               ///< mtnファイルで定義される一連のモーションの長さ
-    csmBool         _isLoop;                            ///< ループするか?
-    csmBool         _isLoopFadeIn;                      ///< ループ時にフェードインが有効かどうかのフラグ。初期値では有効。
-    csmFloat32      _lastWeight;                        ///< 最後に設定された重み
+    csmFloat32      _sourceFrameRate;
+    csmFloat32      _loopDurationSeconds;
+    csmBool         _isLoop;
+    csmBool         _isLoopFadeIn;
+    csmFloat32      _lastWeight;
 
-    CubismMotionData*    _motionData;                   ///< 実際のモーションデータ本体
+    CubismMotionData*    _motionData;
 
-    csmVector<CubismIdHandle>  _eyeBlinkParameterIds;   ///< 自動まばたきを適用するパラメータIDハンドルのリスト。  モデル（モデルセッティング）とパラメータを対応付ける。
-    csmVector<CubismIdHandle>  _lipSyncParameterIds;    ///< リップシンクを適用するパラメータIDハンドルのリスト。  モデル（モデルセッティング）とパラメータを対応付ける。
+    csmVector<CubismIdHandle>  _eyeBlinkParameterIds;
+    csmVector<CubismIdHandle>  _lipSyncParameterIds;
 
-    CubismIdHandle _modelCurveIdEyeBlink;               ///< モデルが持つ自動まばたき用パラメータIDのハンドル。  モデルとモーションを対応付ける。
-    CubismIdHandle _modelCurveIdLipSync;                ///< モデルが持つリップシンク用パラメータIDのハンドル。  モデルとモーションを対応付ける。
-    CubismIdHandle _modelCurveIdOpacity;                ///< モデルが持つ不透明度用パラメータIDのハンドル。  モデルとモーションを対応付ける。
+    CubismIdHandle _modelCurveIdEyeBlink;
+    CubismIdHandle _modelCurveIdLipSync;
+    CubismIdHandle _modelCurveIdOpacity;
 
-    csmFloat32 _modelOpacity; ///< モーションから取得した不透明度
+    csmFloat32 _modelOpacity;
 };
 
 }}}

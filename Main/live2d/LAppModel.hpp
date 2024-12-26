@@ -32,13 +32,9 @@ struct Parameter
     float defaultValue;
 };
 
-using OnMotionStartCallback = std::function<void(const char*, int)>;
-using OnMotionFinishCallback = std::function<void(Csm::ACubismMotion*)>;
-
 class LAppModel : public Csm::CubismUserModel
 {
 public:
-    typedef void (*OnStartMotionHandler)(const char*, int);
     /**
      * @brief コンストラクタ
      */
@@ -85,8 +81,8 @@ public:
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
     Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar* group, Csm::csmInt32 no, Csm::csmInt32 priority,
-                                                  OnMotionStartCallback onStartMotionHandler = NULL,
-                                                  OnMotionFinishCallback onFinishedMotionHandler = NULL);
+                                                  Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler = NULL,
+                                                  Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
 
     /**
      * @brief   ランダムに選ばれたモーションの再生を開始する。
@@ -97,8 +93,8 @@ public:
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
     Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar* group, Csm::csmInt32 priority,
-                                                        OnMotionStartCallback onStartMotionHandler = NULL,
-                                                        OnMotionFinishCallback onFinishedMotionHandler = NULL);
+                                                        Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler = NULL,
+                                                        Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
 
     /**
      * @brief   引数で指定した表情モーションをセットする
@@ -170,7 +166,7 @@ public:
      * @param y y in scene
      * @return 当前点击的 part no
      */
-    std::vector<std::string> HitPart(float x, float y, bool topOnly);
+    void HitPart(float x, float y, bool topOnly, std::vector<std::string>& partIds);
 
     void setPartMultiplyColor(int partNo, float r, float g, float b, float a);
 

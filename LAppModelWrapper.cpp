@@ -13,6 +13,8 @@
 #include <MatrixManager.hpp>
 #include <Default.hpp>
 
+#define Py_LIMITED_API
+// #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
 #ifdef WIN32
@@ -31,44 +33,23 @@ struct PyLAppModelObject
     PyObject_HEAD
     LAppModel* model;
     MatrixManager matrixManager;
-    size_t key;
 };
-
-static std::unordered_map<size_t, LAppModel*> g_model;
 
 // LAppModel()
 static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* kwds)
 {
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-
     self->model = new LAppModel();
-    self->key = (size_t)self->model;
-    g_model[self->key] = self->model;
-
     self->matrixManager.Initialize();
     Info("[M] allocate LAppModel(at=%p)", self->model);
-
-    PyGILState_Release(gstate);
     return 0;
 }
 
 static void PyLAppModel_dealloc(PyLAppModelObject* self)
 {
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-
-    if (g_model.find(self->key) != g_model.end())
-    {
-        g_model.erase(self->key);
-        delete self->model;
-        Info("[M] release: LAppModel(at=%p)", self->model);
-    }
-
     Info("[M] deallocate: PyLAppModelObject(at=%p)", self);
-
-    Py_TYPE(self)->tp_free((PyObject*)self);
-    PyGILState_Release(gstate);
+    // Py_TYPE(self)->tp_free((PyObject*)self);
+    // PyObject_Del(self);
+    PyObject_Free(self);
 }
 
 // LAppModel->LoadAssets
@@ -108,7 +89,6 @@ static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-typedef Live2D::Cubism::Framework::ACubismMotion::FinishedMotionCallback FinishedMotionCallback;
 typedef Live2D::Cubism::Framework::ACubismMotion ACubismMotion;
 
 static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
@@ -152,11 +132,11 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
         Py_XINCREF(onFinishHandler);
     }
 
-    auto onStartCallback = [=](const char* group, int no)
+    auto onStartCallback = [=](Csm::ACubismMotion* motion)
     {
         if (isStartNull)
             return;
-        PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group, motion->no);
         if (result != NULL)
             Py_XDECREF(result);
         Py_XDECREF(onStartHandler);
@@ -172,9 +152,9 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
         Py_XDECREF(onFinishHandler);
     };
 
-    Csm::CubismMotionQueueEntryHandle handle = self->model->StartMotion(group, no, priority,
-                                                                        onStartCallback,
-                                                                        onFinishCallback);
+    Csm::CubismMotionQueueEntryHandle _ = self->model->StartMotion(group, no, priority,
+                                                                   onStartCallback,
+                                                                   onFinishCallback);
 
     Py_RETURN_NONE;
 }
@@ -219,11 +199,11 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
         Py_XINCREF(onFinishHandler);
     }
 
-    auto onStartCallback = [=](const char* group, int no)
+    auto onStartCallback = [=](ACubismMotion* motion)
     {
         if (isStartNull)
             return;
-        PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group, motion->no);
         if (result != NULL)
             Py_XDECREF(result);
         Py_XDECREF(onStartHandler);
@@ -333,11 +313,11 @@ static PyObject* PyLAppModel_Touch(PyLAppModelObject* self, PyObject* args, PyOb
         Py_XINCREF(onFinishHandler);
     }
 
-    auto onStartCallback = [=](const char* group, int no)
+    auto onStartCallback = [=](ACubismMotion* motion)
     {
         if (isStartNull)
             return;
-        PyObject* result = PyObject_CallFunction(onStartHandler, "si", group, no);
+        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group, motion->no);
         if (result != NULL)
             Py_XDECREF(result);
         Py_XDECREF(onStartHandler);
@@ -389,10 +369,8 @@ static PyObject* PyLAppModel_IsMotionFinished(PyLAppModelObject* self, PyObject*
     {
         Py_RETURN_TRUE;
     }
-    else
-    {
-        Py_RETURN_FALSE;
-    }
+
+    Py_RETURN_FALSE;
 }
 
 static PyObject* PyLAppModel_SetOffset(PyLAppModelObject* self, PyObject* args)
@@ -500,7 +478,7 @@ static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject
 }
 
 static PyObject* module_live2d_v3_params = nullptr;
-static PyObject* class_live2d_v3_parameter = nullptr;
+static PyObject* typeobject_live2d_v3_parameter = nullptr;
 
 static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* args)
 {
@@ -513,7 +491,7 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
 
     Parameter param = self->model->GetParameter(index);
 
-    PyObject* instance = PyObject_CallObject(class_live2d_v3_parameter, NULL);
+    PyObject* instance = PyObject_CallObject(typeobject_live2d_v3_parameter, NULL);
     if (instance == NULL)
     {
         PyErr_Print();
@@ -590,7 +568,8 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
     }
 
     self->matrixManager.ScreenToScene(&x, &y);
-    std::vector<std::string> hitPartIds = self->model->HitPart(x, y, topOnly);
+    std::vector<std::string> hitPartIds;
+    self->model->HitPart(x, y, topOnly, hitPartIds);
     PyObject* list = PyList_New(hitPartIds.size());
     int i = 0;
     for (auto& id : hitPartIds)
@@ -650,7 +629,7 @@ static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObjec
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
     }
-  
+
     float r, g, b, a;
     self->model->getPartScreenColor(index, r, g, b, a);
 
@@ -697,45 +676,27 @@ static PyMethodDef PyLAppModel_methods[] = {
     {NULL} // 方法列表结束的标志
 };
 
-// 定义LAppModel类的类型对象
-static PyTypeObject PyLAppModelType = {
-    PyVarObject_HEAD_INIT(NULL, 0) "live2d.LAppModel", /* tp_name */
-    sizeof(PyLAppModelObject), /* tp_basicsize */
-    0, /* tp_itemsize */
-    (destructor)PyLAppModel_dealloc, /* tp_dealloc */
-    0, /* tp_print */
-    0, /* tp_getattr */
-    0, /* tp_setattr */
-    0, /* tp_reserved */
-    0, /* tp_repr */
-    0, /* tp_as_number */
-    0, /* tp_as_sequence */
-    0, /* tp_as_mapping */
-    0, /* tp_hash  */
-    0, /* tp_call */
-    0, /* tp_str */
-    0, /* tp_getattro */
-    0, /* tp_setattro */
-    0, /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT, /* tp_flags */
-    "LAppModel objects", /* tp_doc */
-    0, /* tp_traverse */
-    0, /* tp_clear */
-    0, /* tp_richcompare */
-    0, /* tp_weaklistoffset */
-    0, /* tp_iter */
-    0, /* tp_iternext */
-    PyLAppModel_methods, /* tp_methods */
-    0, /* tp_members */
-    0, /* tp_getset */
-    0, /* tp_base */
-    0, /* tp_dict */
-    0, /* tp_descr_get */
-    0, /* tp_descr_set */
-    0, /* tp_dictoffset */
-    (initproc)PyLAppModel_init, /* tp_init */
-    0, /* tp_alloc */
-    PyType_GenericNew, /* tp_new */
+static PyObject* PyLAppModel_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+    PyObject* self = (PyObject*)PyObject_Malloc(sizeof(PyLAppModelObject));
+    PyObject_Init(self, type);
+    return self;
+}
+
+static PyType_Slot PyLAppModel_slots[] = {
+    {Py_tp_new, (void*)PyLAppModel_new},
+    {Py_tp_init, (void*)PyLAppModel_init},
+    {Py_tp_dealloc, (void*)PyLAppModel_dealloc},
+    {Py_tp_methods, (void*)PyLAppModel_methods},
+    {0, NULL}
+};
+
+static PyType_Spec PyLAppModel_spec = {
+    "live2d.LAppModel",
+    sizeof(PyLAppModelObject),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    PyLAppModel_slots,
 };
 
 static PyObject* live2d_init()
@@ -750,19 +711,7 @@ static PyObject* live2d_init()
 
 static PyObject* live2d_dispose()
 {
-    PyGILState_STATE gstate;
-    gstate = PyGILState_Ensure();
-
-    for (auto& pair : g_model)
-    {
-        delete pair.second;
-        Info("[G] release: LAppModel(at=%p)", pair.second);
-    }
-
-    g_model.clear();
-
     Csm::CubismFramework::Dispose();
-    PyGILState_Release(gstate);
     Py_RETURN_NONE;
 }
 
@@ -827,7 +776,7 @@ static PyMethodDef live2d_methods[] = {
 };
 
 // 定义live2d模块
-static struct PyModuleDef liv2d_module = {
+static PyModuleDef liv2d_module = {
     PyModuleDef_HEAD_INIT,
     "live2d",
     "Module that creates live2d objects",
@@ -838,25 +787,29 @@ static struct PyModuleDef liv2d_module = {
 // 模块初始化函数的实现
 PyMODINIT_FUNC PyInit_live2d(void)
 {
-    PyObject* m;
-    if (PyType_Ready(&PyLAppModelType) < 0)
-        return NULL;
+    PyObject* lappmodel_type;
 
-    m = PyModule_Create(&liv2d_module);
-    if (m == NULL)
-        return NULL;
-
-    Py_INCREF(&PyLAppModelType);
-    if (PyModule_AddObject(m, "LAppModel", (PyObject*)&PyLAppModelType) < 0)
+    PyObject* m = PyModule_Create(&liv2d_module);
+    if (!m)
     {
-        Py_DECREF(&PyLAppModelType);
+        return NULL;
+    }
+
+    lappmodel_type = PyType_FromSpec(&PyLAppModel_spec);
+    if (!lappmodel_type)
+    {
+        return NULL;
+    }
+    
+    if (PyModule_AddObject(m, "LAppModel", lappmodel_type) < 0)
+    {
+        Py_DECREF(&lappmodel_type);
         Py_DECREF(m);
         return NULL;
     }
 
     // assume that module `params` is already imported in `live2d/v3/__init__.py`
-    PyObject* module_name = PyUnicode_FromString("live2d.v3.params");
-    module_live2d_v3_params = PyImport_GetModule(module_name);
+    module_live2d_v3_params = PyImport_AddModule("live2d.v3.params");
     if (module_live2d_v3_params == NULL)
     {
         PyErr_Print();
@@ -864,8 +817,8 @@ PyMODINIT_FUNC PyInit_live2d(void)
     }
 
 
-    class_live2d_v3_parameter = PyObject_GetAttrString(module_live2d_v3_params, "Parameter");
-    if (class_live2d_v3_parameter == NULL)
+    typeobject_live2d_v3_parameter = PyObject_GetAttrString(module_live2d_v3_params, "Parameter");
+    if (typeobject_live2d_v3_parameter == NULL)
     {
         Py_DECREF(module_live2d_v3_params);
         PyErr_Print();

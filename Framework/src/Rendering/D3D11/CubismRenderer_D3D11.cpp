@@ -1133,9 +1133,9 @@ void CubismRenderer_D3D11::UpdateConstantBuffer(CubismConstantBufferD3D11& cb, c
 
 void CubismRenderer_D3D11::SetSamplerAccordingToAnisotropy()
 {
-    if (GetAnisotropy() > 0.0)
+    if (GetAnisotropy() >= 1.0f)
     {
-        GetRenderStateManager()->SetSampler(s_context, CubismRenderState_D3D11::Sampler_Anisotropy, GetAnisotropy());
+        GetRenderStateManager()->SetSampler(s_context, CubismRenderState_D3D11::Sampler_Anisotropy, GetAnisotropy(), s_device);
     }
     else
     {

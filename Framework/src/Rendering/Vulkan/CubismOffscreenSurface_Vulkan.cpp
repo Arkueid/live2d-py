@@ -80,7 +80,7 @@ void CubismOffscreenSurface_Vulkan::CreateOffscreenSurface(
     csmUint32 displayBufferWidth, csmUint32 displayBufferHeight,
     VkFormat surfaceFormat, VkFormat depthFormat)
 {
-    _colorImage = new CubismImageVulkan;
+    _colorImage = CSM_NEW CubismImageVulkan;
     _colorImage->CreateImage(device, physicalDevice, displayBufferWidth, displayBufferHeight,
                              1, surfaceFormat, VK_IMAGE_TILING_OPTIMAL,
                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
@@ -88,7 +88,7 @@ void CubismOffscreenSurface_Vulkan::CreateOffscreenSurface(
     _colorImage->CreateView(device, surfaceFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
     _colorImage->CreateSampler(device, 1.0, 1);
 
-    _depthImage = new CubismImageVulkan;
+    _depthImage = CSM_NEW CubismImageVulkan;
     _depthImage->CreateImage(device, physicalDevice, displayBufferWidth, displayBufferHeight,
                              1, depthFormat, VK_IMAGE_TILING_OPTIMAL,
                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -103,11 +103,13 @@ void CubismOffscreenSurface_Vulkan::DestroyOffscreenSurface(VkDevice device)
     if (_colorImage != VK_NULL_HANDLE)
     {
         _colorImage->Destroy(device);
+        CSM_DELETE(_colorImage);
         _colorImage = VK_NULL_HANDLE;
     }
     if (_depthImage != VK_NULL_HANDLE)
     {
         _depthImage->Destroy(device);
+        CSM_DELETE(_depthImage);
         _depthImage = VK_NULL_HANDLE;
     }
 }

@@ -686,7 +686,7 @@ void CubismRenderer_D3D9::ExecuteDrawForMask(const CubismModel& model, const csm
     shaderEffect->BeginPass(0);
 
     // マスクには線形補間を適用
-    GetRenderStateManager()->SetTextureFilter(s_useDevice, 1, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTADDRESS_WRAP, D3DTADDRESS_WRAP);
+    GetRenderStateManager()->SetTextureFilter(s_useDevice, 1, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTEXF_NONE, D3DTADDRESS_WRAP, D3DTADDRESS_WRAP);
 
     // 定数バッファ
     {
@@ -1052,14 +1052,14 @@ void CubismRenderer_D3D9::SetTechniqueForDraw(const CubismModel& model, const cs
 
 void CubismRenderer_D3D9::SetTextureFilter() const
 {
-    if (GetAnisotropy() > 0.0)
-        {
-            GetRenderStateManager()->SetTextureFilter(s_useDevice, 0, D3DTEXF_ANISOTROPIC, D3DTEXF_ANISOTROPIC, D3DTEXF_LINEAR, D3DTADDRESS_WRAP, D3DTADDRESS_WRAP, GetAnisotropy());
-        }
-        else
-        {
-            GetRenderStateManager()->SetTextureFilter(s_useDevice, 0, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTADDRESS_WRAP, D3DTADDRESS_WRAP);
-        }
+    if (GetAnisotropy() > 1.0f)
+    {
+        GetRenderStateManager()->SetTextureFilter(s_useDevice, 0, D3DTEXF_ANISOTROPIC, D3DTEXF_ANISOTROPIC, D3DTEXF_LINEAR, D3DTADDRESS_WRAP, D3DTADDRESS_WRAP, GetAnisotropy());
+    }
+    else
+    {
+        GetRenderStateManager()->SetTextureFilter(s_useDevice, 0, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTEXF_LINEAR, D3DTADDRESS_WRAP, D3DTADDRESS_WRAP);
+    }
 }
 
 void CubismRenderer_D3D9::SetColorVectors(ID3DXEffect* shaderEffect, CubismTextureColor& baseColor, CubismTextureColor& multiplyColor, CubismTextureColor& screenColor)

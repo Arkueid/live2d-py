@@ -7,10 +7,11 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CubismFramework.hpp"
 #include "Id/CubismId.hpp"
 #include "Type/csmVector.hpp"
-#include <functional>
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -19,238 +20,253 @@ class CubismMotionQueueEntry;
 class CubismModel;
 
 /**
- * @brief モーションの抽象基底クラス
- *
- * モーションの抽象基底クラス。MotionQueueManagerによってモーションの再生を管理する。
+ * Abstract base class for motions.<br>
+ * Handles the management of motion playback through the MotionQueueManager.
  */
 class ACubismMotion
 {
 public:
-    /// モーション再生終了コールバック関数定義
+    // typedef void (*BeganMotionCallback)(ACubismMotion* self);
+    // typedef void (*FinishedMotionCallback)(ACubismMotion* self);
+
+    // ==== non-official data ====
+    using BeganMotionCallback = std::function<void(ACubismMotion*)>;
     using FinishedMotionCallback = std::function<void(ACubismMotion*)>;
+    const char* group;
+    int no;
+    // ==== non-official data ====
+    
     /**
-     * @brief インスタンスの破棄
+     * Destroys the instance.
      *
-     * インスタンスを破棄する。
-     *
-     * @param[in]   motion  破棄対象のACubismMotion
+     * @param motion instance to destroy
      */
     static void Delete(ACubismMotion* motion);
 
     /**
-     * @brief コンストラクタ
-     *
-     * コンストラクタ。
+     * Constructor
      */
     ACubismMotion();
 
     /**
-     * @brief モデルのパラメータ更新
+     * Updates the model parameters.
      *
-     * モデルのパラメータを更新する。
-     *
-     * @param[in]   model               対象のモデル
-     * @param[in]   motionQueueEntry    CubismMotionQueueManagerで管理されているモーション
-     * @param[in]   userTimeSeconds     デルタ時間の積算値[秒]
+     * @param model model to update
+     * @param motionQueueEntry motion managed by the CubismMotionQueueManager
+     * @param userTimeSeconds current time in seconds
      */
     void UpdateParameters(CubismModel* model, CubismMotionQueueEntry* motionQueueEntry, csmFloat32 userTimeSeconds);
 
     /**
-     * モーションの再生を開始するためのセットアップを行う。
+     * Sets up to start the playback of the motion.
      *
-     * @param motionQueueEntry CubismMotionQueueManagerによって管理されるモーション
-     * @param userTimeSeconds 総再生時間（秒）
+     * @param motionQueueEntry motion managed by the CubismMotionQueueManager
+     * @param userTimeSeconds total playback time in seconds
      */
     void SetupMotionQueueEntry(CubismMotionQueueEntry* motionQueueEntry, csmFloat32 userTimeSeconds);
 
     /**
-     * @brief フェードイン
+     * Sets the number of seconds for the motion to complete fading in.
      *
-     * フェードインの時間を設定する。
-     *
-     * @param[in]   fadeInSeconds      フェードインにかかる時間[秒]
+     * @param fadeInSeconds number of seconds for the fade-in to complete
      */
     void SetFadeInTime(csmFloat32 fadeInSeconds);
 
     /**
-     * @brief フェードアウト
+     * Sets the number of seconds for the motion to complete fading out.
      *
-     * フェードアウトの時間を設定する。
-     *
-     * @param[in]   fadeOutSeconds     フェードアウトにかかる時間[秒]
+     * @param fadeOutSeconds number of seconds for the fade-out to complete
      */
     void SetFadeOutTime(csmFloat32 fadeOutSeconds);
 
     /**
-     * @brief フェードアウトにかかる時間の取得
+     * Returns the number of seconds for the motion to complete fading out.
      *
-     * フェードアウトにかかる時間を取得する。
-     *
-     * @return フェードアウトにかかる時間[秒]
+     * @return number of seconds for the fade-out to complete
      */
     csmFloat32 GetFadeOutTime() const;
 
     /**
-     * @brief フェードインにかかる時間の取得
+     * Returns the number of seconds for the motion to complete fading in.
      *
-     * フェードインにかかる時間を取得する。
-     *
-     * @return フェードインにかかる時間[秒]
+     * @return number of seconds for the fade-in to complete
      */
     csmFloat32 GetFadeInTime() const;
 
     /**
-     * @brief モーション適用の重みの設定
+     * Sets the weight during the application of the motion.
      *
-     * モーション適用の重みを設定する。
-     *
-     * @param[in]   weight      重み(0.0 - 1.0)
+     * @param weight weight during the application of the motion (0.0-1.0)
      */
     void SetWeight(csmFloat32 weight);
 
     /**
-     * @brief モーション適用の重みの取得
+     * Returns the weight during the application of the motion.
      *
-     * モーション適用の重みを取得する。
-     *
-     * @return 重み(0.0 - 1.0)
+     * @return weight during the application of the motion (0.0-1.0)
      */
     csmFloat32 GetWeight() const;
 
     /**
-     * @brief モーションの長さの取得
+     * Returns the length of the motion.
      *
-     * モーションの長さを取得する。
+     * @return length of the motion in seconds<br>
+     *         -1 if the motion is looping.
      *
-     * @return モーションの長さ[秒]
-     *
-     * @note ループのときは「-1」。
-     *       ループではない場合は、オーバーライドする。
-     *       正の値の時は取得される時間で終了する。
-     *       「-1」のときは外部から停止命令が無い限り終わらない処理となる。
+     * @note When a positive value is returned, the motion ends at the obtained time.<br>
+     *       When -1 is returned, the motion is looping and does not end.
      */
     virtual csmFloat32 GetDuration();
 
     /**
-     * @brief モーションのループ1回分の長さの取得
+     * Returns the length of one loop of the looping motion.
      *
-     * モーションのループ1回分の長さを取得する。
+     * @return length of one loop of the looping motion in seconds<br>
+     *         Same value as GetDuration() if the motion is not looping.
      *
-     * @return モーションのループ1回分の長さ[秒]
-     *
-     * @note ループしない場合は GetDuration()と同じ値を返す。
-     *       ループ一回分の長さが定義できない場合（プログラム的に動き続けるサブクラスなど）の場合は「-1」を返す
+     * @note Returns -1 if the length of one loop of the looping motion cannot be determined.
      */
     virtual csmFloat32 GetLoopDuration();
 
 
     /**
-     * @brief モーション再生の開始時刻の設定
+     * Sets the number of seconds to start the motion playback.
      *
-     * モーション再生の開始時刻を設定する。
-     *
-     * @param[in]   offsetSeconds    モーション再生の開始時刻[秒]
+     * @param offsetSeconds number of seconds to start the motion playback
      */
     void SetOffsetTime(csmFloat32 offsetSeconds);
 
     /**
-    * @brief モデルのパラメータ更新
-    *
-    * イベント発火のチェック。
-    * 入力する時間は呼ばれるモーションタイミングを０とした秒数で行う。
-    *
-    * @param[in]   beforeCheckTimeSeconds   前回のイベントチェック時間[秒]
-    * @param[in]   motionTimeSeconds        今回の再生時間[秒]
-    */
+     * Returns the triggered user data events.
+     *
+     * @param beforeCheckTimeSeconds previous playback time in seconds
+     * @param motionTimeSeconds current playback time in seconds
+     *
+     * @return instance of the collection of triggered user data events
+     *
+     * @note The input times should be in seconds, with the motion timing set to zero.
+     */
     virtual const csmVector<const csmString*>& GetFiredEvent(csmFloat32 beforeCheckTimeSeconds,
                                                                    csmFloat32 motionTimeSeconds);
 
+    /**
+     * Sets the motion playback completion callback.
+     *
+     * Not called in the following cases:
+     *   1. When the motion being played is set as "loop"
+     *   2. When NULL is set as the callback
+     *
+     * @param   onBeganMotionHandler     Motion playback start callback function
+     */
+    void SetBeganMotionHandler(BeganMotionCallback onBeganMotionHandler);
 
     /**
-     * @brief モーション再生終了コールバックの登録
+     * Sets the motion playback start callback.
      *
-     * モーション再生終了コールバックを登録する。
-     * IsFinishedフラグを設定するタイミングで呼び出される。
-     * 以下の状態の際には呼び出されない:
-     *   1. 再生中のモーションが「ループ」として設定されているとき
-     *   2. コールバックにNULLが登録されているとき
+     * @return  Set motion playback start callback function. NULL if no function is set.
+     */
+    BeganMotionCallback GetBeganMotionHandler() const;
+
+    /**
+     * Sets the user-defined data.
      *
-     * @param[in]   onFinishedMotionHandler     モーション再生終了コールバック関数
+     * @param   onBeganMotionCustomData  User-defined data
+     */
+    void SetBeganMotionCustomData(void* onBeganMotionCustomData);
+
+    /**
+     * Returns the user-defined data.
+     *
+     * @return  Set user-defined data.
+     */
+    void* GetBeganMotionCustomData() const;
+
+    /**
+     * Sets the motion playback start callback.
+     *
+     * Not called in the following cases:
+     *   1. When the motion being played is set as "loop"
+     *   2. When NULL is set as the callback
+     *
+     * @param   onBeganMotionHandler     Motion playback start callback function
+     * @param   onBeganMotionCustomData  User-defined data
+     */
+    void SetBeganMotionHandlerAndMotionCustomData(BeganMotionCallback onBeganMotionHandler, void* onBeganMotionCustomData);
+
+    /**
+     * Sets the callback function for when motion playback ends.
+     *
+     * @param onFinishedMotionHandler callback function for when motion playback ends
+     *
+     * @note The callback function is called at the timing of setting the IsFinished flag.<br>
+     *       Not called in the following states:
+     *       1. When the playing motion is a loop motion
+     *       2. When the callback function is not set
      */
     void SetFinishedMotionHandler(FinishedMotionCallback onFinishedMotionHandler);
 
     /**
-     * @brief モーション再生終了コールバックの取得
+     * Returns the callback function for when motion playback ends.
      *
-     * モーション再生終了コールバックを取得する。
-     *
-     * @return  登録されているモーション再生終了コールバック関数。NULLのとき、関数は何も登録されていない。
+     * @return set callback function for when motion playback ends
      */
     FinishedMotionCallback GetFinishedMotionHandler();
 
     /**
-     * @brief ユーザー任意データの登録
+     * Sets the user-defined data.
      *
-     * ユーザー任意データを登録します。
-     *
-     * @param[in]   onFinishedMotionCustomData  ユーザー任意データ
+     * @param   onFinishedMotionCustomData  User-defined data
      */
     void SetFinishedMotionCustomData(void* onFinishedMotionCustomData);
 
     /**
-     * @brief ユーザー任意データの取得
+     * Returns the user-defined data.
      *
-     * ユーザー任意データを取得します。
-     *
-     * @return  登録されているユーザー任意データ。
+     * @return  Set user-defined data.
      */
     void* GetFinishedMotionCustomData();
 
     /**
-     * @brief モーション再生終了コールバックとユーザー任意データの登録
+     * Sets the motion playback completion callback.
      *
-     * モーション再生終了コールバックを登録する。
-     * IsFinishedフラグを設定するタイミングで呼び出される。
-     * 以下の状態の際には呼び出されない:
-     *   1. 再生中のモーションが「ループ」として設定されているとき
-     *   2. コールバックにNULLが登録されているとき
+     * Called when the IsFinished flag is set.
+     * Not called in the following cases:
+     *   1. When the motion being played is set as "loop"
+     *   2. When NULL is set as the callback
      *
-     * @param[in]   onFinishedMotionHandler     モーション再生終了コールバック関数
-     * @param[in]   onFinishedMotionCustomData  ユーザー任意データ
+     * @param   onFinishedMotionHandler     Motion playback completion callback function
+     * @param   onFinishedMotionCustomData  User-defined data
      */
     void SetFinishedMotionHandlerAndMotionCustomData(FinishedMotionCallback onFinishedMotionHandler, void* onFinishedMotionCustomData);
 
     /**
-     * @brief        透明度のカーブが存在するかどうかを確認する
+     * Checks whether there is an opacity curve.
      *
-     * @retval       true  -> キーが存在する
-     * @retval       false -> キーが存在しない
+     * @return true if the key exists; otherwise false.
      */
     virtual csmBool IsExistModelOpacity() const;
 
     /**
-    * @brief 透明度のカーブのインデックスを返す
-    *
-    *
-    * @return  success：透明度のカーブのインデックス
-    */
+     * Returns the index of the opacity curve.
+     *
+     * @return index of the opacity curve on success
+     */
     virtual csmInt32 GetModelOpacityIndex() const;
 
     /**
-     * @brief 透明度のIdを返す
+     * Returns the ID of the opacity.
      *
-     *
-     * @return  success：透明度のId
+     * @return ID of the opacity on success
      */
     virtual CubismIdHandle GetModelOpacityId(csmInt32 index);
 
     /**
-     * @brief モデルのウェイト更新
+     * Updates the fade weight of the motion.
      *
-     * モーションのウェイトを更新する。
+     * @param motionQueueEntry motion managed by the CubismMotionQueueManager
+     * @param userTimeSeconds cumulative delta time in seconds
      *
-     * @param[in]   motionQueueEntry    CubismMotionQueueManagerで管理されているモーション
-     * @param[in]   userTimeSeconds     デルタ時間の積算値[秒]
+     * @return true if the fade weight of the motion is updated; otherwise false.
      */
     csmFloat32 UpdateFadeWeight(CubismMotionQueueEntry* motionQueueEntry, csmFloat32 userTimeSeconds);
 
@@ -260,46 +276,23 @@ private:
     ACubismMotion& operator=(const ACubismMotion&);
 
 protected:
-    /**
-     * @brief デストラクタ
-     *
-     * デストラクタ。
-     */
     virtual ~ACubismMotion();
 
-    /**
-     *
-     * @brief 指定時間の透明度の値を返す
-     *
-     * @param[in]   motionTimeSeconds        現在の再生時間[秒]
-     *
-     * @return  success：モーションの当該時間におけるOpacityの値
-     *
-     * @note  更新後の値を取るにはUpdateParameters() の後に呼び出す。
-     */
     virtual csmFloat32 GetModelOpacityValue() const;
 
-    /**
-     * @brief モデルのパラメータの更新の実行
-     *
-     * モデルのパラメータ更新を実行する。
-     *
-     * @param[in]   model               対象のモデル
-     * @param[in]   userTimeSeconds     デルタ時間の積算値[秒]
-     * @param[in]   weight              モーションの重み
-     * @param[in]   motionQueueEntry    CubismMotionQueueManagerで管理されているモーション
-     */
     virtual void DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 weight, CubismMotionQueueEntry* motionQueueEntry) = 0;
 
-    csmFloat32    _fadeInSeconds;        ///< フェードインにかかる時間[秒]
-    csmFloat32    _fadeOutSeconds;       ///< フェードアウトにかかる時間[秒]
-    csmFloat32    _weight;               ///< モーションの重み
-    csmFloat32    _offsetSeconds;        ///< モーション再生の開始時刻[秒]
+    csmFloat32    _fadeInSeconds;
+    csmFloat32    _fadeOutSeconds;
+    csmFloat32    _weight;
+    csmFloat32    _offsetSeconds;
 
     csmVector<const csmString*>    _firedEventValues;
-
-    FinishedMotionCallback _onFinishedMotion; ///< モーション再生終了コールバック関数ポインタ
-    void* _onFinishedMotionCustomData;        ///< モーション再生終了コールバックに戻されるデータ
+    
+    BeganMotionCallback _onBeganMotion;
+    void* _onBeganMotionCustomData;
+    FinishedMotionCallback _onFinishedMotion;
+    void* _onFinishedMotionCustomData;
 };
 
 }}}

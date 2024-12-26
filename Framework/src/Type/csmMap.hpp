@@ -83,6 +83,13 @@ public:
     csmMap(csmInt32 size);
 
     /**
+     * @brief   引数付きコンストラクタ
+     *
+     * @param[in]   m   ->  文字列
+     */
+    csmMap(const csmMap& m);
+
+    /**
      * @brief   デストラクタ
      *
      */
@@ -95,6 +102,23 @@ public:
      */
     void AppendKey(_KeyT& key)
     {
+        csmInt32 findIndex = -1;
+        for (csmInt32 i = 0; i < _size; i++)
+        {
+            if (_keyValues[i].First == key)
+            {
+                findIndex = i;
+                break;
+            }
+        }
+
+        // 同じkeyが既に作られている場合は何もしない
+        if (findIndex != -1)
+        {
+            CubismLogWarning("The key is already append.");
+            return;
+        }
+
         // 新しくKey/Valueのペアを作る
         PrepareCapacity(_size + 1, false); //１つ以上入る隙間を作る
         // 新しいkey/valueのインデックスは _size
@@ -103,6 +127,22 @@ public:
         CSM_PLACEMENT_NEW(addr) csmPair<_KeyT, _ValT>(key); //placement new
 
         _size += 1;
+    }
+
+    /**
+     * @brief   コピーコンストラクタ
+     *
+     * @param[in]   c   ->  csmMap<_KeyT, _ValT>のインスタンス
+     */
+    csmMap<_KeyT, _ValT>& operator=(const csmMap<_KeyT, _ValT>& c)
+    {
+        if (this != &c)
+        {
+            Clear();
+            Copy(c);
+        }
+
+        return *this;
     }
 
     /**
@@ -491,6 +531,32 @@ public:
     }
 
     /**
+     * @brief   csmMap<_keyT, _valT>のコピー関数
+     *
+     * @param[in]   c   ->  csmMap<_keyT, _valT>のインスタンス
+     */
+    void Copy(const csmMap& c)
+    {
+        _dummyValuePtr = NULL;
+        _size = c._size;
+        _capacity = c._capacity;
+
+        if (c._capacity == 0)
+        {
+            _keyValues = NULL;
+            return;
+        }
+
+        _keyValues = (csmPair<_KeyT, _ValT>*)(CSM_MALLOC(_capacity * sizeof(csmPair<_KeyT, _ValT>)));
+
+        for (csmInt32 i = 0; i < _size; ++i)
+        {
+            CSM_PLACEMENT_NEW(&_keyValues[i]) csmPair<_KeyT, _ValT>(c._keyValues[i].First,
+                                                                    c._keyValues[i].Second);
+        }
+    }
+
+    /**
      * @brief   コンテナの値を32ビット符号付き整数型でダンプする
      *
      */
@@ -542,6 +608,13 @@ csmMap<_KeyT, _ValT>::csmMap(csmInt32 size)
         _capacity = size;
         _size = size;
     }
+}
+
+template<class _KeyT, class _ValT>
+csmMap<_KeyT, _ValT>::csmMap(const csmMap& m)
+    : _dummyValuePtr(NULL)
+{
+    Copy(m);
 }
 
 template<class _KeyT, class _ValT>

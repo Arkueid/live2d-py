@@ -188,14 +188,41 @@ csmBool CubismUserModel::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csm
     return ((left <= tx) && (tx <= right) && (top <= ty) && (ty <= bottom));
 }
 
-ACubismMotion* CubismUserModel::LoadMotion(const csmByte* buffer, csmSizeInt size, const csmChar* name, ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
+ACubismMotion* CubismUserModel::LoadMotion(const csmByte* buffer, csmSizeInt size, const csmChar* name,
+                                            ACubismMotion::FinishedMotionCallback onFinishedMotionHandler, ACubismMotion::BeganMotionCallback onBeganMotionHandler,
+                                            ICubismModelSetting* modelSetting, const csmChar* group, const csmInt32 index)
 {
     if (!buffer)
     {
-        CubismLogError("Failed to LoadMotion().");
+        CubismLogError("Failed to LoadMotion(). Buffer is NULL.");
         return NULL;
     }
-    return CubismMotion::Create(buffer, size, onFinishedMotionHandler);
+
+    ACubismMotion* motion = CubismMotion::Create(buffer, size, onFinishedMotionHandler, onBeganMotionHandler);
+
+    if (!motion)
+    {
+        CubismLogError("Failed to create motion from buffer in LoadMotion().");
+        return NULL;
+    }
+
+    // 必要であればモーションフェード値を上書き
+    if (modelSetting)
+    {
+        const csmFloat32 fadeInTime = modelSetting->GetMotionFadeInTimeValue(group, index);
+        if (fadeInTime >= 0.0f)
+        {
+            motion->SetFadeInTime(fadeInTime);
+        }
+
+        const csmFloat32 fadeOutTime = modelSetting->GetMotionFadeOutTimeValue(group, index);
+        if (fadeOutTime >= 0.0f)
+        {
+            motion->SetFadeOutTime(fadeOutTime);
+        }
+    }
+
+    return motion;
 }
 
 void CubismUserModel::SetDragging(csmFloat32 x, csmFloat32 y)

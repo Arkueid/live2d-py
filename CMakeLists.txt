@@ -24,7 +24,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
 else()
     # 寻找Python
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Python/x64/3.12)
+    set(CMAKE_PREFIX_PATH D:/Miniconda/envs/py3100)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -44,7 +44,9 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/static/${CMAKE_BUILD_TYPE})
 endif()  
 
-find_package(Python3 REQUIRED Development)
+find_package(Python3 REQUIRED COMPONENTS Development)
+
+message("Python_Lib_Dir " ${Python3_LIBRARY_DIRS})
 
 message("Python_LIBRARIES " ${Python_LIBRARIES})
 
@@ -53,6 +55,7 @@ add_subdirectory(Main)
 # 创建Python扩展模块
 add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
 target_link_libraries(LAppModelWrapper PRIVATE Python3::Python live2d)
+target_link_libraries(LAppModelWrapper PRIVATE ${Python3_LIBRARY_DIRS}/python3.lib)
 
 # Configure for Linux / Windows
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")

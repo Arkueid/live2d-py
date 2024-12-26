@@ -244,7 +244,7 @@ CubismMotion::~CubismMotion()
     CSM_DELETE(_motionData);
 }
 
-CubismMotion* CubismMotion::Create(const csmByte* buffer, csmSizeInt size, FinishedMotionCallback onFinishedMotionHandler)
+CubismMotion* CubismMotion::Create(const csmByte* buffer, csmSizeInt size, FinishedMotionCallback onFinishedMotionHandler, BeganMotionCallback onBeganMotionHandler)
 {
     CubismMotion* ret = CSM_NEW CubismMotion();
 
@@ -252,6 +252,7 @@ CubismMotion* CubismMotion::Create(const csmByte* buffer, csmSizeInt size, Finis
     ret->_sourceFrameRate = ret->_motionData->Fps;
     ret->_loopDurationSeconds = ret->_motionData->Duration;
     ret->_onFinishedMotion = onFinishedMotionHandler;
+    ret->_onBeganMotion = onBeganMotionHandler;
 
     // NOTE: Editorではループありのモーション書き出しは非対応
     // ret->_loop = (ret->_motionData->Loop > 0);
@@ -532,6 +533,10 @@ void CubismMotion::Parse(const csmByte* motionJson, const csmSizeInt size)
         CSM_DELETE(json);
         return;
     }
+
+#if _DEBUG
+    json->HasConsistency();
+#endif // _DEBUG
 
     _motionData->Duration = json->GetMotionDuration();
     _motionData->Loop = json->IsMotionLoop();

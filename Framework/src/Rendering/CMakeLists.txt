@@ -6,13 +6,6 @@ target_sources(${LIB_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/CubismClippingManager.tpp
 )
 
-if(NOT DEFINED FRAMEWORK_SOURCE)
-  message(WARNING
-    "[${LIB_NAME}] Set 'FRAMEWORK_SOURCE' variable to 'Cocos2dx' when using Cocos2d-x rendering."
-  )
-  set(FRAMEWORK_SOURCE Cocos2d)
-endif()
-
 # Add specified rendering directory.
 add_subdirectory(${FRAMEWORK_SOURCE})
 

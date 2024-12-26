@@ -229,6 +229,12 @@ void CubismPose::DoFade(CubismModel* model, csmFloat32 deltaTimeSeconds, csmInt3
             }
 
             visiblePartIndex = i;
+            if (_fadeTimeSeconds == 0.0f)
+            {
+                newOpacity = 1.0f;
+                continue;
+            }
+
             newOpacity = model->GetPartOpacity(partIndex);
 
             // 新しい不透明度を計算

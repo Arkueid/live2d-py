@@ -10,11 +10,11 @@ import time
 import pygame
 from pygame.locals import *
 
-# import live2d.v3 as live2d
-# from live2d.v3 import StandardParams
+import live2d.v3 as live2d
+from live2d.v3 import StandardParams
 from live2d.utils import log
-import live2d.v2 as live2d
-from live2d.v2 import StandardParams
+# import live2d.v2 as live2d
+# from live2d.v2 import StandardParams
 
 
 import resources
@@ -28,7 +28,7 @@ def main():
     pygame.mixer.init()
     live2d.init()
 
-    display = (400, 500)
+    display = (200, 200)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
@@ -76,11 +76,11 @@ def main():
         log.Info("motion finished")
 
     # 获取全部可用参数
-    # for i in range(model.GetParameterCount()):
-    #     param: Parameter = model.GetParameter(i)
-    #     log.Debug(
-    #         param.id, param.type, param.value, param.max, param.min, param.default
-    #     )
+    for i in range(model.GetParameterCount()):
+        param = model.GetParameter(i)
+        log.Debug(
+            param.id, param.type, param.value, param.max, param.min, param.default
+        )
 
     # 设置 part 透明度
     # log.Debug(f"Part Count: {model.GetPartCount()}")
@@ -167,7 +167,6 @@ def main():
             model.AddParameterValue(
                 StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN
             )
-            print(wavHandler.GetRms())
 
         if not audioPlayed:
             # 播放一个不存在的动作

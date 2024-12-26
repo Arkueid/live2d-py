@@ -14,19 +14,20 @@
 namespace Live2D { namespace Cubism { namespace Framework { namespace Rendering {
 // 各種静的変数
 namespace {
+bool s_useRenderTarget = false;
+
 VkDevice s_device = VK_NULL_HANDLE;
 VkPhysicalDevice s_physicalDevice = VK_NULL_HANDLE;
 VkCommandPool s_commandPool = VK_NULL_HANDLE;
 VkQueue s_queue = VK_NULL_HANDLE;
-VkExtent2D s_swapchainExtent;
-VkFormat s_swapchainImageFormat;
+csmUint32 s_bufferSetNum = 0;
+
+// 描画対象情報
+VkExtent2D s_renderExtent;
+VkImage s_renderImage;
+VkImageView s_imageView;
 VkFormat s_imageFormat;
-VkImage s_swapchainImage;
-VkImageView s_swapchainImageView;
 VkFormat s_depthFormat;
-bool s_useRenderTarget = false;
-VkImage s_renderTargetImage;
-VkImageView s_renderTargetImageView;
 }
 
 VkViewport GetViewport(csmFloat32 width, csmFloat32 height, csmFloat32 minDepth, csmFloat32 maxDepth)
@@ -55,7 +56,7 @@ VkRect2D GetScissor(csmFloat32 offsetX, csmFloat32 offsetY, csmFloat32 width, cs
 
 void CubismClippingManager_Vulkan::SetupClippingContext(CubismModel& model, VkCommandBuffer commandBuffer,
                                                         VkCommandBuffer updateCommandBuffer,
-                                                        CubismRenderer_Vulkan* renderer)
+                                                        CubismRenderer_Vulkan* renderer, csmInt32 offscreenCurrent)
 {
     // 全てのクリッピングを用意する
     // 同じクリップ（複数の場合はまとめて１つのクリップ）を使う場合は１度だけ設定する
@@ -82,7 +83,7 @@ void CubismClippingManager_Vulkan::SetupClippingContext(CubismModel& model, VkCo
 
     // マスク作成処理
     // 後の計算のためにインデックスの最初をセット
-    _currentMaskBuffer = renderer->GetMaskBuffer(0);
+    _currentMaskBuffer = renderer->GetMaskBuffer(offscreenCurrent, 0);
 
     // 1が無効（描かれない）領域、0が有効（描かれる）領域。（シェーダで Cd*Csで0に近い値をかけてマスクを作る。1をかけると何も起こらない）
     _currentMaskBuffer->BeginDraw(commandBuffer, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -134,7 +135,7 @@ void CubismClippingManager_Vulkan::SetupClippingContext(CubismModel& model, VkCo
         const csmFloat32 MARGIN = 0.05f;
 
         // clipContextに設定したオフスクリーンサーフェイスをインデックスで取得
-        CubismOffscreenSurface_Vulkan* clipContextOffscreenSurface = renderer->GetMaskBuffer(clipContext->_bufferIndex);
+        CubismOffscreenSurface_Vulkan* clipContextOffscreenSurface = renderer->GetMaskBuffer(offscreenCurrent, clipContext->_bufferIndex);
 
         // 現在のオフスクリーンサーフェイスがclipContextのものと異なる場合
         if (_currentMaskBuffer != clipContextOffscreenSurface)
@@ -198,20 +199,6 @@ CubismClippingContext_Vulkan::CubismClippingContext_Vulkan(
     _isUsing = false;
 
     _owner = manager;
-
-    // クリップしている（＝マスク用の）Drawableのインデックスリスト
-    _clippingIdList = clippingDrawableIndices;
-
-    // マスクの数
-    _clippingIdCount = clipCount;
-
-    _layoutChannelIndex = 0;
-
-    _allClippedDrawRect = CSM_NEW csmRectF();
-    _layoutBounds = CSM_NEW csmRectF();
-
-    _clippedDrawableIndexList = CSM_NEW csmVector<csmInt32>();
-
 }
 
 CubismClippingContext_Vulkan::~CubismClippingContext_Vulkan()
@@ -374,14 +361,7 @@ void CubismPipeline_Vulkan::PipelineResource::CreateGraphicsPipeline(std::string
     VkPipelineRenderingCreateInfo renderingInfo{};
     renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
     renderingInfo.colorAttachmentCount = 1;
-    if (s_useRenderTarget)
-    {
-        renderingInfo.pColorAttachmentFormats = &s_imageFormat;
-    }
-    else
-    {
-        renderingInfo.pColorAttachmentFormats = &s_swapchainImageFormat;
-    }
+    renderingInfo.pColorAttachmentFormats = &s_imageFormat;
     renderingInfo.depthAttachmentFormat = s_depthFormat;
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -479,9 +459,10 @@ void CubismPipeline_Vulkan::CreatePipelines(VkDescriptorSetLayout descriptorSetL
         return;
     }
 
-    for (csmInt32 i = 0; i < ShaderCount; i++)
+    _pipelineResource.Resize(ShaderCount);
+    for (csmInt32 i = 0; i < 7; i++)
     {
-        _pipelineResource.PushBack(CSM_NEW PipelineResource);
+        _pipelineResource[i] = CSM_NEW PipelineResource();
     }
 
     _pipelineResource[0]->CreateGraphicsPipeline("FrameworkShaders/VertShaderSrcSetupMask.spv", "FrameworkShaders/FragShaderSrcSetupMask.spv", descriptorSetLayout);
@@ -521,6 +502,8 @@ void CubismPipeline_Vulkan::ReleaseShaderProgram()
     for (csmInt32 i = 0; i < 7; i++)
     {
         _pipelineResource[i]->Release();
+        CSM_DELETE(_pipelineResource[i]);
+        _pipelineResource[i] = NULL;
     }
 }
 
@@ -546,43 +529,53 @@ CubismRenderer_Vulkan::CubismRenderer_Vulkan() :
                                                , _descriptorPool(VK_NULL_HANDLE)
                                                , _descriptorSetLayout(VK_NULL_HANDLE)
                                                , _clearColor()
+                                               , _commandBufferCurrent(0)
 {}
 
 CubismRenderer_Vulkan::~CubismRenderer_Vulkan()
 {
+    CSM_DELETE_SELF(CubismClippingManager_Vulkan, _clippingManager);
+
     // オフスクリーンを作成していたのなら開放
-    for (csmInt32 i = 0; i < _offscreenFrameBuffers.GetSize(); i++)
+    for (csmUint32 buffer = 0; buffer < _offscreenFrameBuffers.GetSize(); buffer++)
     {
-        _offscreenFrameBuffers[i].DestroyOffscreenSurface(s_device);
+        for (csmInt32 i = 0; i < _offscreenFrameBuffers[buffer].GetSize(); i++)
+        {
+            _offscreenFrameBuffers[buffer][i].DestroyOffscreenSurface(s_device);
+        }
+        _offscreenFrameBuffers[buffer].Clear();
     }
     _offscreenFrameBuffers.Clear();
-
     _depthImage.Destroy(s_device);
-    vkDestroySemaphore(s_device, _updateFinishedSemaphore, nullptr);
+
+    // セマフォ解放
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
+    {
+        vkDestroySemaphore(s_device, _updateFinishedSemaphores[buffer], nullptr);
+    }
+
+    // ディスクリプタ関連解放
     vkDestroyDescriptorPool(s_device, _descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(s_device, _descriptorSetLayout, nullptr);
 
-    for (csmUint32 i = 0; i < _vertexBuffers.GetSize(); i++)
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
     {
-        _vertexBuffers[i].Destroy(s_device);
+        for (csmInt32 i = 0; i < _descriptorSets[buffer].GetSize(); i++)
+        {
+            _descriptorSets[buffer][i].uniformBuffer.Destroy(s_device);
+        }
     }
 
-    for (csmUint32 i = 0; i < _stagingBuffers.GetSize(); i++)
+    // その他バッファ開放
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
     {
-        _stagingBuffers[i].Destroy(s_device);
+        for (csmUint32 drawAssign = 0; drawAssign < _vertexBuffers[buffer].GetSize(); drawAssign++)
+        {
+            _vertexBuffers[buffer][drawAssign].Destroy(s_device);
+            _stagingBuffers[buffer][drawAssign].Destroy(s_device);
+            _indexBuffers[buffer][drawAssign].Destroy(s_device);
+        }
     }
-
-    for (csmUint32 i = 0; i < _indexBuffers.GetSize(); i++)
-    {
-        _indexBuffers[i].Destroy(s_device);
-    }
-
-    for (csmInt32 i = 0; i < _descriptorSets.GetSize(); i++)
-    {
-        _descriptorSets[i].uniformBuffer.Destroy(s_device);
-    }
-
-    CSM_DELETE_SELF(CubismClippingManager_Vulkan, _clippingManager);
 }
 
 void CubismRenderer_Vulkan::DoStaticRelease()
@@ -645,23 +638,19 @@ void CubismRenderer_Vulkan::SubmitCommand(VkCommandBuffer commandBuffer, VkSemap
 
 }
 
-void CubismRenderer_Vulkan::InitializeConstantSettings(
-    VkDevice device, VkPhysicalDevice physicalDevice,
-    VkCommandPool commandPool, VkQueue queue,
-    VkExtent2D extent, VkFormat imageFormat, VkFormat surfaceFormat, VkImage swapchainImage,
-    VkImageView swapchainImageView,
-    VkFormat dFormat)
+void CubismRenderer_Vulkan::InitializeConstantSettings(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue queue,
+                                                       csmUint32 swapchainImageCount, VkExtent2D extent, VkImageView imageView, VkFormat imageFormat, VkFormat depthFormat)
 {
     s_device = device;
     s_physicalDevice = physicalDevice;
     s_commandPool = commandPool;
     s_queue = queue;
-    s_swapchainExtent = extent;
-    s_swapchainImageFormat = imageFormat;
-    s_imageFormat = surfaceFormat;
-    s_swapchainImage = swapchainImage;
-    s_swapchainImageView = swapchainImageView;
-    s_depthFormat = dFormat;
+    s_bufferSetNum = swapchainImageCount;
+
+    s_renderExtent = extent;
+    s_imageView = imageView;
+    s_imageFormat = imageFormat;
+    s_depthFormat = depthFormat;
 }
 
 void CubismRenderer_Vulkan::EnableChangeRenderTarget()
@@ -669,65 +658,67 @@ void CubismRenderer_Vulkan::EnableChangeRenderTarget()
     s_useRenderTarget = true;
 }
 
-void CubismRenderer_Vulkan::SetRenderTarget(VkImage image, VkImageView imageview)
+void CubismRenderer_Vulkan::SetRenderTarget(VkImage image, VkImageView view, VkFormat format, VkExtent2D extent)
 {
-    s_renderTargetImage = image;
-    s_renderTargetImageView = imageview;
+    s_renderImage = image;
+    s_imageView = view;
+    s_imageFormat = format;
+    s_renderExtent = extent;
 }
 
-void CubismRenderer_Vulkan::UpdateSwapchainVariable(VkExtent2D extent, VkImage image,
-                                                    VkImageView imageView)
+void CubismRenderer_Vulkan::SetImageExtent(VkExtent2D extent)
 {
-    s_swapchainExtent = extent;
-    s_swapchainImage = image;
-    s_swapchainImageView = imageView;
-}
-
-void CubismRenderer_Vulkan::UpdateRendererSettings(VkImage image, VkImageView imageView)
-{
-    s_swapchainImage = image;
-    s_swapchainImageView = imageView;
+    s_renderExtent = extent;
 }
 
 void CubismRenderer_Vulkan::CreateCommandBuffer()
 {
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = s_commandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
-    if (vkAllocateCommandBuffers(s_device, &allocInfo, &updateCommandBuffer) != VK_SUCCESS || vkAllocateCommandBuffers(
-        s_device, &allocInfo, &drawCommandBuffer) != VK_SUCCESS)
+    _updateCommandBuffers.Resize(s_bufferSetNum);
+    _drawCommandBuffers.Resize(s_bufferSetNum);
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
     {
-        CubismLogError("failed to allocate command buffers!");
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = s_commandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = 1;
+        if (vkAllocateCommandBuffers(s_device, &allocInfo, &_updateCommandBuffers[buffer]) != VK_SUCCESS ||
+            vkAllocateCommandBuffers(s_device, &allocInfo, &_drawCommandBuffers[buffer]) != VK_SUCCESS)
+        {
+            CubismLogError("failed to allocate command buffers!");
+        }
     }
 }
 
 void CubismRenderer_Vulkan::CreateVertexBuffer()
 {
     const csmInt32 drawableCount = GetModel()->GetDrawableCount();
-    _vertexBuffers.Resize(drawableCount);
+    _stagingBuffers.Resize(s_bufferSetNum);
+    _vertexBuffers.Resize(s_bufferSetNum);
 
-    for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
     {
-        const csmInt32 vcount = GetModel()->GetDrawableVertexCount(drawAssign);
-        if (vcount != 0)
+        _stagingBuffers[buffer].Resize(drawableCount);
+        _vertexBuffers[buffer].Resize(drawableCount);
+        for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
         {
-            //頂点データは初期化できない
+            const csmInt32 vcount = GetModel()->GetDrawableVertexCount(drawAssign);
+            if (vcount != 0)
+            {
+                VkDeviceSize bufferSize = sizeof(ModelVertex) * vcount; // 総長 構造体サイズ*個数
 
-            VkDeviceSize bufferSize = sizeof(ModelVertex) * vcount; // 総長 構造体サイズ*個数
-            CubismBufferVulkan stagingBuffer;
-            stagingBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                CubismBufferVulkan stagingBuffer;
+                stagingBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                stagingBuffer.Map(s_device, bufferSize);
+                _stagingBuffers[buffer][drawAssign] = stagingBuffer;
 
-            stagingBuffer.Map(s_device, bufferSize);
-            _stagingBuffers.PushBack(stagingBuffer);
-
-            CubismBufferVulkan vertexBuffer;
-            vertexBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize,
-                                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-            _vertexBuffers[drawAssign] = vertexBuffer;
+                CubismBufferVulkan vertexBuffer;
+                vertexBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize,
+                                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                _vertexBuffers[buffer][drawAssign] = vertexBuffer;
+            }
         }
     }
 }
@@ -735,36 +726,40 @@ void CubismRenderer_Vulkan::CreateVertexBuffer()
 void CubismRenderer_Vulkan::CreateIndexBuffer()
 {
     const csmInt32 drawableCount = GetModel()->GetDrawableCount();
-    _indexBuffers.Resize(drawableCount);
+    _indexBuffers.Resize(s_bufferSetNum);
 
-    for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
     {
-        const csmInt32 icount = GetModel()->GetDrawableVertexIndexCount(drawAssign);
-        if (icount != 0)
+        _indexBuffers[buffer].Resize(drawableCount);
+        for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
         {
-            VkDeviceSize bufferSize = sizeof(uint16_t) * icount;
-            const csmUint16* indices = GetModel()->GetDrawableVertexIndices(drawAssign);
+            const csmInt32 icount = GetModel()->GetDrawableVertexIndexCount(drawAssign);
+            if (icount != 0)
+            {
+                VkDeviceSize bufferSize = sizeof(uint16_t) * icount;
+                const csmUint16* indices = GetModel()->GetDrawableVertexIndices(drawAssign);
 
-            CubismBufferVulkan stagingBuffer;
-            stagingBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-            stagingBuffer.Map(s_device, bufferSize);
-            stagingBuffer.MemCpy(indices, bufferSize);
-            stagingBuffer.UnMap(s_device);
+                CubismBufferVulkan stagingBuffer;
+                stagingBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                stagingBuffer.Map(s_device, bufferSize);
+                stagingBuffer.MemCpy(indices, bufferSize);
+                stagingBuffer.UnMap(s_device);
 
-            CubismBufferVulkan indexBuffer;
-            indexBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize,
-                                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                CubismBufferVulkan indexBuffer;
+                indexBuffer.CreateBuffer(s_device, s_physicalDevice, bufferSize,
+                                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+                VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
-            VkBufferCopy copyRegion{};
-            copyRegion.size = bufferSize;
-            vkCmdCopyBuffer(commandBuffer, stagingBuffer.GetBuffer(), indexBuffer.GetBuffer(), 1, &copyRegion);
-            SubmitCommand(commandBuffer);
-            _indexBuffers[drawAssign] = indexBuffer;
-            stagingBuffer.Destroy(s_device);
+                VkBufferCopy copyRegion{};
+                copyRegion.size = bufferSize;
+                vkCmdCopyBuffer(commandBuffer, stagingBuffer.GetBuffer(), indexBuffer.GetBuffer(), 1, &copyRegion);
+                SubmitCommand(commandBuffer);
+                _indexBuffers[buffer][drawAssign] = indexBuffer;
+                stagingBuffer.Destroy(s_device);
+            }
         }
     }
 }
@@ -775,7 +770,8 @@ void CubismRenderer_Vulkan::CreateDescriptorSets()
     const csmInt32 drawableCount = GetModel()->GetDrawableCount();
     csmInt32 textureCount = 2;
     csmInt32 drawModeCount = 2; // マスクされる描画と通常の描画
-    csmInt32 descriptorSetCount = drawableCount * drawModeCount;
+    csmInt32 descriptorSetCountPerBuffer = drawableCount * drawModeCount;
+    csmInt32 descriptorSetCount = s_bufferSetNum * descriptorSetCountPerBuffer;
     VkDescriptorPoolSize poolSizes[2]{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = descriptorSetCount;
@@ -794,6 +790,7 @@ void CubismRenderer_Vulkan::CreateDescriptorSets()
     }
 
     // ディスクリプタセットレイアウトの作成
+    // ユニフォームバッファ用
     VkDescriptorSetLayoutBinding bindings[3];
     bindings[0].binding = 0;
     bindings[0].descriptorCount = 1;
@@ -801,12 +798,14 @@ void CubismRenderer_Vulkan::CreateDescriptorSets()
     bindings[0].pImmutableSamplers = nullptr;
     bindings[0].stageFlags = VK_SHADER_STAGE_ALL;
 
+    // キャラクターテクスチャ
     bindings[1].binding = 1;
     bindings[1].descriptorCount = 1;
     bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     bindings[1].pImmutableSamplers = nullptr;
     bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+    // マスク用オフスクリーンに使用するテクスチャ
     bindings[2].binding = 2;
     bindings[2].descriptorCount = 1;
     bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -823,45 +822,49 @@ void CubismRenderer_Vulkan::CreateDescriptorSets()
         CubismLogError("failed to create descriptor set layout!");
     }
 
-    _descriptorSets.Resize(drawableCount);
-
-    for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
+    // ディスクリプタセットの作成
+    _descriptorSets.Resize(s_bufferSetNum);
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
     {
-        _descriptorSets[drawAssign].uniformBuffer.CreateBuffer(s_device, s_physicalDevice, sizeof(ModelUBO),
-                                                               VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        _descriptorSets[drawAssign].uniformBuffer.Map(s_device, VK_WHOLE_SIZE);
-    }
+        _descriptorSets[buffer].Resize(drawableCount);
+        for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
+        {
+            _descriptorSets[buffer][drawAssign].uniformBuffer.CreateBuffer(s_device, s_physicalDevice, sizeof(ModelUBO),
+                                                                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            _descriptorSets[buffer][drawAssign].uniformBuffer.Map(s_device, VK_WHOLE_SIZE);
+        }
 
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = _descriptorPool;
-    allocInfo.descriptorSetCount = descriptorSetCount;
-    csmVector<VkDescriptorSetLayout> layouts;
-    for (csmInt32 i = 0; i < descriptorSetCount; i++)
-    {
-        layouts.PushBack(_descriptorSetLayout);
-    }
-    allocInfo.pSetLayouts = layouts.GetPtr();
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = _descriptorPool;
+        allocInfo.descriptorSetCount = descriptorSetCountPerBuffer;
+        csmVector<VkDescriptorSetLayout> layouts;
+        for (csmInt32 i = 0; i < descriptorSetCountPerBuffer; i++)
+        {
+            layouts.PushBack(_descriptorSetLayout);
+        }
+        allocInfo.pSetLayouts = layouts.GetPtr();
 
-    csmVector<VkDescriptorSet> descriptorSets;
-    descriptorSets.Resize(descriptorSetCount);
-    if (vkAllocateDescriptorSets(s_device, &allocInfo, descriptorSets.GetPtr()) != VK_SUCCESS)
-    {
-        CubismLogError("failed to allocate descriptor sets!");
-    }
+        csmVector<VkDescriptorSet> descriptorSets;
+        descriptorSets.Resize(descriptorSetCountPerBuffer);
+        if (vkAllocateDescriptorSets(s_device, &allocInfo, descriptorSets.GetPtr()) != VK_SUCCESS)
+        {
+            CubismLogError("failed to allocate descriptor sets!");
+        }
 
-    for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
-    {
-        _descriptorSets[drawAssign].descriptorSet = descriptorSets[drawAssign * 2];
-        _descriptorSets[drawAssign].descriptorSetMasked = descriptorSets[drawAssign * 2 + 1];
+        for (csmInt32 drawAssign = 0; drawAssign < drawableCount; drawAssign++)
+        {
+            _descriptorSets[buffer][drawAssign].descriptorSet = descriptorSets[drawAssign * 2];
+            _descriptorSets[buffer][drawAssign].descriptorSetMasked = descriptorSets[drawAssign * 2 + 1];
+        }
     }
 }
 
 void CubismRenderer_Vulkan::CreateDepthBuffer()
 {
-    _depthImage.CreateImage(s_device, s_physicalDevice, s_swapchainExtent.width, s_swapchainExtent.height,
+    _depthImage.CreateImage(s_device, s_physicalDevice, s_renderExtent.width, s_renderExtent.height,
         1, s_depthFormat, VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
     _depthImage.CreateView(s_device, s_depthFormat,
@@ -872,9 +875,13 @@ void CubismRenderer_Vulkan::InitializeRenderer()
 {
     vkCmdSetCullModeEXT = reinterpret_cast<PFN_vkCmdSetCullMode>(vkGetDeviceProcAddr(s_device, "vkCmdSetCullModeEXT"));
 
-    VkSemaphoreCreateInfo semaphoreInfo{};
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    vkCreateSemaphore(s_device, &semaphoreInfo, nullptr, &_updateFinishedSemaphore);
+    _updateFinishedSemaphores.Resize(s_bufferSetNum);
+    for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
+    {
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        vkCreateSemaphore(s_device, &semaphoreInfo, nullptr, &_updateFinishedSemaphores[buffer]);
+    }
 
     CreateCommandBuffer();
     CreateVertexBuffer();
@@ -925,14 +932,21 @@ void CubismRenderer_Vulkan::Initialize(CubismModel* model, csmInt32 maskBufferCo
         const csmInt32 bufferHeight = static_cast<csmInt32>(_clippingManager->GetClippingMaskBufferSize().Y);
 
         _offscreenFrameBuffers.Clear();
-        _offscreenFrameBuffers.Resize(maskBufferCount);
-        // バックバッファ分確保
-        for (csmInt32 i = 0; i < maskBufferCount; i++)
+
+        _offscreenFrameBuffers.Resize(s_bufferSetNum);
+        for (csmUint32 buffer = 0; buffer < s_bufferSetNum; buffer++)
         {
-            _offscreenFrameBuffers[i].CreateOffscreenSurface(s_device, s_physicalDevice, bufferWidth, bufferHeight,
-                s_imageFormat, s_depthFormat);
+            _offscreenFrameBuffers[buffer].Resize(maskBufferCount);
+            // バックバッファ分確保
+            for (csmInt32 i = 0; i < maskBufferCount; i++)
+            {
+                _offscreenFrameBuffers[buffer][i].CreateOffscreenSurface(s_device, s_physicalDevice, bufferWidth, bufferHeight,
+                    s_imageFormat, s_depthFormat);
+            }
         }
     }
+
+    _commandBufferCurrent = 0;
 
     InitializeRenderer();
 }
@@ -953,11 +967,11 @@ void CubismRenderer_Vulkan::CopyToBuffer(csmInt32 drawAssign, const csmInt32 vco
         vertices.PushBack(vertex);
     }
     csmUint32 bufferSize = sizeof(ModelVertex) * vertices.GetSize();
-    _stagingBuffers[drawAssign].MemCpy(vertices.GetPtr(), (size_t)bufferSize);
+    _stagingBuffers[_commandBufferCurrent][drawAssign].MemCpy(vertices.GetPtr(), (size_t)bufferSize);
 
     VkBufferCopy copyRegion{};
     copyRegion.size = bufferSize;
-    vkCmdCopyBuffer(commandBuffer, _stagingBuffers[drawAssign].GetBuffer(), _vertexBuffers[drawAssign].GetBuffer(), 1,
+    vkCmdCopyBuffer(commandBuffer, _stagingBuffers[_commandBufferCurrent][drawAssign].GetBuffer(), _vertexBuffers[_commandBufferCurrent][drawAssign].GetBuffer(), 1,
                     &copyRegion);
 }
 
@@ -1030,9 +1044,9 @@ void CubismRenderer_Vulkan::UpdateDescriptorSet(Descriptor& descriptor, csmUint3
     {
         VkDescriptorImageInfo imageInfo2{};
         imageInfo2.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo2.imageView = _offscreenFrameBuffers[GetClippingContextBufferForDraw()->
+        imageInfo2.imageView = _offscreenFrameBuffers[_commandBufferCurrent][GetClippingContextBufferForDraw()->
             _bufferIndex].GetTextureView();
-        imageInfo2.sampler = _offscreenFrameBuffers[GetClippingContextBufferForDraw()->
+        imageInfo2.sampler = _offscreenFrameBuffers[_commandBufferCurrent][GetClippingContextBufferForDraw()->
             _bufferIndex].GetTextureSampler();
         VkWriteDescriptorSet image2{};
         image2.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1074,7 +1088,7 @@ void CubismRenderer_Vulkan::ExecuteDrawForDraw(const CubismModel& model, const c
         break;
     }
 
-    Descriptor &descriptor = _descriptorSets[index];
+    Descriptor &descriptor = _descriptorSets[_commandBufferCurrent][index];
     ModelUBO ubo;
     if (masked)
     {
@@ -1105,8 +1119,8 @@ void CubismRenderer_Vulkan::ExecuteDrawForDraw(const CubismModel& model, const c
 
     // ディスクリプタセットのバインド
     UpdateDescriptorSet(descriptor, textureIndex, masked);
-    VkDescriptorSet* descriptorSet = (masked ? &_descriptorSets[index].descriptorSetMasked
-                                             : &_descriptorSets[index].descriptorSet);
+    VkDescriptorSet* descriptorSet = (masked ? &_descriptorSets[_commandBufferCurrent][index].descriptorSetMasked
+                                             : &_descriptorSets[_commandBufferCurrent][index].descriptorSet);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 CubismPipeline_Vulkan::GetInstance()->GetPipelineLayout(shaderIndex, blendIndex), 0, 1,
                                 descriptorSet, 0, nullptr);
@@ -1124,7 +1138,7 @@ void CubismRenderer_Vulkan::ExecuteDrawForMask(const CubismModel& model, const c
     csmUint32 shaderIndex = ShaderNames_SetupMask;
     csmUint32 blendIndex = Blend_Mask;
 
-    Descriptor &descriptor = _descriptorSets[index];
+    Descriptor &descriptor = _descriptorSets[_commandBufferCurrent][index];
     ModelUBO ubo;
 
     // クリッピング用行列の設定
@@ -1153,7 +1167,7 @@ void CubismRenderer_Vulkan::ExecuteDrawForMask(const CubismModel& model, const c
     UpdateDescriptorSet(descriptor, textureIndex, false);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             CubismPipeline_Vulkan::GetInstance()->GetPipelineLayout(shaderIndex, blendIndex), 0, 1,
-                            &_descriptorSets[index].descriptorSet, 0, nullptr);
+                            &_descriptorSets[_commandBufferCurrent][index].descriptorSet, 0, nullptr);
 
     // パイプラインのバインド
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1202,7 +1216,7 @@ void CubismRenderer_Vulkan::DrawMeshVulkan(const CubismModel& model, const csmIn
     CopyToBuffer(index, model.GetDrawableVertexCount(index),
                  const_cast<csmFloat32*>(model.GetDrawableVertices(index)),
                  reinterpret_cast<csmFloat32*>(const_cast<Core::csmVector2*>(model.GetDrawableVertexUvs(index))),
-                 updateCommandBuffer);
+                 _updateCommandBuffers[_commandBufferCurrent]);
 
     if (GetClippingContextBufferForMask() != NULL) // マスク生成時
     {
@@ -1223,25 +1237,22 @@ void CubismRenderer_Vulkan::BeginRendering(VkCommandBuffer drawCommandBuffer, bo
     clearValue[0].color = _clearColor.color;
     clearValue[1].depthStencil = {1.0, 0};
 
+    VkImageMemoryBarrier memoryBarrier{};
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    memoryBarrier.srcAccessMask = VK_ACCESS_NONE;
+    memoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    memoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    memoryBarrier.image = s_renderImage;
+    memoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+    vkCmdPipelineBarrier(drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
+
     VkRenderingAttachmentInfoKHR colorAttachment{};
     colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-    if (s_useRenderTarget)
-    {
-        colorAttachment.imageView = s_renderTargetImageView;
-        if (isResume)
-        {
-            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-        }
-        else
-        {
-            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        }
-    }
-    else
-    {
-        colorAttachment.imageView = s_swapchainImageView;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    }
+    colorAttachment.imageView = s_imageView;
+    colorAttachment.loadOp = ((s_useRenderTarget && !isResume)? VK_ATTACHMENT_LOAD_OP_CLEAR
+                                                              : VK_ATTACHMENT_LOAD_OP_LOAD);
     colorAttachment.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.clearValue = *clearValue;
@@ -1256,7 +1267,7 @@ void CubismRenderer_Vulkan::BeginRendering(VkCommandBuffer drawCommandBuffer, bo
 
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    renderingInfo.renderArea = {{0, 0}, {s_swapchainExtent}};
+    renderingInfo.renderArea = {{0, 0}, {s_renderExtent}};
     renderingInfo.layerCount = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments = &colorAttachment;
@@ -1270,36 +1281,24 @@ void CubismRenderer_Vulkan::EndRendering(VkCommandBuffer drawCommandBuffer)
     vkCmdEndRendering(drawCommandBuffer);
 
     // レイアウト変更
-    if (s_useRenderTarget)
-    {
-        VkImageMemoryBarrier memoryBarrier{};
-        memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        memoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        memoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        memoryBarrier.image = s_renderTargetImage;
-        memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    VkImageMemoryBarrier memoryBarrier{};
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    memoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    memoryBarrier.dstAccessMask = VK_ACCESS_NONE;
+    memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    memoryBarrier.newLayout = (s_useRenderTarget ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL);
+    memoryBarrier.image = s_renderImage;
+    memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
 
-        vkCmdPipelineBarrier(drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
-    }
-    else
-    {
-        VkImageMemoryBarrier memoryBarrier{};
-        memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        memoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        memoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        memoryBarrier.image = s_swapchainImage;
-        memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-
-        vkCmdPipelineBarrier(drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
-    }
+    vkCmdPipelineBarrier(drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
 }
 
 void CubismRenderer_Vulkan::DoDrawModel()
 {
+    VkCommandBuffer updateCommandBuffer = _updateCommandBuffers[_commandBufferCurrent];
+    VkCommandBuffer drawCommandBuffer = _drawCommandBuffers[_commandBufferCurrent];
+
     //------------ クリッピングマスク・バッファ前処理方式の場合 ------------
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1311,15 +1310,15 @@ void CubismRenderer_Vulkan::DoDrawModel()
         // サイズが違う場合はここで作成しなおし
         for (csmInt32 i = 0; i < _clippingManager->GetRenderTextureCount(); ++i)
         {
-            if (_offscreenFrameBuffers[i].GetBufferWidth() != static_cast<csmUint32>(
+            if (_offscreenFrameBuffers[_commandBufferCurrent][i].GetBufferWidth() != static_cast<csmUint32>(
                 _clippingManager->
                 GetClippingMaskBufferSize().X) ||
-                _offscreenFrameBuffers[i].GetBufferHeight() != static_cast<csmUint32>(
+                _offscreenFrameBuffers[_commandBufferCurrent][i].GetBufferHeight() != static_cast<csmUint32>(
                     _clippingManager->
                     GetClippingMaskBufferSize().Y))
             {
-                _offscreenFrameBuffers[i].DestroyOffscreenSurface(s_device);
-                _offscreenFrameBuffers[i].CreateOffscreenSurface(
+                _offscreenFrameBuffers[_commandBufferCurrent][i].DestroyOffscreenSurface(s_device);
+                _offscreenFrameBuffers[_commandBufferCurrent][i].CreateOffscreenSurface(
                     s_device, s_physicalDevice,
                     static_cast<csmUint32>(_clippingManager->GetClippingMaskBufferSize().X),
                     static_cast<csmUint32>(_clippingManager->GetClippingMaskBufferSize().Y),
@@ -1333,14 +1332,14 @@ void CubismRenderer_Vulkan::DoDrawModel()
         }
         else
         {
-            _clippingManager->SetupClippingContext(*GetModel(), drawCommandBuffer, updateCommandBuffer, this);
+            _clippingManager->SetupClippingContext(*GetModel(), drawCommandBuffer, updateCommandBuffer, this, _commandBufferCurrent);
         }
     }
-    SubmitCommand(updateCommandBuffer, _updateFinishedSemaphore);
-    SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphore);
+    SubmitCommand(updateCommandBuffer, _updateFinishedSemaphores[_commandBufferCurrent]);
+    SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphores[_commandBufferCurrent]);
 
     // スワップチェーンを再作成した際に深度バッファのサイズを更新する
-    if (_depthImage.GetWidth() != s_swapchainExtent.width || _depthImage.GetHeight() != s_swapchainExtent.height)
+    if (_depthImage.GetWidth() != s_renderExtent.width || _depthImage.GetHeight() != s_renderExtent.height)
     {
         _depthImage.Destroy(s_device);
         CreateDepthBuffer();
@@ -1383,12 +1382,12 @@ void CubismRenderer_Vulkan::DoDrawModel()
                 EndRendering(drawCommandBuffer);
 
                 // 描画順を考慮して今までに積んだコマンドを実行する
-                SubmitCommand(updateCommandBuffer, _updateFinishedSemaphore);
-                SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphore);
+                SubmitCommand(updateCommandBuffer, _updateFinishedSemaphores[_commandBufferCurrent]);
+                SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphores[_commandBufferCurrent]);
                 vkBeginCommandBuffer(updateCommandBuffer, &beginInfo);
                 vkBeginCommandBuffer(drawCommandBuffer, &beginInfo);
 
-                CubismOffscreenSurface_Vulkan* currentHighPrecisionMaskColorBuffer = &_offscreenFrameBuffers[clipContext->_bufferIndex];
+                CubismOffscreenSurface_Vulkan* currentHighPrecisionMaskColorBuffer = &_offscreenFrameBuffers[_commandBufferCurrent][clipContext->_bufferIndex];
                 currentHighPrecisionMaskColorBuffer->BeginDraw(drawCommandBuffer, 1.0f, 1.0f, 1.0f, 1.0f);
 
                 // 生成したFrameBufferと同じサイズでビューポートを設定
@@ -1425,8 +1424,8 @@ void CubismRenderer_Vulkan::DoDrawModel()
                 // --- 後処理 ---
                 currentHighPrecisionMaskColorBuffer->EndDraw(drawCommandBuffer); // オフスクリーン描画終了
                 SetClippingContextBufferForMask(NULL);
-                SubmitCommand(updateCommandBuffer, _updateFinishedSemaphore);
-                SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphore);
+                SubmitCommand(updateCommandBuffer, _updateFinishedSemaphores[_commandBufferCurrent]);
+                SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphores[_commandBufferCurrent]);
                 vkBeginCommandBuffer(updateCommandBuffer, &beginInfo);
                 vkBeginCommandBuffer(drawCommandBuffer, &beginInfo);
 
@@ -1437,16 +1436,16 @@ void CubismRenderer_Vulkan::DoDrawModel()
 
         // ビューポートを設定する
         const VkViewport viewport = GetViewport(
-            static_cast<csmFloat32>(s_swapchainExtent.width),
-            static_cast<csmFloat32>(s_swapchainExtent.height),
+            static_cast<csmFloat32>(s_renderExtent.width),
+            static_cast<csmFloat32>(s_renderExtent.height),
             0.0, 1.0
         );
         vkCmdSetViewport(drawCommandBuffer, 0, 1, &viewport);
 
         const VkRect2D rect = GetScissor(
             0.0, 0.0,
-            static_cast<csmFloat32>(s_swapchainExtent.width),
-            static_cast<csmFloat32>(s_swapchainExtent.height)
+            static_cast<csmFloat32>(s_renderExtent.width),
+            static_cast<csmFloat32>(s_renderExtent.height)
         );
         vkCmdSetScissor(drawCommandBuffer, 0, 1, &rect);
 
@@ -1457,8 +1456,19 @@ void CubismRenderer_Vulkan::DoDrawModel()
     }
 
     EndRendering(drawCommandBuffer);
-    SubmitCommand(updateCommandBuffer, _updateFinishedSemaphore);
-    SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphore);
+    SubmitCommand(updateCommandBuffer, _updateFinishedSemaphores[_commandBufferCurrent]);
+    SubmitCommand(drawCommandBuffer, VK_NULL_HANDLE, _updateFinishedSemaphores[_commandBufferCurrent]);
+
+    PostDraw();
+}
+
+void CubismRenderer_Vulkan::PostDraw()
+{
+    _commandBufferCurrent++;
+    if (s_bufferSetNum <= _commandBufferCurrent)
+    {
+        _commandBufferCurrent = 0;
+    }
 }
 
 void CubismRenderer_Vulkan::SetClippingContextBufferForMask(CubismClippingContext_Vulkan* clip)
@@ -1509,9 +1519,9 @@ CubismVector2 CubismRenderer_Vulkan::GetClippingMaskBufferSize() const
     return _clippingManager->GetClippingMaskBufferSize();
 }
 
-CubismOffscreenSurface_Vulkan* CubismRenderer_Vulkan::GetMaskBuffer(csmInt32 index)
+CubismOffscreenSurface_Vulkan* CubismRenderer_Vulkan::GetMaskBuffer(csmUint32 backbufferNum, csmInt32 offscreenIndex)
 {
-    return &_offscreenFrameBuffers[index];
+    return &_offscreenFrameBuffers[backbufferNum][offscreenIndex];
 }
 
 void CubismRenderer_Vulkan::SetColorUniformBuffer(ModelUBO& ubo, const CubismTextureColor& baseColor,
@@ -1524,10 +1534,10 @@ void CubismRenderer_Vulkan::SetColorUniformBuffer(ModelUBO& ubo, const CubismTex
 
 void CubismRenderer_Vulkan::BindVertexAndIndexBuffers(const csmInt32 index, VkCommandBuffer& cmdBuffer)
 {
-    VkBuffer vertexBuffers[] = {_vertexBuffers[index].GetBuffer()};
+    VkBuffer vertexBuffers[] = {_vertexBuffers[_commandBufferCurrent][index].GetBuffer()};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(cmdBuffer, _indexBuffers[index].GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(cmdBuffer, _indexBuffers[_commandBufferCurrent][index].GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
 }
 
 void CubismRenderer_Vulkan::SetColorChannel(ModelUBO& ubo, CubismClippingContext_Vulkan* contextBuffer)
