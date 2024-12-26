@@ -8,8 +8,8 @@ from PySide6.QtGui import QMouseEvent, QCursor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
 
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 import resources
 
 
@@ -26,7 +26,7 @@ class Win(QOpenGLWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
-        self.resize(640, 480)
+        self.resize(200, 200)
         self.read = False
         self.clickX = -1
         self.clickY = -1
@@ -57,6 +57,8 @@ class Win(QOpenGLWidget):
             self.model.Resize(w, h)
 
     def paintGL(self) -> None:
+        # live2d.clearBuffer()
+        gl.glClearColor(0.0, 0.0, 0.0, 0.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
         self.model.Update()

@@ -6,7 +6,6 @@
  * that can be found at https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
 
-#include "LAppModel.hpp"
 #include <algorithm>
 #include <fstream>
 #include <vector>
@@ -44,6 +43,21 @@ namespace
         LAppPal::ReleaseBytes(buffer);
     }
 }
+
+
+class FakeMotion : public ACubismMotion
+{
+protected:
+    void DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 weight,
+                            CubismMotionQueueEntry* motionQueueEntry) override
+    {
+    }
+
+public:
+    FakeMotion()
+    {
+    }
+};
 
 LAppModel::LAppModel()
     : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _autoBlink(true), _autoBreath(true)
@@ -431,8 +445,8 @@ void LAppModel::Update()
 }
 
 CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt32 no, csmInt32 priority,
-                                                    OnMotionStartCallback onStartMotionHandler,
-                                                    OnMotionFinishCallback onFinishedMotionHandler)
+                                                    ACubismMotion::BeganMotionCallback onStartMotionHandler,
+                                                    ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
 {
     if (priority == PriorityForce)
     {
@@ -473,7 +487,7 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt
         csmSizeInt size;
         buffer = CreateBuffer(path.GetRawString(), &size);
 
-        motion = static_cast<CubismMotion*>(LoadMotion(buffer, size, NULL, onFinishedMotionHandler));
+        motion = static_cast<CubismMotion*>(LoadMotion(buffer, size, NULL));
 
         if (motion)
         {
@@ -497,24 +511,24 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar* group, csmInt
 
     if (motion)
     {
+        motion->group = group;
+        motion->no = no;
+        motion->SetBeganMotionHandler(onStartMotionHandler);
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
     }
 
 handler_label:
 
-    if (onStartMotionHandler)
-    {
-        onStartMotionHandler(group, no);
-    }
-
     if (!hasMotion)
     {
         // 添加空指针判断，如果 motion 文件不存在，直接调用动作结束回调函数
         // 修复模型文件不存在时，导致崩溃
-        if (onFinishedMotionHandler)
-        {
-            onFinishedMotionHandler(NULL);
-        }
+        FakeMotion fakeMotion;
+        fakeMotion.group = group;
+        fakeMotion.no = no;
+        onStartMotionHandler(&fakeMotion);
+        onFinishedMotionHandler(&fakeMotion);
+
         _motionManager->SetReservePriority(PriorityNone);
         return InvalidMotionQueueEntryHandleValue;
     }
@@ -523,8 +537,8 @@ handler_label:
 }
 
 CubismMotionQueueEntryHandle LAppModel::StartRandomMotion(const csmChar* group, csmInt32 priority,
-                                                          OnMotionStartCallback onStartMotionHandler,
-                                                          OnMotionFinishCallback onFinishedMotionHandler)
+                                                          ACubismMotion::BeganMotionCallback onStartMotionHandler,
+                                                          ACubismMotion::FinishedMotionCallback onFinishedMotionHandler)
 {
     if (_modelSetting->GetMotionCount(group) == 0)
     {
@@ -819,7 +833,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
     return s >= 0 && t >= 0 && s + t <= D;
 }
 
-std::vector<std::string> LAppModel::HitPart(float x, float y, bool topOnly)
+void LAppModel::HitPart(float x, float y, bool topOnly, std::vector<std::string>& partIds)
 {
     x = _modelMatrix->InvertTransformX(x);
     y = _modelMatrix->InvertTransformY(y);
@@ -833,7 +847,6 @@ std::vector<std::string> LAppModel::HitPart(float x, float y, bool topOnly)
     }
     // 多个 part index 可能指向同一个 part id，所以用 part id set
     std::unordered_set<const char*> hitParts;
-    std::vector<std::string> partIds;
     bool topClicked = false;
 
     for (int i = 0; i < drawableCount; i++)
@@ -886,7 +899,6 @@ std::vector<std::string> LAppModel::HitPart(float x, float y, bool topOnly)
         }
     }
     delete[] drawableIndices;
-    return partIds;
 }
 
 void LAppModel::setPartMultiplyColor(int partNo, float r, float g, float b, float a)

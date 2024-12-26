@@ -62,7 +62,7 @@ enum ShaderNames
 
 // SetupMask
 static const csmChar* VertShaderSrcSetupMask =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
 #else
         "#version 120\n"
@@ -80,7 +80,7 @@ static const csmChar* VertShaderSrcSetupMask =
         "v_texCoord.y = 1.0 - v_texCoord.y;"
         "}";
 static const csmChar* FragShaderSrcSetupMask =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -126,7 +126,7 @@ static const csmChar* FragShaderSrcSetupMaskTegra =
 //----- バーテックスシェーダプログラム -----
 // Normal & Add & Mult 共通
 static const csmChar* VertShaderSrc =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
 #else
         "#version 120\n"
@@ -144,7 +144,7 @@ static const csmChar* VertShaderSrc =
 
 // Normal & Add & Mult 共通（クリッピングされたものの描画用）
 static const csmChar* VertShaderSrcMasked =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
 #else
         "#version 120\n"
@@ -166,7 +166,7 @@ static const csmChar* VertShaderSrcMasked =
 //----- フラグメントシェーダプログラム -----
 // Normal & Add & Mult 共通
 static const csmChar* FragShaderSrc =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -207,7 +207,7 @@ static const csmChar* FragShaderSrcTegra =
 
 // Normal & Add & Mult 共通 （PremultipliedAlpha）
 static const csmChar* FragShaderSrcPremultipliedAlpha =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -246,7 +246,7 @@ static const csmChar* FragShaderSrcPremultipliedAlphaTegra =
 
 // Normal & Add & Mult 共通（クリッピングされたものの描画用）
 static const csmChar* FragShaderSrcMask =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -301,7 +301,7 @@ static const csmChar* FragShaderSrcMaskTegra =
 
 // Normal & Add & Mult 共通（クリッピングされて反転使用の描画用）
 static const csmChar* FragShaderSrcMaskInverted =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -356,7 +356,7 @@ static const csmChar* FragShaderSrcMaskInvertedTegra =
 
 // Normal & Add & Mult 共通（クリッピングされたものの描画用、PremultipliedAlphaの場合）
 static const csmChar* FragShaderSrcMaskPremultipliedAlpha =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -409,7 +409,7 @@ static const csmChar* FragShaderSrcMaskPremultipliedAlphaTegra =
 
 // Normal & Add & Mult 共通（クリッピングされて反転使用の描画用、PremultipliedAlphaの場合）
 static const csmChar* FragShaderSrcMaskInvertedPremultipliedAlpha =
-#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2)
+#if defined(CSM_TARGET_IPHONE_ES2) || defined(CSM_TARGET_ANDROID_ES2) || defined(CSM_TARGET_HARMONYOS_ES3)
         "#version 100\n"
         "precision " CSM_FRAGMENT_SHADER_FP_PRECISION " float;"
 #else
@@ -472,6 +472,16 @@ void CubismShader_OpenGLES2::ReleaseShaderProgram()
         }
     }
 }
+
+void CubismShader_OpenGLES2::ReleaseInvalidShaderProgram()
+{
+    for (csmUint32 i = 0; i < _shaderSets.GetSize(); i++)
+    {
+        CSM_DELETE(_shaderSets[i]);
+    }
+    _shaderSets.Clear();
+}
+
 
 CubismShader_OpenGLES2::CubismShader_OpenGLES2()
 { }

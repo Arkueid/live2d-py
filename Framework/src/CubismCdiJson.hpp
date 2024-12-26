@@ -126,6 +126,21 @@ public:
      */
     const csmChar* GetPartsName(csmInt32 index);
 
+    /**
+     * Returns the number of combined parameters.
+     *
+     * @return Number of combined parameters
+     */
+    csmInt32 GetCombinedParametersCount();
+
+    /**
+     * Returns the pair list of the combined parameters.
+     *
+     * @param index Index to the desired combined parameter
+     *
+     * @return Pair list of the combined parameter
+     */
+    const csmVector<Utils::Value*>* GetCombinedParameters(csmInt32 index);
 
 private:
     /**
@@ -148,6 +163,13 @@ private:
      * @return true if parts exist; otherwise false.
      */
     csmBool IsExistParts() const;
+
+    /**
+     * Returns whether the combined parameters exist in the Display Information File.
+     *
+     * @return true if combined parameters exist; otherwise false.
+     */
+    csmBool IsExistCombinedParameters() const;
 };
 
 }}}

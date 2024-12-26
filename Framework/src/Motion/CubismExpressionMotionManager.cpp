@@ -17,6 +17,7 @@ CubismExpressionMotionManager::CubismExpressionMotionManager()
     : _currentPriority(0)
     , _reservePriority(0)
     , _expressionParameterValues(CSM_NEW csmVector<ExpressionParameterValue>())
+    , _fadeWeights(CSM_NEW csmVector<csmFloat32>())
 { }
 
 CubismExpressionMotionManager::~CubismExpressionMotionManager()
@@ -28,33 +29,49 @@ CubismExpressionMotionManager::~CubismExpressionMotionManager()
         _expressionParameterValues = NULL;
     }
 
-    _fadeWeights.Clear();
+    if (_fadeWeights)
+    {
+        CSM_DELETE(_fadeWeights);
+
+        _fadeWeights = NULL;
+    }
 }
 
 csmInt32 CubismExpressionMotionManager::GetCurrentPriority() const
 {
+#if _DEBUG
+    CubismLogWarning("CubismExpressionMotionManager::GetCurrentPriority() is deprecated because a priority value is not actually used during expression motion playback.");
+#endif
     return _currentPriority;
 }
 
 csmInt32 CubismExpressionMotionManager::GetReservePriority() const
 {
+#if _DEBUG
+    CubismLogWarning("CubismExpressionMotionManager::GetReservePriority() is deprecated because a priority value is not actually used during expression motion playback.");
+#endif
     return _reservePriority;
 }
 
 void CubismExpressionMotionManager::SetReservePriority(csmInt32 priority)
 {
+#if _DEBUG
+    CubismLogWarning("CubismExpressionMotionManager::SetReservePriority() is deprecated because a priority value is not actually used during expression motion playback.");
+#endif
     _reservePriority = priority;
 }
 
 CubismMotionQueueEntryHandle CubismExpressionMotionManager::StartMotionPriority(ACubismMotion* motion, csmBool autoDelete, csmInt32 priority)
 {
+#if _DEBUG
+    CubismLogWarning("CubismExpressionMotionManager::StartMotionPriority() is deprecated because a priority value is not actually used during expression motion playback.");
+#endif
+
     if (priority == _reservePriority)
     {
         _reservePriority = 0;           // 予約を解除
     }
     _currentPriority = priority;        // 再生中モーションの優先度を設定
-
-    _fadeWeights.PushBack(0.0f);
 
     return CubismMotionQueueManager::StartMotion(motion, autoDelete);
 }
@@ -67,6 +84,11 @@ csmBool CubismExpressionMotionManager::UpdateMotion(CubismModel* model, csmFloat
 
     csmFloat32 expressionWeight = 0.0f;
     csmInt32 expressionIndex = 0;
+
+    while (_fadeWeights->GetSize() < motions->GetSize())
+    {
+        _fadeWeights->PushBack(0.0f);
+    }
 
     // ------- 処理を行う --------
     // 既にモーションがあれば終了フラグを立てる
@@ -130,9 +152,10 @@ csmBool CubismExpressionMotionManager::UpdateMotion(CubismModel* model, csmFloat
 
         // ------ 値を計算する ------
         expressionMotion->SetupMotionQueueEntry(motionQueueEntry, _userTimeSeconds);
-        _fadeWeights[expressionIndex] = expressionMotion->UpdateFadeWeight(motionQueueEntry, _userTimeSeconds);
+
+        SetFadeWeight(expressionIndex, expressionMotion->UpdateFadeWeight(motionQueueEntry, _userTimeSeconds));
         expressionMotion->CalculateExpressionParameters(model, _userTimeSeconds, motionQueueEntry,
-            _expressionParameterValues, expressionIndex, _fadeWeights[expressionIndex]);
+            _expressionParameterValues, expressionIndex, GetFadeWeight(expressionIndex));
 
         expressionWeight += expressionMotion->GetFadeInTime() == 0.0f
             ? 1.0f
@@ -153,10 +176,8 @@ csmBool CubismExpressionMotionManager::UpdateMotion(CubismModel* model, csmFloat
     // ----- 最新のExpressionのフェードが完了していればそれ以前を削除する ------
     if (motions->GetSize() > 1)
     {
-        CubismExpressionMotion* expressionMotion =
-            (CubismExpressionMotion*)(motions->At(motions->GetSize() - 1))->GetCubismMotion();
+        csmFloat32 latestFadeWeight = GetFadeWeight(_fadeWeights->GetSize() - 1);
 
-        csmFloat32 latestFadeWeight = _fadeWeights[_fadeWeights.GetSize() - 1];
         if (latestFadeWeight >= 1.0f)
         {
             // 配列の最後の要素は削除しない
@@ -165,7 +186,7 @@ csmBool CubismExpressionMotionManager::UpdateMotion(CubismModel* model, csmFloat
                 CubismMotionQueueEntry* motionQueueEntry = motions->At(i);
                 CSM_DELETE(motionQueueEntry);
                 motions->Remove(i);
-                _fadeWeights.Remove(i);
+                _fadeWeights->Remove(i);
             }
         }
     }
@@ -191,7 +212,24 @@ csmBool CubismExpressionMotionManager::UpdateMotion(CubismModel* model, csmFloat
 
 csmFloat32 CubismExpressionMotionManager::GetFadeWeight(csmInt32 index)
 {
-    return _fadeWeights[index];
+    if (index < 0 || _fadeWeights->GetSize() < 1 || _fadeWeights->GetSize() <= index)
+    {
+        CubismLogWarning("Failed to get the fade weight value. The element at that index does not exist.");
+        return -1;
+    }
+
+    return _fadeWeights->At(index);
+}
+
+void CubismExpressionMotionManager::SetFadeWeight(csmInt32 index, csmFloat32 expressionFadeWeight)
+{
+    if (index < 0 || _fadeWeights->GetSize() < 1 || _fadeWeights->GetSize() <= index)
+    {
+        CubismLogWarning("Failed to set the fade weight value. The element at that index does not exist.");
+        return;
+    }
+
+    _fadeWeights->At(index) = expressionFadeWeight;
 }
 
 }}}

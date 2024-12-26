@@ -472,7 +472,7 @@ id<MTLSamplerState> CubismShader_Metal::MakeSamplerState(id<MTLDevice> device, C
     samplerDescriptor.mipFilter = MTLSamplerMipFilterLinear;
 
     //異方性フィルタリング
-    if (renderer->GetAnisotropy() > 0.0f)
+    if (renderer->GetAnisotropy() >= 1.0f)
     {
         samplerDescriptor.maxAnisotropy = renderer->GetAnisotropy();
     }

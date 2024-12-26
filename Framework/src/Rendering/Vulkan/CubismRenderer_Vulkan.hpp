@@ -63,7 +63,7 @@ public:
      * @param[in]   renderer       ->  レンダラのインスタンス
      */
     void SetupClippingContext(CubismModel& model, VkCommandBuffer commandBuffer, VkCommandBuffer updateCommandBuffer,
-                              CubismRenderer_Vulkan* renderer);
+                              CubismRenderer_Vulkan* renderer, csmInt32 offscreenCurrent);
 };
 
 /**
@@ -330,8 +330,9 @@ public:
     /**
      * @brief   コマンドを実行する。
      *
-     * @param[in]   commandBuffer       -> コマンドバッファ
-     * @param[in]   signalUpdateFinishedSemaphore               -> フェンス
+     * @param[in]   commandBuffer                   -> コマンドバッファ
+     * @param[in]   signalUpdateFinishedSemaphore   -> コマンド終了時にシグナルを出すセマフォ
+     * @param[in]   waitUpdateFinishedSemaphore     -> コマンド実行前に待つセマフォ
      */
     void SubmitCommand(VkCommandBuffer commandBuffer, VkSemaphore signalUpdateFinishedSemaphore = VK_NULL_HANDLE, VkSemaphore waitUpdateFinishedSemaphore = VK_NULL_HANDLE);
 
@@ -344,17 +345,16 @@ public:
      * @param[in]   physicalDevice      -> 物理デバイス
      * @param[in]   commandPool         -> コマンドプール
      * @param[in]   queue               -> キュー
+     * @param[in]   swapchainImageCount -> スワップチェーンのイメージ数
      * @param[in]   extent              -> 描画解像度
+     * @param[in]   imageView           -> イメージビュー
+     * @param[in]   imageFormat         -> 描画対象のフォーマット
      * @param[in]   depthFormat         -> 深度フォーマット
-     * @param[in]   surfaceFormat       -> フレームバッファのフォーマット
-     * @param[in]   swapchainImageView  -> スワップチェーンのイメージビュー
      */
     static void InitializeConstantSettings(VkDevice device, VkPhysicalDevice physicalDevice,
                                            VkCommandPool commandPool, VkQueue queue,
-                                           VkExtent2D extent, VkFormat depthFormat, VkFormat surfaceFormat,
-                                           VkImage swapchainImage,
-                                           VkImageView swapchainImageView,
-                                           VkFormat dFormat);
+                                           csmUint32 swapchainImageCount, VkExtent2D extent,
+                                           VkImageView imageView, VkFormat imageFormat, VkFormat depthFormat);
 
     /**
      * @brief    レンダーターゲット変更を有効にする
@@ -362,35 +362,26 @@ public:
     static void EnableChangeRenderTarget();
 
     /**
-     * @brief    レンダーターゲットを変更した際にレンダラを作成するための各種設定
+     * @brief    レンダリング対象の指定
      *
      * @param[in]   image          -> イメージ
-     * @param[in]   imageview      -> イメージビュー
+     * @param[in]   view           -> イメージビュー
+     * @param[in]   format         -> フォーマット
+     * @param[in]   extent         -> 描画解像度
      */
-    static void SetRenderTarget(VkImage image, VkImageView imageview);
+    static void SetRenderTarget(VkImage image, VkImageView view, VkFormat format, VkExtent2D extent);
 
     /**
-     * @brief   スワップチェーンを再作成したときに変更されるリソースを更新する
+     * @brief   描画対象の解像度を設定する
      *
-     * @param[in]  extent 　　-> クリッピングマスクバッファのサイズ
-     * @param[in]  imageView -> イメージビュー
+     * @param[in]  extent 　　-> 描画解像度
      */
-    static void UpdateSwapchainVariable(VkExtent2D extent, VkImage image,
-                                        VkImageView imageView);
-
-    /**
-     * @brief   スワップチェーンイメージを更新する
-     *
-     * @param[in]   iamge     -> イメージ
-     * @param[in]   iamgeView     -> イメージビュー
-     */
-    static void UpdateRendererSettings(VkImage image, VkImageView imageView);
+    static void SetImageExtent(VkExtent2D extent);
 
     /**
      * @brief   コマンドバッファを作成する。
      */
     void CreateCommandBuffer();
-
 
     /**
      * @brief   空の頂点バッファを作成する。
@@ -466,6 +457,7 @@ public:
      * @brief  ディスクリプタセットを更新する
      * @param[in]   descriptor    -> 1つのシェーダーが使用するディスクリプタセットとUBO
      * @param[in]   textureIndex  -> テクスチャインデックス
+     * @param[in]   isMasked      -> 描画対象がマスクされるか
      */
     void UpdateDescriptorSet(Descriptor& descriptor, csmUint32 textureIndex, bool isMasked);
 
@@ -520,6 +512,12 @@ public:
     void DoDrawModel() override;
 
     /**
+     * @brief   描画完了後の追加処理。<br>
+     *          マルチバッファリングに必要な処理を実装している。
+     */
+    void PostDraw();
+
+    /**
      * @brief   モデル描画直前のステートを保持する
      */
     void SaveProfile() override {}
@@ -531,6 +529,8 @@ public:
 
     /**
      * @brief   マスクテクスチャに描画するクリッピングコンテキストをセットする。
+     *
+     * @param[in]  clip ->  クリッピングコンテキスト
      */
     void SetClippingContextBufferForMask(CubismClippingContext_Vulkan* clip);
 
@@ -543,6 +543,8 @@ public:
 
     /**
      * @brief   画面上に描画するクリッピングコンテキストをセットする。
+     *
+     * @param[in]  clip ->  クリッピングコンテキスト
      */
     void SetClippingContextBufferForDraw(CubismClippingContext_Vulkan* clip);
 
@@ -580,10 +582,13 @@ public:
     /**
      * @brief  クリッピングマスクのバッファを取得する
      *
+     * @param[in] backbufferNum  -> バックバッファの番号
+     * @param[in] offscreenIndex -> オフスクリーンのインデックス
+     *
      * @return クリッピングマスクのバッファへのポインタ
      *
      */
-    CubismOffscreenSurface_Vulkan* GetMaskBuffer(csmInt32 index);
+    CubismOffscreenSurface_Vulkan* GetMaskBuffer(csmUint32 backbufferNum, csmInt32 offscreenIndex);
 
 private:
 
@@ -602,7 +607,7 @@ private:
      * @brief  頂点バッファとインデックスバッファをバインドする
      *
      * @param[in]   index            ->  描画メッシュのインデックス
-     * @param[in]   commandBuffer    ->  コマンドバッファ
+     * @param[in]   cmdBuffer        ->  コマンドバッファ
      */
     void BindVertexAndIndexBuffers(const csmInt32 index, VkCommandBuffer& cmdBuffer);
 
@@ -623,19 +628,25 @@ private:
     csmVector<csmInt32> _sortedDrawableIndexList; ///< 描画オブジェクトのインデックスを描画順に並べたリスト
     CubismClippingContext_Vulkan* _clippingContextBufferForMask; ///< マスクテクスチャに描画するためのクリッピングコンテキスト
     CubismClippingContext_Vulkan* _clippingContextBufferForDraw; ///< 画面上描画するためのクリッピングコンテキスト
-    csmVector<CubismOffscreenSurface_Vulkan> _offscreenFrameBuffers; ///< マスク描画用のフレームバッファ
-    csmVector<CubismBufferVulkan> _vertexBuffers; ///< 頂点バッファ
-    csmVector<CubismBufferVulkan> _stagingBuffers; ///< 頂点バッファを更新する際に使うステージングバッファ
-    csmVector<CubismBufferVulkan> _indexBuffers; ///< インデックスバッファ
+
+    csmUint32 _commandBufferCurrent; ///< スワップチェーン用に使用中のバッファインデックス
+
+    csmVector<csmVector<CubismOffscreenSurface_Vulkan>> _offscreenFrameBuffers; ///< マスク描画用のフレームバッファ
+    csmVector<csmVector<CubismBufferVulkan>> _vertexBuffers; ///< 頂点バッファ
+    csmVector<csmVector<CubismBufferVulkan>> _stagingBuffers; ///< 頂点バッファを更新する際に使うステージングバッファ
+    csmVector<csmVector<CubismBufferVulkan>> _indexBuffers; ///< インデックスバッファ
+
     VkDescriptorPool _descriptorPool; ///< ディスクリプタプール
     VkDescriptorSetLayout _descriptorSetLayout; ///< ディスクリプタセットのレイアウト
-    csmVector<Descriptor> _descriptorSets; ///< ディスクリプタ管理オブジェクト
+    csmVector<csmVector<Descriptor>> _descriptorSets; ///< ディスクリプタ管理オブジェクト
+
     csmVector<CubismImageVulkan> _textures; ///< モデルが使うテクスチャ
     CubismImageVulkan _depthImage; ///< オフスクリーンの色情報を保持する深度画像
     VkClearValue _clearColor; ///< クリアカラー
-    VkSemaphore _updateFinishedSemaphore; ///< セマフォ
-    VkCommandBuffer updateCommandBuffer; ///< 更新用コマンドバッファ
-    VkCommandBuffer drawCommandBuffer; ///< 描画用コマンドバッファ
+
+    csmVector<VkSemaphore> _updateFinishedSemaphores; ///< セマフォ
+    csmVector<VkCommandBuffer> _updateCommandBuffers; ///< 更新用コマンドバッファ
+    csmVector<VkCommandBuffer> _drawCommandBuffers; ///< 描画用コマンドバッファ
 };
 }}}}
 

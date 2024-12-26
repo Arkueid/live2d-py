@@ -15,142 +15,97 @@
 namespace Live2D { namespace Cubism { namespace Framework {
 
 /**
- * @brief 表情のモーション
- *
- * 表情のモーションクラス。
+ * Handles facial expression motions.
  */
 class CubismExpressionMotion : public ACubismMotion
 {
 public:
     /**
-     * @brief 表情パラメータ値の計算方式
-     *
+     * Blending calculation method for facial expression parameters
      */
     enum ExpressionBlendType
     {
-        Additive = 0,   ///< 加算
-        Multiply = 1,   ///< 乗算
-        Overwrite = 2   ///< 上書き
+        Additive = 0,           ///< Addition
+        Multiply = 1,           ///< Multiplication
+        Overwrite = 2           ///< Overwrite
     };
 
     /**
-     * @brief 表情のパラメータ情報
-     *
-     * 表情のパラメータ情報の構造体。
+     * Data for facial expression parameter information
      */
     struct ExpressionParameter
     {
-        CubismIdHandle      ParameterId;        ///< パラメータID
-        ExpressionBlendType BlendType;          ///< パラメータの演算種類
-        csmFloat32          Value;              ///< 値
+        CubismIdHandle      ParameterId;        ///< Attached parameter ID
+        ExpressionBlendType BlendType;          ///< Blending calculation method for facial expression parameters attached to the parameter
+        csmFloat32          Value;              ///< Parameter value
     };
 
     /**
-     * @brief インスタンスの作成
+     * Makes an instance.
      *
-     * インスタンスを作成する。
+     * @param buf buffer containing the loaded facial expression settings file
+     * @param size size of the buffer in bytes
      *
-     * @param[in]   buf     expファイルが読み込まれているバッファ
-     * @param[in]   size    バッファのサイズ
-     * @return  作成されたインスタンス
+     * @return created instance
      */
     static CubismExpressionMotion* Create(const csmByte* buf, csmSizeInt size);
 
     /**
-    * @brief モデルのパラメータの更新の実行
-    *
-    * モデルのパラメータ更新を実行する。
-    *
-    * @param[in]   model               対象のモデル
-    * @param[in]   userTimeSeconds     デルタ時間の積算値[秒]
-    * @param[in]   weight              モーションの重み
-    * @param[in]   motionQueueEntry    CubismMotionQueueManagerで管理されているモーション
-    */
+     * Updates the model parameters.
+     *
+     * @param model model to update
+     * @param userTimeSeconds current time in seconds
+     * @param weight weight during the application of the motion (0.0-1.0)
+     * @param motionQueueEntry motion managed by the CubismMotionQueueManager
+     */
     virtual void DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 weight, CubismMotionQueueEntry* motionQueueEntry);
 
     /**
-    * @brief 表情によるモデルのパラメータの計算
-    *
-    * モデルの表情に関するパラメータを計算する。
-    *
-    * @param[in]   model                        対象のモデル
-    * @param[in]   userTimeSeconds              デルタ時間の積算値[秒]
-    * @param[in]   motionQueueEntry             CubismMotionQueueManagerで管理されているモーション
-    * @param[in]   expressionParameterValues    モデルに適用する各パラメータの値
-    * @param[in]   expressionIndex              表情のインデックス
-    */
+     * Computes the parameters related to the model's facial expressions.
+     *
+     * @param model model to update
+     * @param userTimeSeconds cumulative delta time in seconds
+     * @param motionQueueEntry motion managed by the CubismMotionQueueManager
+     * @param expressionParameterValues values of each parameter to be applied to the model
+     * @param expressionIndex index of the facial expression
+     */
     void CalculateExpressionParameters(CubismModel* model, csmFloat32 userTimeSeconds, CubismMotionQueueEntry* motionQueueEntry,
         csmVector<CubismExpressionMotionManager::ExpressionParameterValue>* expressionParameterValues, csmInt32 expressionIndex, csmFloat32 fadeWeight);
 
     /**
-     * @brief 表情が参照しているパラメータを取得
-     *
-     * 表情が参照しているパラメータを取得する。
+     * Returns the parameters referenced by the facial expression.
      */
     csmVector<ExpressionParameter> GetExpressionParameters();
 
     /**
-     * @brief 表情のフェードの値を取得
+     * Returns the current fade weight value of the facial expression.
      *
-     * 現在の表情のフェードのウェイト値を取得する。
+     * @return fade weight value of the facial expression
      *
-     * @return 表情のフェードのウェイト値
+     * @deprecated Not recommended due to the planned removal of CubismExpressionMotion._fadeWeight.
+     *             Use CubismExpressionMotionManager.getFadeWeight(int index) instead.
      *
-     * @deprecated CubismExpressionMotion._fadeWeightが削除予定のため非推奨
-     * CubismExpressionMotionManager.getFadeWeight(int index) を使用してください。
-     *
-     * @see CubismExpressionMotionManager#GetFadeWeight(int index)
+     * @see CubismExpressionMotionManager#getFadeWeight(int index)
      */
     csmFloat32 GetFadeWeight();
 
-    static const csmFloat32 DefaultAdditiveValue;    ///<  加算適用の初期値
-    static const csmFloat32 DefaultMultiplyValue;    ///<  乗算適用の初期値
+    static const csmFloat32 DefaultAdditiveValue;
+    static const csmFloat32 DefaultMultiplyValue;
 
 protected:
-    /**
-    * @brief コンストラクタ
-    *
-    * コンストラクタ。
-    */
     CubismExpressionMotion();
 
-    /**
-    * @brief デストラクタ
-    *
-    * デストラクタ。
-    */
     virtual ~CubismExpressionMotion();
 
-    /**
-     * @brief exp3.jsonのパース
-     *
-     * exp3.jsonをパースする。
-     *
-     * @param[in]   exp3Json    exp3.jsonが読み込まれているバッファ
-     * @param[in]   size        バッファのサイズ
-     */
     void Parse(const csmByte* exp3Json, csmSizeInt size);
 
-    csmVector<ExpressionParameter> _parameters;     ///< 表情が参照しているパラメータ一覧
+    csmVector<ExpressionParameter> _parameters;
 
 private:
 
-    /**
-     * @brief ブレンド計算
-     *
-     * 入力された値でブレンド計算をする。
-     *
-     * @param[in]   source          現在の値
-     * @param[in]   destination     適用する値
-     */
     csmFloat32 CalculateValue(csmFloat32 source, csmFloat32 destination, csmFloat32 fadeWeight);
 
 
-    /**
-     * 表情の現在のウェイト
-     *
-     * @deprecated 不具合を引き起こす要因となるため非推奨。
-     */
     csmFloat32 _fadeWeight;
 };
 

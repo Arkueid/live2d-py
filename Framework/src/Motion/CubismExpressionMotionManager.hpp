@@ -14,108 +14,108 @@
 namespace Live2D { namespace Cubism { namespace Framework {
 
 /**
- * @brief 表情モーションの管理
- *
- * 表情モーションの管理を行うクラス。
+ * Handles the management of facial expression motions.
  */
 class CubismExpressionMotionManager : public CubismMotionQueueManager
 {
 public:
     /**
-     * @brief パラメータに適用する表情の値を持たせる構造体
+     * Structure that holds facial expression values to apply to parameters
      */
     struct ExpressionParameterValue
     {
-        CubismIdHandle      ParameterId;        ///< パラメータID
-        csmFloat32          AdditiveValue;      ///< 加算値
-        csmFloat32          MultiplyValue;      ///< 乗算値
-        csmFloat32          OverwriteValue;           ///< 上書き値
+        CubismIdHandle      ParameterId;        ///< Parameter ID
+        csmFloat32          AdditiveValue;      ///< Added value
+        csmFloat32          MultiplyValue;      ///< Multiplied value
+        csmFloat32          OverwriteValue;     ///< Overwritten value
     };
 
     /**
-     * @brief コンストラクタ
-     *
-     * コンストラクタ。
+     * Constructor
      */
     CubismExpressionMotionManager();
 
     /**
-     * @brief デストラクタ
-     *
-     * デストラクタ。
+     * Destructor
      */
     virtual ~CubismExpressionMotionManager();
 
     /**
-     * @brief 再生中のモーションの優先度の取得
+     * Returns the priority of the playing facial expression motion.
      *
-     * 再生中の表情モーションの優先度の取得する。
+     * @deprecated This function is deprecated because a priority value is not actually used during expression motion playback.
      *
-     * @return  表情モーションの優先度
+     * @return priority of the facial expression motion
      */
     csmInt32 GetCurrentPriority() const;
 
     /**
-     * @brief 予約中のモーションの優先度の取得
+     * Returns the priority of the reserved facial expression motion.
      *
-     * 予約中の表情モーションの優先度を取得する。
+     * @deprecated This function is deprecated because a priority value is not actually used during expression motion playback.
      *
-     * @return  表情モーションの優先度
+     * @return priority of the facial expression motion
      */
     csmInt32 GetReservePriority() const;
 
     /**
-     * @brief 予約中のモーションの優先度の設定
+     * Sets the priority of the reserved facial expression motion.
      *
-     * 予約中の表情モーションの優先度を設定する。
+     * @deprecated This function is deprecated because a priority value is not actually used during expression motion playback.
      *
-     * @param[in]   priority     優先度
+     * @param[in] priority priority to set
      */
     void SetReservePriority(csmInt32 priority);
 
     /**
-     * @brief 優先度を設定して表情モーションの開始
+     * Starts the facial expression motion with the specified priority.
      *
-     * 優先度を設定して表情モーションを開始する。
+     * @deprecated This function is deprecated because a priority value is not actually used during expression motion playback.
+     *             Use CubismMotionQueueManager::StartMotion(ACubismMotion* motion, csmBool autoDelete) instead.
      *
-     * @param[in]   motion          モーション
-     * @param[in]   autoDelete      再生が終了したモーションのインスタンスを削除するならtrue
-     * @param[in]   priority        優先度
-     * @return                      開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
+     * @param[in] motion motion
+     * @param[in] autoDelete true to delete the instance of the motion when playback ends
+     * @param[in] priority priority
+     * @return identifier of the started motion. Use this as an argument to IsFinished() to determine if the individual motion has finished. Returns -1 if the motion could not be started.
      */
     CubismMotionQueueEntryHandle StartMotionPriority(ACubismMotion* motion, csmBool autoDelete, csmInt32 priority);
 
     /**
-     * @brief モーションの更新
+     * Updates the facial expression motion and reflects the parameter values on the model.
      *
-     * 表情モーションを更新して、モデルにパラメータ値を反映する。
-     *
-     * @param[in]   model   対象のモデル
-     * @param[in]   deltaTimeSeconds    デルタ時間[秒]
-     * @retval  true    更新されている
-     * @retval  false   更新されていない
+     * @param[in] model target model
+     * @param[in] deltaTimeSeconds delta time in seconds
+     * @return true if updated; otherwise false.
      */
     csmBool UpdateMotion(CubismModel* model, csmFloat32 deltaTimeSeconds);
 
     /**
-     * 現在の表情のフェードのウェイト値を取得する。
+     * @param index index of the facial expression motion to retrieve
      *
-     * @param index 取得する表情モーションのインデックス
-     *
-     * @return 表情のフェードのウェイト値
+     * @return fade weight value of the facial expression
      */
     csmFloat32 GetFadeWeight(csmInt32 index);
 
 private:
 
-    // モデルに適用する各パラメータの値
+    /**
+     * @brief Set the weight of expression fade
+     *
+     * Set the weight of expression fade.
+     *
+     * @param[in]    index  Index of the expression motion to be set
+     * @param[in]    expressionFadeWeight   Weight value of expression fade
+     */
+    void SetFadeWeight(csmInt32 index, csmFloat32 expressionFadeWeight);
+
+    // Values of each parameter to be applied to the model
     csmVector<ExpressionParameterValue>* _expressionParameterValues;
 
-    // 再生中の表情のウェイト
-    csmVector<csmFloat32> _fadeWeights;
+    // Weights of the currently playing expression
+    csmVector<csmFloat32>* _fadeWeights;
 
-    csmInt32 _currentPriority;                  ///<  現在再生中のモーションの優先度
-    csmInt32 _reservePriority;                  ///<  再生予定のモーションの優先度。再生中は0になる。モーションファイルを別スレッドで読み込むときの機能。
+    csmInt32 _currentPriority;    ///< @deprecated This variable is deprecated because a priority value is not actually used during expression motion playback.
+    csmInt32 _reservePriority;    ///< @deprecated This variable is deprecated because a priority value is not actually used during expression motion playback.
 };
 
 }}}

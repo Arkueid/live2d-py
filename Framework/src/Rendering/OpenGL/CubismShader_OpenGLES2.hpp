@@ -34,6 +34,11 @@
 #include <OpenGL/gl.h>
 #endif
 
+#ifdef CSM_TARGET_HARMONYOS_ES3
+#include <GLES3/gl3.h>
+#include <GLES2/gl2ext.h>
+#endif
+
 //------------ LIVE2D NAMESPACE ------------
 namespace Live2D { namespace Cubism { namespace Framework { namespace Rendering {
 
@@ -59,6 +64,12 @@ public:
      * @brief   インスタンスを解放する（シングルトン）。
      */
     static void DeleteInstance();
+
+    /**
+     * @brief   一部の環境でこのインスタンスが管理するリソースが破棄される場合があります。
+     *          このような場合に二重解放を避け無効になったリソースを破棄します。
+     */
+    void ReleaseInvalidShaderProgram();
 
     /**
      * @brief   描画用のシェーダプログラムの一連のセットアップを実行する

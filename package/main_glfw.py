@@ -3,8 +3,8 @@ import os.path
 import resources
 
 import glfw
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 
 
 # 窗口初始化
@@ -32,7 +32,6 @@ def main():
     live2d.init()
 
     live2d.glewInit()
-    live2d.setGLProperties()
 
     model = live2d.LAppModel()
 

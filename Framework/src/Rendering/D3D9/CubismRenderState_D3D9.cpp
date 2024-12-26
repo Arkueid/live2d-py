@@ -223,12 +223,18 @@ void CubismRenderState_D3D9::SetTextureFilter(LPDIRECT3DDEVICE9 device, csmInt32
 
         device->SetSamplerState(stage, D3DSAMP_MINFILTER, minFilter);
         device->SetSamplerState(stage, D3DSAMP_MAGFILTER, magFilter);
+        device->SetSamplerState(stage, D3DSAMP_MIPFILTER, mipFilter);
         device->SetSamplerState(stage, D3DSAMP_ADDRESSU, addressU);
         device->SetSamplerState(stage, D3DSAMP_ADDRESSV, addressV);
-        if (anisotropy > 0.0f)
+
+        // 1以下だと無効
+        if (anisotropy > 1.0f)
         {
-            device->SetSamplerState(stage, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
             device->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, anisotropy);
+        }
+        else
+        {
+            device->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, 1.0f);
         }
     }
 

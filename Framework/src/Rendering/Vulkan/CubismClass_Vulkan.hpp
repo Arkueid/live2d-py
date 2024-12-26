@@ -140,7 +140,7 @@ public:
      * @param[in]  maxAnistropy    -> 異方性の値の最大値
      * @param[in]  mipLevel        -> ミップマップのレベル
      */
-    void CreateSampler(VkDevice device, float maxAnistropy, csmUint32 mipLevel);
+    void CreateSampler(VkDevice device, csmFloat32 maxAnistropy, csmUint32 mipLevel);
 
     /**
      * @brief   イメージのレイアウトを変更する

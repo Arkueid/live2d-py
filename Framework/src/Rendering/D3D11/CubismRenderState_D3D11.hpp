@@ -100,7 +100,7 @@ public:
             _viewportMaxZ = 0.0f;
 
             _sampler = Sampler_Normal;
-            _anisotropy = 0.0;
+            _anisotropy = 0.0f;
 
             memset(_valid, 0, sizeof(_valid));
         }
@@ -198,7 +198,7 @@ public:
      * @param   renderContext[in]    描画コンテキスト
      * @param   force[in]       trueの場合は今の設定が何であろうと強制設定
      */
-    void SetSampler(ID3D11DeviceContext* renderContext, Sampler sample, csmFloat32 anisotropy = 0.0, csmBool force = false);
+    void SetSampler(ID3D11DeviceContext* renderContext, Sampler sample, csmFloat32 anisotropy = 0.0f, ID3D11Device* device = NULL, csmBool force = false);
 
 private:
     CubismRenderState_D3D11();
