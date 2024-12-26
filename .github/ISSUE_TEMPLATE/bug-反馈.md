@@ -1,6 +1,6 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Bug 反馈
+about: '提交编译、安装、模型操作等方面的 bug '
 title: ''
 labels: ''
 assignees: ''
