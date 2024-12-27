@@ -44,19 +44,13 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/static/${CMAKE_BUILD_TYPE})
 endif()  
 
-find_package(Python3 REQUIRED COMPONENTS Development)
-
-message("Python3_LIBRARY_DIRS " ${Python3_LIBRARY_DIRS})
-
-message("Python3_INCLUDE_DIRS" ${Python3_INCLUDE_DIRS})
+find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
 
 add_subdirectory(Main)
 
 # 创建Python扩展模块
 add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
-target_link_libraries(LAppModelWrapper PRIVATE Main)
-target_include_directories(LAppModelWrapper PRIVATE ${Python3_INCLUDE_DIRS})
-target_link_libraries(LAppModelWrapper PRIVATE ${Python3_LIBRARY_DIRS}/python3.lib)
+target_link_libraries(LAppModelWrapper PRIVATE Main Python3::SABIModule)
 
 # Configure for Linux / Windows
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
