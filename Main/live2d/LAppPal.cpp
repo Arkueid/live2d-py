@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <fstream>
-#include <GL/glew.h>
 #include <Model/CubismMoc.hpp>
 #include "LAppDefine.hpp"
 

@@ -8,7 +8,12 @@
 #pragma once
 
 #include <string>
+#ifndef CSM_TARGET_ANDROID_ES2
 #include <GL/glew.h>
+#else
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#endif
 #include <Type/csmVector.hpp>
 
 /**
