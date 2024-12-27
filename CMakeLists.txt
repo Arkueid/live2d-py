@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 
 project(LAppModelWrapper)
 
@@ -12,7 +12,7 @@ endif()
 
 message("${CMAKE_BUILD_TYPE}")
 
-set(LIB_NAME LAppModelWrapper)
+set(OUTPUT_LIB_NAME LAppModelWrapper)
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # prevent python root dir being shadowed by registry
@@ -22,7 +22,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
     message("Found PYTHON_INSTALLATION_PATH in environment variables")
     set(CMAKE_PREFIX_PATH ${PYTHON_INSTALLATION_PATH})
 else()
-    # 寻找Python
+    # 手动设置 python 路径
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
     set(CMAKE_PREFIX_PATH D:/Miniconda/envs/py3100)
 endif()
@@ -54,23 +54,26 @@ add_subdirectory(Main)
 
 # 创建Python扩展模块
 add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
-target_link_libraries(LAppModelWrapper PRIVATE Python3::Python live2d)
+target_link_libraries(LAppModelWrapper PRIVATE Python3::Python Main)
 target_link_libraries(LAppModelWrapper PRIVATE ${Python3_LIBRARY_DIRS}/python3.lib)
 
 # Configure for Linux / Windows
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(MODULE_NAME lib${LIB_NAME}.so)
+  set(MODULE_NAME lib${OUTPUT_LIB_NAME}.so)
   set(OUTPUT_NAME live2d.so)
-else(CMAKE_SYSTEM_NAME MATCHES "Windows")
-  set(MODULE_NAME ${LIB_NAME}.dll)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
+  set(MODULE_NAME ${OUTPUT_LIB_NAME}.dll)
   set(OUTPUT_NAME live2d.pyd)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  set(MODULE_NAME lib${OUTPUT_LIB_NAME}.so)
+  set(OUTPUT_NAME live2d.so)
 endif()
 
 # Post build commands
 add_custom_command(
-  TARGET ${LIB_NAME}
+  TARGET ${OUTPUT_LIB_NAME}
   POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+      copy $<TARGET_FILE_DIR:${OUTPUT_LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
 )

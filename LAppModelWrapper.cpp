@@ -10,11 +10,8 @@
 #include <Log.hpp>
 #include <unordered_map>
 #include <mutex>
-#include <MatrixManager.hpp>
-#include <Default.hpp>
 
 #define Py_LIMITED_API
-// #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
 #ifdef WIN32
@@ -32,14 +29,12 @@ struct PyLAppModelObject
 {
     PyObject_HEAD
     LAppModel* model;
-    MatrixManager matrixManager;
 };
 
 // LAppModel()
 static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* kwds)
 {
     self->model = new LAppModel();
-    self->matrixManager.Initialize();
     Info("[M] allocate LAppModel(at=%p)", self->model);
     return 0;
 }
@@ -47,8 +42,6 @@ static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* k
 static void PyLAppModel_dealloc(PyLAppModelObject* self)
 {
     Info("[M] deallocate: PyLAppModelObject(at=%p)", self);
-    // Py_TYPE(self)->tp_free((PyObject*)self);
-    // PyObject_Del(self);
     PyObject_Free(self);
 }
 
@@ -75,7 +68,7 @@ static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args)
         return NULL;
     }
 
-    self->matrixManager.UpdateScreenToScene(ww, wh);
+    self->model->Resize(ww, wh);
 
     Py_RETURN_NONE;
 }
@@ -83,9 +76,7 @@ static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args)
 // LAppModel->Update
 static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject* args)
 {
-    LAppPal::UpdateTime();
-
-    self->model->Draw(self->matrixManager.GetProjection(self->model));
+    self->model->Draw();
     Py_RETURN_NONE;
 }
 
@@ -333,17 +324,7 @@ static PyObject* PyLAppModel_Touch(PyLAppModelObject* self, PyObject* args, PyOb
         Py_XDECREF(onFinishHandler);
     };
 
-    self->matrixManager.ScreenToScene(&mx, &my);
-
-    csmString hitArea = self->model->HitTest(mx, my);
-    if (strlen(hitArea.GetRawString()) != 0)
-    {
-        Info("hit area: [%s]", hitArea.GetRawString());
-        if (strcmp(hitArea.GetRawString(), HIT_AREA_HEAD) == 0)
-            self->model->SetRandomExpression();
-        self->model->StartRandomMotion(hitArea.GetRawString(), MOTION_PRIORITY_FORCE, onStartCallback,
-                                       onFinishCallback);
-    }
+    self->model->Touch(mx, my, onStartCallback, onFinishCallback);
 
     Py_RETURN_NONE;
 }
@@ -356,9 +337,7 @@ static PyObject* PyLAppModel_Drag(PyLAppModelObject* self, PyObject* args)
         return NULL;
     }
 
-    self->matrixManager.ScreenToScene(&mx, &my);
-
-    self->model->SetDragging(mx, my);
+    self->model->Drag(mx, my);
 
     Py_RETURN_NONE;
 }
@@ -383,7 +362,7 @@ static PyObject* PyLAppModel_SetOffset(PyLAppModelObject* self, PyObject* args)
         return NULL;
     }
 
-    self->matrixManager.SetOffset(dx, dy);
+    self->model->SetOffset(dx, dy);
 
     Py_RETURN_NONE;
 }
@@ -398,7 +377,7 @@ static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args)
         return NULL;
     }
 
-    self->matrixManager.SetScale(scale);
+    self->model->SetScale(scale);
 
     Py_RETURN_NONE;
 }
@@ -489,7 +468,10 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
         return NULL;
     }
 
-    Parameter param = self->model->GetParameter(index);
+    const char* id;
+    int type;
+    float value, maxValue, minValue, defaultValue;
+    self->model->GetParameter(index, id, type, value, maxValue, minValue, defaultValue);
 
     PyObject* instance = PyObject_CallObject(typeobject_live2d_v3_parameter, NULL);
     if (instance == NULL)
@@ -498,12 +480,12 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
         return NULL;
     }
 
-    PyObject_SetAttrString(instance, "id", PyUnicode_FromString(param.id.c_str()));
-    PyObject_SetAttrString(instance, "type", PyLong_FromLong(param.type));
-    PyObject_SetAttrString(instance, "value", PyFloat_FromDouble(param.value));
-    PyObject_SetAttrString(instance, "max", PyFloat_FromDouble(param.maxValue));
-    PyObject_SetAttrString(instance, "min", PyFloat_FromDouble(param.minValue));
-    PyObject_SetAttrString(instance, "default", PyFloat_FromDouble(param.defaultValue));
+    PyObject_SetAttrString(instance, "id", PyUnicode_FromString(id));
+    PyObject_SetAttrString(instance, "type", PyLong_FromLong(type));
+    PyObject_SetAttrString(instance, "value", PyFloat_FromDouble(value));
+    PyObject_SetAttrString(instance, "max", PyFloat_FromDouble(maxValue));
+    PyObject_SetAttrString(instance, "min", PyFloat_FromDouble(minValue));
+    PyObject_SetAttrString(instance, "default", PyFloat_FromDouble(defaultValue));
 
     return instance;
 }
@@ -566,8 +548,7 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
     }
-
-    self->matrixManager.ScreenToScene(&x, &y);
+    
     std::vector<std::string> hitPartIds;
     self->model->HitPart(x, y, topOnly, hitPartIds);
     PyObject* list = PyList_New(hitPartIds.size());
@@ -800,7 +781,7 @@ PyMODINIT_FUNC PyInit_live2d(void)
     {
         return NULL;
     }
-    
+
     if (PyModule_AddObject(m, "LAppModel", lappmodel_type) < 0)
     {
         Py_DECREF(&lappmodel_type);

@@ -17,21 +17,13 @@
 #include <functional>
 #include <unordered_set>
 
+#include "MatrixManager.hpp"
+
 /**
  * @brief ユーザーが実際に使用するモデルの実装クラス<br>
  *         モデル生成、機能コンポーネント生成、更新処理とレンダリングの呼び出しを行う。
  *
  */
-struct Parameter
-{
-    std::string id;
-    int type;
-    float value;
-    float maxValue;
-    float minValue;
-    float defaultValue;
-};
-
 class LAppModel : public Csm::CubismUserModel
 {
 public:
@@ -69,7 +61,7 @@ public:
      *
      * @param[in]  matrix  View-Projection行列
      */
-    void Draw(Csm::CubismMatrix44& matrix);
+    void Draw();
 
     /**
      * @brief   引数で指定したモーションの再生を開始する。
@@ -82,7 +74,8 @@ public:
      */
     Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar* group, Csm::csmInt32 no, Csm::csmInt32 priority,
                                                   Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler = NULL,
-                                                  Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
+                                                  Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler =
+                                                      NULL);
 
     /**
      * @brief   ランダムに選ばれたモーションの再生を開始する。
@@ -93,8 +86,10 @@ public:
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
     Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar* group, Csm::csmInt32 priority,
-                                                        Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler = NULL,
-                                                        Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler = NULL);
+                                                        Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler =
+                                                            NULL,
+                                                        Csm::ACubismMotion::FinishedMotionCallback
+                                                        onFinishedMotionHandler = NULL);
 
     /**
      * @brief   引数で指定した表情モーションをセットする
@@ -125,7 +120,12 @@ public:
      */
     virtual Csm::csmBool HitTest(const Csm::csmChar* hitAreaName, Csm::csmFloat32 x, Csm::csmFloat32 y);
 
-    virtual Csm::csmString HitTest(Csm::csmFloat32 x, Csm::csmFloat32 y);
+    virtual Csm::csmString HitTest(float x, float y);
+
+    void Resize(int ww, int wh);
+
+    void Touch(float x, float y, Live2D::Cubism::Framework::ACubismMotion::BeganMotionCallback s_call,
+               Live2D::Cubism::Framework::ACubismMotion::FinishedMotionCallback f_call);
 
     /**
      * @brief   別ターゲットに描画する際に使用するバッファの取得
@@ -152,7 +152,8 @@ public:
 
     int GetParameterCount();
 
-    Parameter GetParameter(int i);
+    void GetParameter(int i, const char*& id, int& type, float& value, float& maxValue, float& minValue,
+                      float& defaultValue);
 
     int GetPartCount();
 
@@ -176,7 +177,11 @@ public:
 
     void getPartScreenColor(int partNo, float& r, float& g, float& b, float& a);
 
+    void Drag(float x, float y);
 
+    void SetOffset(float dx, float dy);
+
+    void SetScale(float scale);
 
 protected:
     /**
@@ -251,6 +256,8 @@ private:
     LAppTextureManager _textureManager; ///< 纹理管理器
 
     Csm::Rendering::CubismOffscreenSurface_OpenGLES2 _renderBuffer; ///< フレームバッファ以外の描画先
+
+    MatrixManager _matrixManager;
 
     bool _autoBreath;
     bool _autoBlink;

@@ -1,13 +1,10 @@
 #include "MatrixManager.hpp"
-#include <cmath>
+#include "LAppModel.hpp"
 
-void MatrixManager::Initialize()
+MatrixManager::MatrixManager(): _offsetX(0.0f), _offsetY(0.0f), _scale(1.0f),
+                                _ww(800),
+                                _wh(600)
 {
-    _scale = 1.0f;
-    _offsetX = 0.0f;
-    _offsetY = 0.0f;
-    _ww = 800;
-    _wh = 600;
 }
 
 // call when scene is resized
@@ -36,13 +33,13 @@ void MatrixManager::UpdateScreenToScene(int width, int height)
     _screenToScene.TranslateRelative(-width * 0.5f, -height * 0.5f);
 }
 
-void MatrixManager::ScreenToScene(float *x, float *y)
+void MatrixManager::ScreenToScene(float* x, float* y)
 {
     *x = _screenToScene.TransformX(*x);
     *y = _screenToScene.TransformY(*y);
 }
 
-Csm::CubismMatrix44 &MatrixManager::GetProjection(LAppModel *model)
+Csm::CubismMatrix44& MatrixManager::GetProjection(LAppModel* model)
 {
     _projection.LoadIdentity();
 

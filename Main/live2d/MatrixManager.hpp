@@ -1,13 +1,15 @@
 #pragma once
 
 #include <CubismFramework.hpp>
-#include <Math/CubismViewMatrix.hpp>
-#include <LAppModel.hpp>
+
+#include "Math/CubismMatrix44.hpp"
+
+class LAppModel;
 
 class MatrixManager
 {
 public:
-    void Initialize();
+    MatrixManager();
     void UpdateScreenToScene(int ww, int wh);
     void ScreenToScene(float *x, float *y);
     Csm::CubismMatrix44 &GetProjection(LAppModel *model);
