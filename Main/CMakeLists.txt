@@ -48,7 +48,7 @@ set(FRAMEWORK_SOURCE OpenGL)
 # Add Cubism Native Framework.
 add_subdirectory(${FRAMEWORK_PATH} ${CMAKE_BINARY_DIR}/Framework)
 # Add rendering definition to framework.
-target_compile_definitions(Framework PRIVATE ${CSM_TARGET})
+target_compile_definitions(Framework PUBLIC ${CSM_TARGET})
 # Add include path of GLEW to framework.
 target_include_directories(Framework PUBLIC ${GLEW_PATH}/include)
 # If current compiler is mingw, add some options
@@ -81,7 +81,7 @@ target_link_libraries(Framework Live2DCubismCore glew_s)
 find_package(OpenGL REQUIRED)
 
 # Add source files.
-add_subdirectory(live2d)
+add_subdirectory(src)
 
 # Link libraries to app.
 target_link_libraries(${MAIN_NAME}
@@ -92,7 +92,7 @@ target_link_libraries(${MAIN_NAME}
 # Specify include directories.
 target_include_directories(${MAIN_NAME} PUBLIC 
   ${STB_IMAGE_INCLUDE}
-  live2d
+  src
 )
 
 

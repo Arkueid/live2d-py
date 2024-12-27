@@ -806,7 +806,7 @@ PyMODINIT_FUNC PyInit_live2d(void)
         return NULL;
     }
 
-#ifdef WIN32
+#ifdef CSM_TARGET_WIN_GL
     // windows 下强制utf-8
     SetConsoleOutputCP(65001);
 #endif
