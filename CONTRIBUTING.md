@@ -32,14 +32,14 @@ Cubism Native Core，包括一个头文件`.h`和若干平台对应的静态库�
 ### Framework
 Cubism Native Framework，在 Core 层上的功能库，比如json文件读取、物理计算、图形绘制等）。
 
-上面两个部分，在官方发布新版本后可以直接替换，几乎不需要做修改（实际上修改，4行左右）。
+> 上面两个模块，在官方发布新版本后可以直接替换，几乎不需要做修改（实际上修改，4行左右）。
 
 ### Main
 对应原来 Cubism Native SDK 的应用层，对其进行了精简。Main 在 Framework 基础上实现了一个可以绘制的 `LAppModel` cpp 类，增改功能主要是修改 `LAppModel.cpp` 中定义的类。Main 中的其他文件几乎很少改动。
 
 Framework 和 Main 会分别生成自己的静态库。
 
-上面的三个模块和 Python 无关，也可以用于绑定其他编程语言。
+> 上面的三个模块和 Python 无关，也可以用于绑定其他编程语言。
 
 ### Wrapper 
 即 `LAppModelWrapper.cpp`，将 Main 中实现的 `LAppModel` cpp 类封装为 Python 模块，是整个项目中唯一引入 Python 相关依赖的位置。
