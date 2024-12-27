@@ -39,7 +39,7 @@
 | `live2d-py` | 支持的live2d模型        | 实现                    | 支持的Python版本                           | 支持平台                     |
 |-------------|--------------------|-----------------------|---------------------------------------|--------------------------|
 | `live2d.v2` | Cubism 2.1 以及更早的版本 | 纯 Python 实现           | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本 | Winodws、Linux、MacOS（理论上） |                                                       |
-| `live2d.v3` | Cubism 3.0 及以上版本   | Python C Extension 封装 | 支持 `32` / `64` 位，支持`Python 3.0` 及以上版本 | Windows、Linux            |
+| `live2d.v3` | Cubism 3.0 及以上版本   | Python C Extension 封装 | 支持 `32` / `64` 位，支持`Python 3.2` 及以上版本 | Windows、Linux            |
 
 注：
 

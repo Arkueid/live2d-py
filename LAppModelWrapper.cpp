@@ -811,5 +811,7 @@ PyMODINIT_FUNC PyInit_live2d(void)
     SetConsoleOutputCP(65001);
 #endif
 
+    printf("live2d-py (built with Python %s)\n", PY_VERSION);
+
     return m;
 }
