@@ -21,7 +21,7 @@
 
 ## 兼容UI库
 
-理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / FreeGlut / Qfluentwidgets ...
+理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / pyopengltk/ FreeGlut / Qfluentwidgets ...
 
 ## 支持功能
 
@@ -34,7 +34,12 @@
 * 各部件透明度控制
 * 精确到部件的点击检测
 
-## 平台支持
+## 兼容性
+
+### Python 版本
+Python 版本支持：从 live2d-py 0.3.2 开始使用 Python C Limited API，理论上兼容 Python 3.2 以上的所有版本。
+
+### Cubism Live2D 版本
 
 | `live2d-py` | 支持的live2d模型        | 实现                    | 支持的Python版本                           | 支持平台                     |
 |-------------|--------------------|-----------------------|---------------------------------------|--------------------------|
