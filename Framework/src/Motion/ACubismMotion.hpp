@@ -12,6 +12,7 @@
 #include "CubismFramework.hpp"
 #include "Id/CubismId.hpp"
 #include "Type/csmVector.hpp"
+#include <string>
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -32,7 +33,7 @@ public:
     // ==== non-official data ====
     using BeganMotionCallback = std::function<void(ACubismMotion*)>;
     using FinishedMotionCallback = std::function<void(ACubismMotion*)>;
-    const char* group;
+    std::string group;
     int no;
     // ==== non-official data ====
     

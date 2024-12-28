@@ -127,7 +127,7 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
     {
         if (isStartNull)
             return;
-        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group, motion->no);
+        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group.c_str(), motion->no);
         if (result != NULL)
             Py_XDECREF(result);
         Py_XDECREF(onStartHandler);
@@ -194,7 +194,7 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     {
         if (isStartNull)
             return;
-        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group, motion->no);
+        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group.c_str(), motion->no);
         if (result != NULL)
             Py_XDECREF(result);
         Py_XDECREF(onStartHandler);
@@ -308,7 +308,7 @@ static PyObject* PyLAppModel_Touch(PyLAppModelObject* self, PyObject* args, PyOb
     {
         if (isStartNull)
             return;
-        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group, motion->no);
+        PyObject* result = PyObject_CallFunction(onStartHandler, "si", motion->group.c_str(), motion->no);
         if (result != NULL)
             Py_XDECREF(result);
         Py_XDECREF(onStartHandler);
