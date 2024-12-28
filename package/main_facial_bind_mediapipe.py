@@ -34,7 +34,6 @@ def main():
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
     live2d.glewInit()
-    live2d.setGLProperties()
 
     model = live2d.LAppModel()
 
