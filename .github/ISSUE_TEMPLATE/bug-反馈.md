@@ -1,6 +1,6 @@
 ---
 name: Bug 反馈
-about: '提交编译、安装、模型操作等方面的 bug '
+about: '欢迎提交编译、安装、模型操作等方面的 bug '
 title: ''
 labels: ''
 assignees: ''
