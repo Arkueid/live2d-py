@@ -859,7 +859,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
     return s >= 0 && t >= 0 && s + t <= D;
 }
 
-void LAppModel::HitPart(float x, float y, bool topOnly, std::vector<std::string>& partIds)
+void LAppModel::HitPart(float x, float y, bool topOnly, void* collector, void (*OnItem)(void*, const char*))
 {
     _matrixManager.ScreenToScene(&x, &y);
     x = _modelMatrix->InvertTransformX(x);
@@ -914,8 +914,8 @@ void LAppModel::HitPart(float x, float y, bool topOnly, std::vector<std::string>
             {
                 continue;
             }
-            partIds.emplace_back(partId);
-            hitParts.insert(partIds.back().c_str());
+            OnItem(collector, partId);
+            hitParts.insert(partId);
             topClicked = true;
             break;
         }
@@ -928,7 +928,7 @@ void LAppModel::HitPart(float x, float y, bool topOnly, std::vector<std::string>
     delete[] drawableIndices;
 }
 
-void LAppModel::setPartMultiplyColor(int partNo, float r, float g, float b, float a)
+void LAppModel::SetPartMultiplyColor(int partNo, float r, float g, float b, float a) const
 {
     _model->SetPartMultiplyColor(partNo, r, g, b, a);
     if (_model->GetOverwriteColorForPartMultiplyColors(partNo))
@@ -938,7 +938,7 @@ void LAppModel::setPartMultiplyColor(int partNo, float r, float g, float b, floa
     _model->SetOverwriteColorForPartMultiplyColors(partNo, true);
 }
 
-void LAppModel::getPartMultiplyColor(int partNo, float& r, float& g, float& b, float& a)
+void LAppModel::GetPartMultiplyColor(int partNo, float& r, float& g, float& b, float& a) const
 {
     auto color = _model->GetPartMultiplyColor(partNo);
     r = color.R;
@@ -947,7 +947,7 @@ void LAppModel::getPartMultiplyColor(int partNo, float& r, float& g, float& b, f
     a = color.A;
 }
 
-void LAppModel::setPartScreenColor(int partNo, float r, float g, float b, float a)
+void LAppModel::SetPartScreenColor(int partNo, float r, float g, float b, float a) const
 {
     _model->SetPartScreenColor(partNo, r, g, b, a);
     if (_model->GetOverwriteColorForPartScreenColors(partNo))
@@ -957,7 +957,7 @@ void LAppModel::setPartScreenColor(int partNo, float r, float g, float b, float 
     _model->SetOverwriteColorForPartScreenColors(partNo, true);
 }
 
-void LAppModel::getPartScreenColor(int partNo, float& r, float& g, float& b, float& a)
+void LAppModel::GetPartScreenColor(int partNo, float& r, float& g, float& b, float& a) const
 {
     auto color = _model->GetPartScreenColor(partNo);
     r = color.R;

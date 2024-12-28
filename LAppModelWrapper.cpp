@@ -549,14 +549,22 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
         return NULL;
     }
     
-    std::vector<std::string> hitPartIds;
-    self->model->HitPart(x, y, topOnly, hitPartIds);
-    PyObject* list = PyList_New(hitPartIds.size());
-    int i = 0;
-    for (auto& id : hitPartIds)
+    PyObject* list = PyList_New(0);
+    // std::vector<const char*> list;
+    self->model->HitPart(x, y, topOnly, list, [](void* collector, const char* paramId)
     {
-        PyList_SetItem(list, i++, PyUnicode_FromString(id.c_str()));
-    }
+        PyList_Append((PyObject*)collector, PyUnicode_FromString(paramId));
+        // ((std::vector<const char*>*)collector)->push_back(paramId);
+    });
+
+    // PyObject* pylist = PyList_New(list.size());
+    // int i = 0;
+    // for (auto s: list)
+    // {
+        // PyList_SetItem(pylist, i, PyUnicode_FromString(s));
+    // }
+
+    // return pylist;
     return list;
 }
 
@@ -569,7 +577,7 @@ static PyObject* PyLAppModel_SetPartMultiplyColor(PyLAppModelObject* self, PyObj
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
     }
-    self->model->setPartMultiplyColor(index, r, g, b, a);
+    self->model->SetPartMultiplyColor(index, r, g, b, a);
     Py_RETURN_NONE;
 }
 
@@ -583,7 +591,7 @@ static PyObject* PyLAppModel_GetPartMultiplyColor(PyLAppModelObject* self, PyObj
     }
 
     float r, g, b, a;
-    self->model->getPartMultiplyColor(index, r, g, b, a);
+    self->model->GetPartMultiplyColor(index, r, g, b, a);
     return Py_BuildValue("ffff", r, g, b, a);
 }
 
@@ -596,7 +604,7 @@ static PyObject* PyLAppModel_SetPartScreenColor(PyLAppModelObject* self, PyObjec
         PyErr_SetString(PyExc_TypeError, "Invalid param");
         return NULL;
     }
-    self->model->setPartScreenColor(index, r, g, b, a);
+    self->model->SetPartScreenColor(index, r, g, b, a);
 
     Py_RETURN_NONE;
 }
@@ -612,7 +620,7 @@ static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObjec
     }
 
     float r, g, b, a;
-    self->model->getPartScreenColor(index, r, g, b, a);
+    self->model->GetPartScreenColor(index, r, g, b, a);
 
     return Py_BuildValue("ffff", r, g, b, a);
 }

@@ -165,23 +165,30 @@ public:
      * 
      * @param x x in scene
      * @param y y in scene
+     * @param collector
+     * @param OnItem
+     * @param 
      * @return 当前点击的 part no
      */
-    void HitPart(float x, float y, bool topOnly, std::vector<std::string>& partIds);
+    void HitPart(float x, float y, bool topOnly, void* collector, void (*OnItem)(void*, const char*));
 
-    void setPartMultiplyColor(int partNo, float r, float g, float b, float a);
+    void SetPartMultiplyColor(int partNo, float r, float g, float b, float a) const;
 
-    void getPartMultiplyColor(int partNo, float& r, float& g, float& b, float& a);
+    void GetPartMultiplyColor(int partNo, float& r, float& g, float& b, float& a) const;
 
-    void setPartScreenColor(int partNo, float r, float g, float b, float a);
+    void SetPartScreenColor(int partNo, float r, float g, float b, float a) const;
 
-    void getPartScreenColor(int partNo, float& r, float& g, float& b, float& a);
+    void GetPartScreenColor(int partNo, float& r, float& g, float& b, float& a) const;
 
     void Drag(float x, float y);
 
     void SetOffset(float dx, float dy);
 
     void SetScale(float scale);
+
+    void GetParameters(void* collector,
+                       void (*OnItem)(void* collector, const char* paramId, int type, float value,
+                                      float maxValue, float minValue, float defaultValue)) const;
 
 protected:
     /**
