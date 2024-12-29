@@ -88,11 +88,13 @@ void OnMotionStartedCallback(ACubismMotion* motion)
     {
         return;
     }
+    PyGILState_STATE state = PyGILState_Ensure();
     PyObject* s_call = (PyObject*)motion->onStartedCallee;
     PyObject* result = PyObject_CallFunction(s_call, "si", motion->group.c_str(), motion->no);
     if (result != nullptr)
         Py_XDECREF(result);
     Py_XDECREF(s_call);
+    PyGILState_Release(state);
 }
 
 void OnMotionFinishedCallback(ACubismMotion* motion)
@@ -101,11 +103,13 @@ void OnMotionFinishedCallback(ACubismMotion* motion)
     {
         return;
     }
+    PyGILState_STATE state = PyGILState_Ensure();
     PyObject* f_call = (PyObject*)motion->onFinishedCallee;
     PyObject* result = PyObject_CallFunction(f_call, nullptr);
     if (result != nullptr)
         Py_XDECREF(result);
     Py_XDECREF(f_call);
+    PyGILState_Release(state);
 }
 
 static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
