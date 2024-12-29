@@ -1,7 +1,7 @@
-﻿from .id import ID
+﻿from .id import Id
 
 
-class PartsDataID(ID):
+class PartsDataId(Id):
     instances = {}
 
     def __init__(self, aH):
@@ -9,13 +9,13 @@ class PartsDataID(ID):
 
     @staticmethod
     def releaseStored():
-        PartsDataID.instances.clear()
+        PartsDataId.instances.clear()
 
     @staticmethod
-    def getID(idStr: str) -> 'PartsDataID':
-        id_obj = PartsDataID.instances.get(idStr, None)
+    def getID(idStr: str) -> 'PartsDataId':
+        id_obj = PartsDataId.instances.get(idStr, None)
         if id_obj is None:
-            id_obj = PartsDataID(idStr)
-            PartsDataID.instances[idStr] = id_obj
+            id_obj = PartsDataId(idStr)
+            PartsDataId.instances[idStr] = id_obj
 
         return id_obj

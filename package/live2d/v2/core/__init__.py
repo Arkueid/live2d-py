@@ -5,5 +5,5 @@ from .live2d import Live2D
 from .util import log, UtSystem
 from .motion import Live2DMotion, AMotion, MotionQueueManager
 from .physics import PhysicsHair
-from .id import PartsDataID
+from .id import PartsDataId
 from .type import Array

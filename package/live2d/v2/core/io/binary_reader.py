@@ -2,7 +2,7 @@
 
 from .live2d_object_factory import Live2DObjectFactory
 from ..DEF import OBJECT_REF
-from ..id import BaseDataID, DrawDataID, ParamID, PartsDataID
+from ..id import DeformerId, DrawDataId, ParamId, PartsDataId
 from ..type import Int32Array, Float32Array, Float64Array, Array
 
 
@@ -144,19 +144,19 @@ class BinaryReader:
             return None
         elif aN == 50:
             aK = self.readUTF8String()
-            aI = DrawDataID.getID(aK)
+            aI = DrawDataId.getID(aK)
             return aI
         elif aN == 51:
             aK = self.readUTF8String()
-            aI = BaseDataID.getID(aK)
+            aI = DeformerId.getID(aK)
             return aI
         elif aN == 134:
             aK = self.readUTF8String()
-            aI = PartsDataID.getID(aK)
+            aI = PartsDataId.getID(aK)
             return aI
         elif aN == 60:
             aK = self.readUTF8String()
-            aI = ParamID.getID(aK)
+            aI = ParamId.getID(aK)
             return aI
         elif aN >= 48:
             aL = Live2DObjectFactory.create(aN)

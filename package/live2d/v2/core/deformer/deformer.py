@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
-from ..id import BaseDataID
+from ..id import DeformerId
 from ..io.iserializable import ISerializable
 from ..util import UtInterpolate
 
@@ -67,11 +67,11 @@ class Deformer(ISerializable):
     def setId(self, aH):
         self.id = aH
 
-    def getTargetId(self) -> BaseDataID:
+    def getTargetId(self) -> DeformerId:
         return self.targetId
 
-    def getId(self) -> BaseDataID:
+    def getId(self) -> DeformerId:
         return self.id
 
     def needTransform(self) -> bool:
-        return self.targetId is not None and (self.targetId != BaseDataID.DST_BASE_ID())
+        return self.targetId is not None and (self.targetId != DeformerId.DST_BASE_ID())

@@ -1,14 +1,14 @@
 ﻿from abc import ABC, abstractmethod
 
 from .DEF import LIVE2D_FORMAT_VERSION_AVAILABLE, LIVE2D_FORMAT_VERSION_V2_8_TEX_OPTION
-from .id import ParamID, PartsDataID, DrawDataID
+from .id import ParamId, PartsDataId, DrawDataId
 from .io import BinaryReader
 from .model import ModelImpl
 from .model_context import ModelContext
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .draw import MeshContext, IDrawData, Mesh
+    from .draw import MeshContext, DrawData, Mesh
 
 
 class ALive2DModel(ABC):
@@ -42,30 +42,30 @@ class ALive2DModel(ABC):
 
     def getParamFloat(self, x):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(ParamId.getID(x))
 
         return self.modelContext.getParamFloat(x)
 
     def setParamFloat(self, x: int | str, value: float, weight: float = 1):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(ParamId.getID(x))
         value = 0 if value is None else value
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) * (1 - weight) + value * weight)
 
     def addToParamFloat(self, x: str | int, value: float, weight: float = 1):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(ParamId.getID(x))
 
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) + value * weight)
 
     def multParamFloat(self, x: int | str, value: float, weight: float = 1):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(ParamId.getID(x))
 
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) * (1 + (value - 1) * weight))
 
     def getParamIndex(self, idStr: str) -> int:
-        return self.modelContext.getParamIndex(ParamID.getID(idStr))
+        return self.modelContext.getParamIndex(ParamId.getID(idStr))
 
     def loadParam(self):
         self.modelContext.loadParam()
@@ -88,19 +88,19 @@ class ALive2DModel(ABC):
 
     def setPartsOpacity(self, aI, aH):
         if not isinstance(aI, int):
-            aI = self.modelContext.getPartsDataIndex(PartsDataID.getID(aI))
+            aI = self.modelContext.getPartsDataIndex(PartsDataId.getID(aI))
 
         self.modelContext.setPartsOpacity(aI, aH)
 
     def getPartsDataIndex(self, aH):
-        if not (isinstance(aH, PartsDataID)):
-            aH = PartsDataID.getID(aH)
+        if not (isinstance(aH, PartsDataId)):
+            aH = PartsDataId.getID(aH)
 
         return self.modelContext.getPartsDataIndex(aH)
 
     def getPartsOpacity(self, aH):
         if not isinstance(aH, int):
-            aH = self.modelContext.getPartsDataIndex(PartsDataID.getID(aH))
+            aH = self.modelContext.getPartsDataIndex(PartsDataId.getID(aH))
 
         if aH < 0:
             return 0
@@ -112,7 +112,7 @@ class ALive2DModel(ABC):
         pass
 
     def getDrawDataIndex(self, aH):
-        return self.modelContext.getDrawDataIndex(DrawDataID.getID(aH))
+        return self.modelContext.getDrawDataIndex(DrawDataId.getID(aH))
 
     def getDrawData(self, aH):
         return self.modelContext.getDrawData(aH)
@@ -129,7 +129,7 @@ class ALive2DModel(ABC):
             return None
 
         aH = self.modelContext.drawDataList[aI]
-        if aH is not None and aH.getType() == IDrawData.TYPE_MESH:
+        if aH is not None and aH.getType() == DrawData.TYPE_MESH:
             if isinstance(aH, Mesh):
                 return aH.getIndexArray()
 

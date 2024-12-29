@@ -1,6 +1,6 @@
 ﻿from typing import TYPE_CHECKING
 
-from .idraw_data import IDrawData
+from .idraw_data import DrawData
 from .mesh_context import MeshContext
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_8_TEX_OPTION, VERTEX_STEP, VERTEX_TYPE, VERTEX_OFFSET, \
     VERTEX_TYPE_OFFSET0_STEP2, REVERSE_TEXTURE_T, VERTEX_TYPE_OFFSET2_STEP5
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ..model_context import ModelContext
 
 
-class Mesh(IDrawData):
+class Mesh(DrawData):
     INSTANCE_COUNT = 0
     MASK_COLOR_COMPOSITION = 30
     COLOR_COMPOSITION_NORMAL = 0
@@ -51,7 +51,7 @@ class Mesh(IDrawData):
         return self.pointCount
 
     def getType(self):
-        return IDrawData.TYPE_MESH
+        return DrawData.TYPE_MESH
 
     def initDirect(self):
         self.pivotMgr = PivotManager()
@@ -150,7 +150,7 @@ class Mesh(IDrawData):
             super().setupTransform(mc)
             if self.needTransform():
                 target_id = self.getTargetId()
-                if dc.tmpDeformerIndex == IDrawData.DEFORMER_INDEX_NOT_INIT:
+                if dc.tmpDeformerIndex == DrawData.DEFORMER_INDEX_NOT_INIT:
                     dc.tmpDeformerIndex = mc.getDeformerIndex(target_id)
 
                 if dc.tmpDeformerIndex < 0:

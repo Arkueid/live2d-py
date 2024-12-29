@@ -1,7 +1,7 @@
-﻿from .id import ID
+﻿from .id import Id
 
 
-class BaseDataID(ID):
+class DeformerId(Id):
     DST_BASE = None
     instances = {}
 
@@ -9,22 +9,22 @@ class BaseDataID(ID):
         super().__init__(idStr)
 
     @staticmethod
-    def DST_BASE_ID() -> 'BaseDataID':
-        if BaseDataID.DST_BASE is None:
-            BaseDataID.DST_BASE = BaseDataID.getID("DST_BASE")
+    def DST_BASE_ID() -> 'DeformerId':
+        if DeformerId.DST_BASE is None:
+            DeformerId.DST_BASE = DeformerId.getID("DST_BASE")
 
-        return BaseDataID.DST_BASE
+        return DeformerId.DST_BASE
 
     @staticmethod
     def releaseStored():
-        BaseDataID.instances.clear()
-        BaseDataID.DST_BASE = None
+        DeformerId.instances.clear()
+        DeformerId.DST_BASE = None
 
     @staticmethod
-    def getID(idStr) -> 'BaseDataID':
-        id_obj = BaseDataID.instances.get(idStr, None)
+    def getID(idStr) -> 'DeformerId':
+        id_obj = DeformerId.instances.get(idStr, None)
         if id_obj is None:
-            id_obj = BaseDataID(idStr)
-            BaseDataID.instances[idStr] = id_obj
+            id_obj = DeformerId(idStr)
+            DeformerId.instances[idStr] = id_obj
 
         return id_obj

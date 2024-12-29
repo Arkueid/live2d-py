@@ -2,12 +2,12 @@
 
 from ..DEF import LIVE2D_FORMAT_VERSION_AVAILABLE
 from ..io.iserializable import ISerializable
-from ..id import BaseDataID
+from ..id import DeformerId
 from ..live2d import Live2D
 from ..util import UtInterpolate
 
 
-class IDrawData(ISerializable):
+class DrawData(ISerializable):
     DEFORMER_INDEX_NOT_INIT = -2
     DEFAULT_ORDER = 500
     TYPE_MESH = 2
@@ -38,7 +38,7 @@ class IDrawData(ISerializable):
         else:
             self.clipIDList = None
 
-        IDrawData.setDrawOrders(self.pivotDrawOrders)
+        DrawData.setDrawOrders(self.pivotDrawOrders)
 
     def getClipIDList(self):
         return self.clipIDList
@@ -93,7 +93,7 @@ class IDrawData(ISerializable):
         self.targetId = aH
 
     def needTransform(self):
-        return self.targetId is not None and (self.targetId != BaseDataID.DST_BASE_ID())
+        return self.targetId is not None and (self.targetId != DeformerId.DST_BASE_ID())
 
     @abstractmethod
     def getType(self):
@@ -103,16 +103,16 @@ class IDrawData(ISerializable):
     def setDrawOrders(orders):
         for i in range(len(orders) - 1, 0 - 1, -1):
             order = orders[i]
-            if order < IDrawData.totalMinOrder:
-                IDrawData.totalMinOrder = order
+            if order < DrawData.totalMinOrder:
+                DrawData.totalMinOrder = order
             else:
-                if order > IDrawData.totalMaxOrder:
-                    IDrawData.totalMaxOrder = order
+                if order > DrawData.totalMaxOrder:
+                    DrawData.totalMaxOrder = order
 
     @staticmethod
     def getTotalMinOrder():
-        return IDrawData.totalMinOrder
+        return DrawData.totalMinOrder
 
     @staticmethod
     def getTotalMaxOrder():
-        return IDrawData.totalMaxOrder
+        return DrawData.totalMaxOrder

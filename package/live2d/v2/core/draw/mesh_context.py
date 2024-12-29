@@ -1,12 +1,12 @@
-﻿from .idraw_context import IDrawContext
-from .idraw_data import IDrawData
+﻿from .idraw_context import DrawContext
+from .idraw_data import DrawData
 
 
-class MeshContext(IDrawContext):
+class MeshContext(DrawContext):
 
     def __init__(self, dd):
         super().__init__(dd)
-        self.tmpDeformerIndex = IDrawData.DEFORMER_INDEX_NOT_INIT
+        self.tmpDeformerIndex = DrawData.DEFORMER_INDEX_NOT_INIT
         self.interpolatedPoints = None
         self.transformedPoints = None
 
