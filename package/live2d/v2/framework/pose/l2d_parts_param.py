@@ -1,4 +1,4 @@
-﻿from ...core import PartsDataId
+﻿from ...core import PartsDataID
 
 
 class L2DPartsParam:
@@ -11,5 +11,5 @@ class L2DPartsParam:
 
     def initIndex(self, model):
         self.paramIndex = model.getParamIndex("VISIBLE:" + self.id)
-        self.partsIndex = model.getPartsDataIndex(PartsDataId.getID(self.id))
+        self.partsIndex = model.getPartsDataIndex(PartsDataID.getID(self.id))
         model.setParamFloat(self.paramIndex, 1)

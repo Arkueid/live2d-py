@@ -1,4 +1,5 @@
 import math
+import os.path
 from random import random, choice
 from typing import TYPE_CHECKING
 
@@ -30,7 +31,7 @@ class LAppModel(L2DBaseModel):
     def LoadModelJson(self, modelSettingPath: str):
         self.setUpdating(True)
         self.setInitialized(False)
-        self.modelHomeDir = modelSettingPath[0: modelSettingPath.rfind("/") + 1]
+        self.modelHomeDir = os.path.dirname(modelSettingPath) + "/"
         self.modelSetting = ModelSettingJson()
 
         self.modelSetting.loadModelSetting(modelSettingPath)
@@ -166,6 +167,9 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.setPartsOpacity(index, opacity)
 
     def Update(self):
+        if self.live2DModel is None:
+            return
+
         self.dragMgr.update()
         self.setDrag(self.dragMgr.getX(), self.dragMgr.getY())
 

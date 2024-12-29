@@ -1,7 +1,7 @@
-﻿from .id import Id
+﻿from .id import ID
 
 
-class DrawDataId(Id):
+class DrawDataID(ID):
     instances = {}
 
     def __init__(self, aH):
@@ -9,13 +9,13 @@ class DrawDataId(Id):
 
     @staticmethod
     def releaseStored():
-        DrawDataId.instances.clear()
+        DrawDataID.instances.clear()
 
     @staticmethod
-    def getID(idStr) -> 'DrawDataId':
-        id_obj = DrawDataId.instances.get(idStr, None)
+    def getID(idStr) -> 'DrawDataID':
+        id_obj = DrawDataID.instances.get(idStr, None)
         if id_obj is None:
-            id_obj = DrawDataId(idStr)
-            DrawDataId.instances[idStr] = id_obj
+            id_obj = DrawDataID(idStr)
+            DrawDataID.instances[idStr] = id_obj
 
         return id_obj

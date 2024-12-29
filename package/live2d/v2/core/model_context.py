@@ -2,10 +2,10 @@
 from typing import TYPE_CHECKING
 
 from .DEF import PIVOT_TABLE_SIZE, MAX_INTERPOLATION
-from .draw import DrawData
+from .draw import IDrawData
 from .graphics import ClippingManagerOpenGL
-from .id import DeformerId
-from .id import DrawDataId
+from .id import BaseDataID
+from .id import DrawDataID
 from .type import Array, Float32Array, Int16Array
 
 if TYPE_CHECKING:
@@ -58,7 +58,7 @@ class ModelContext:
         return -1
 
     def getDrawData(self, aH):
-        if isinstance(aH, DrawDataId):
+        if isinstance(aH, DrawDataID):
             if self.tmpDrawDataList is None:
                 self.tmpDrawDataList = {}
                 count = len(self.drawDataList)
@@ -122,7 +122,7 @@ class ModelContext:
                 self.drawContextList.append(a0)
 
         aY = len(aH)
-        aN = DeformerId.DST_BASE_ID()
+        aN = BaseDataID.DST_BASE_ID()
         while True:
             aX = False
             for aV in range(0, aY, 1):
@@ -166,8 +166,8 @@ class ModelContext:
         aX = False
         aQ = len(self.deformerList)
         aN = len(self.drawDataList)
-        aS = DrawData.getTotalMinOrder()
-        aZ = DrawData.getTotalMaxOrder()
+        aS = IDrawData.getTotalMinOrder()
+        aZ = IDrawData.getTotalMaxOrder()
         aU = aZ - aS + 1
         if self.orderList_firstDrawIndex is None or len(self.orderList_firstDrawIndex) < aU:
             self.orderList_firstDrawIndex = Int16Array(aU)

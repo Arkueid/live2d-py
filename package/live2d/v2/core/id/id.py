@@ -1,7 +1,7 @@
 ﻿import abc
 
 
-class Id(abc.ABC):
+class ID(abc.ABC):
 
     def __init__(self, aH):
         self.id = aH
@@ -10,7 +10,7 @@ class Id(abc.ABC):
         return self.id
 
     def __eq__(self, other):
-        if isinstance(other, Id):
+        if isinstance(other, ID):
             return id(other) == id(self) or other.id == self.id
         elif isinstance(other, str):
             return other == self.id
@@ -18,7 +18,7 @@ class Id(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def getID(idStr: str) -> 'Id':
+    def getID(idStr: str) -> 'ID':
         pass
 
     @staticmethod

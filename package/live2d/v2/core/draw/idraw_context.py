@@ -3,7 +3,7 @@
 if TYPE_CHECKING:
     from .mesh import Mesh
 
-class DrawContext:
+class IDrawContext:
 
     def __init__(self, dd):
         self.interpolatedDrawOrder = None
