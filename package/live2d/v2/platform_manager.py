@@ -1,5 +1,5 @@
 ﻿import json
-from typing import Any
+from typing import Any, Dict
 
 import OpenGL.GL as gl
 from PIL import Image
@@ -35,5 +35,5 @@ class PlatformManager:
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         live2DModel.setTexture(no, texture)
 
-    def jsonParseFromBytes(self, path) -> dict[str, Any]:
+    def jsonParseFromBytes(self, path) -> Dict[str, Any]:
         return json.loads(path)

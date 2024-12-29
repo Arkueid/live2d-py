@@ -1,4 +1,6 @@
-﻿from .framework import L2DMatrix44
+﻿from typing import Tuple
+
+from .framework import L2DMatrix44
 
 
 class MatrixManager:
@@ -38,10 +40,10 @@ class MatrixManager:
             sh = abs(top - bottom)
             self.__screenToScene.multScale(sh / height, -sh / height)
 
-    def screenToScene(self, scr_x: float, scr_y: float) -> tuple[float, float]:
+    def screenToScene(self, scr_x: float, scr_y: float) -> Tuple[float, float]:
         return self.__screenToScene.transformX(scr_x), self.__screenToScene.transformY(scr_y)
 
-    def invertTransform(self, src_x, src_y) -> tuple[float, float]:
+    def invertTransform(self, src_x, src_y) -> Tuple[float, float]:
         return self.__projection.invertTransformX(src_x), self.__projection.invertTransformY(src_y)
 
     def setScale(self, scale: float):

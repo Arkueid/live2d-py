@@ -6,7 +6,8 @@ from .io import BinaryReader
 from .model import ModelImpl
 from .model_context import ModelContext
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
+
 if TYPE_CHECKING:
     from .draw import MeshContext, IDrawData, Mesh
 
@@ -46,19 +47,19 @@ class ALive2DModel(ABC):
 
         return self.modelContext.getParamFloat(x)
 
-    def setParamFloat(self, x: int | str, value: float, weight: float = 1):
+    def setParamFloat(self, x: Union[int, str], value: float, weight: float = 1):
         if not isinstance(x, int):
             x = self.modelContext.getParamIndex(ParamID.getID(x))
         value = 0 if value is None else value
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) * (1 - weight) + value * weight)
 
-    def addToParamFloat(self, x: str | int, value: float, weight: float = 1):
+    def addToParamFloat(self, x: Union[int, str], value: float, weight: float = 1):
         if not isinstance(x, int):
             x = self.modelContext.getParamIndex(ParamID.getID(x))
 
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) + value * weight)
 
-    def multParamFloat(self, x: int | str, value: float, weight: float = 1):
+    def multParamFloat(self, x:  Union[int, str], value: float, weight: float = 1):
         if not isinstance(x, int):
             x = self.modelContext.getParamIndex(ParamID.getID(x))
 

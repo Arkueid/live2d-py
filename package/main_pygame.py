@@ -142,7 +142,7 @@ def main():
                 # 实现拖拽
                 model.Drag(*pygame.mouse.get_pos())
                 # 测试性能？
-                # currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
+                currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
                 # pass
 
         if not running:

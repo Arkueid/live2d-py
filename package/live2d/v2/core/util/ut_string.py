@@ -1,6 +1,9 @@
-﻿class UtString:
+﻿from typing import Union
+
+
+class UtString:
     @staticmethod
-    def startswith(s: str | bytes, offset: int, pat: str) -> bool:
+    def startswith(s: Union[str, bytes], offset: int, pat: str) -> bool:
         end_pos = offset + len(pat)
         if end_pos >= len(s):
             return False

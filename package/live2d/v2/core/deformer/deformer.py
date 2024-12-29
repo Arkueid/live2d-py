@@ -1,5 +1,5 @@
 ﻿from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
 from ..id import BaseDataID
@@ -50,8 +50,8 @@ class Deformer(ISerializable):
 
     @abstractmethod
     def transformPoints(self, mc: 'ModelContext', dc: 'DeformerContext',
-                        srcPoints: list[float],
-                        dstPoints: list[float],
+                        srcPoints: List[float],
+                        dstPoints: List[float],
                         numPoint: int,
                         ptOffset: int,
                         ptStep: int):

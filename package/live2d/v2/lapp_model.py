@@ -1,7 +1,7 @@
 import math
 import os.path
 from random import random, choice
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 
 from .core import UtSystem, log
 from .framework import L2DBaseModel, L2DTargetPoint, L2DEyeBlink
@@ -160,7 +160,7 @@ class LAppModel(L2DBaseModel):
     def GetPartId(self, index: int) -> str:
         return self.live2DModel.getModelContext().getPartsContext(index)
 
-    def GetPartIds(self) -> list[str]:
+    def GetPartIds(self) -> List[str]:
         return [str(i.id) for i in self.live2DModel.getModelContext().partsDataList]
 
     def SetPartOpacity(self, index: int, opacity: float):
@@ -266,7 +266,7 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.setMatrix(tmp_matrix)
         self.live2DModel.draw()
 
-    def HitTest(self, testX, testY) -> str | None:
+    def HitTest(self, testX, testY) -> Union[str, None]:
         size = self.modelSetting.getHitAreaNum()
         for i in range(size):
             area_id = self.modelSetting.getHitAreaName(i)
@@ -290,7 +290,7 @@ class LAppModel(L2DBaseModel):
 
         self.mainMotionManager.startMotionPrio(motion, priority)
 
-    def HitPart(self, src_x: float, src_y: float, topOnly: bool = False) -> list[str]:
+    def HitPart(self, src_x: float, src_y: float, topOnly: bool = False) -> List[str]:
         src_x, src_y = self.matrixManager.screenToScene(src_x, src_y)
         mx, my = self.matrixManager.invertTransform(src_x, src_y)
         mctx = self.live2DModel.getModelContext()
@@ -359,7 +359,7 @@ class LAppModel(L2DBaseModel):
     def setPartScreenColor(self, part_index: int, r: float, g: float, b: float, a: float):
         self.live2DModel.modelContext.setPartScreenColor(part_index, r, g, b, a)
 
-    def GetPartScreenColor(self, part_index: int) -> list[float, float, float, float]:
+    def GetPartScreenColor(self, part_index: int) -> List[float]:
         """
         any modification to the returned list is equivalent to setPartScreenColor
         :param part_index:
@@ -370,7 +370,7 @@ class LAppModel(L2DBaseModel):
     def SetPartMultiplyColor(self, part_index: int, r: float, g: float, b: float, a: float):
         self.live2DModel.modelContext.setPartMultiplyColor(part_index, r, g, b, a)
 
-    def GetPartMultiplyColor(self, part_index: int) -> list[float, float, float, float]:
+    def GetPartMultiplyColor(self, part_index: int) -> List[float]:
         """
         modify the returned list is equivalent to setPartMultiplyColor
         :param part_index:
