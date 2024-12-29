@@ -95,6 +95,18 @@ target_include_directories(${MAIN_NAME} PUBLIC
   src
 )
 
+# 设置要插入的代码
+set(INSERT_INCLUDE "#include <HackProperties.h>\n")
+set(INSERT_ADDITIONAL_PROPERTIES "    __ADDITIONAL_PROPERTIES__\n")
 
+# 源文件路径
+set(SOURCE_HPP ${CMAKE_CURRENT_SOURCE_DIR}/../Framework/src/Motion/ACubismMotion.hpp)
+# 备份文件路径
+set(BACKUP_HPP ${SOURCE_HPP}.bak)
+
+# 在配置阶段立即执行文件修改脚本
+if(NOT EXISTS "${BACKUP_HPP}")
+    include(${CMAKE_CURRENT_SOURCE_DIR}/insert_code.cmake)
+endif()
 
 

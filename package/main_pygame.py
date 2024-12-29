@@ -117,8 +117,8 @@ def main():
                 x, y = pygame.mouse.get_pos()
                 # currentTopClickedPartId = getHitFeedback(x, y)
                 # log.Info(f"Clicked Part: {currentTopClickedPartId}")
-                # model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
-                model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
+                model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
+                # model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
