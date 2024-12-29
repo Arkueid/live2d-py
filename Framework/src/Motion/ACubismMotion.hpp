@@ -7,12 +7,11 @@
 
 #pragma once
 
-#include <functional>
-
 #include "CubismFramework.hpp"
 #include "Id/CubismId.hpp"
 #include "Type/csmVector.hpp"
-#include <string>
+
+#include <HackProperties.h>
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -27,15 +26,10 @@ class CubismModel;
 class ACubismMotion
 {
 public:
-    // typedef void (*BeganMotionCallback)(ACubismMotion* self);
-    // typedef void (*FinishedMotionCallback)(ACubismMotion* self);
+    typedef void (*BeganMotionCallback)(ACubismMotion* self);
+    typedef void (*FinishedMotionCallback)(ACubismMotion* self);
 
-    // ==== non-official data ====
-    using BeganMotionCallback = std::function<void(ACubismMotion*)>;
-    using FinishedMotionCallback = std::function<void(ACubismMotion*)>;
-    std::string group;
-    int no;
-    // ==== non-official data ====
+    __ADDITIONAL_PROPERTIES__
     
     /**
      * Destroys the instance.

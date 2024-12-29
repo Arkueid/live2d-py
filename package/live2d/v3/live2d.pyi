@@ -88,7 +88,7 @@ class LAppModel:
         """
         ...
 
-    def StartRandomMotion(self, group: str | Any, priority: int | Any, onStartMotionHandler=None,
+    def StartRandomMotion(self, group: str | Any = None, priority: int | Any = 3, onStartMotionHandler=None,
                           onFinishMotionHandler=None) -> None:
         """
         Start a random motion from a specified group.

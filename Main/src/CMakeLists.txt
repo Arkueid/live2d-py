@@ -14,6 +14,6 @@ add_library(${MAIN_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/Log.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManager.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Default.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/HackProperties.h
 )
 

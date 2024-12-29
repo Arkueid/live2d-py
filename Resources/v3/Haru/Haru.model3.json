@@ -44,27 +44,16 @@
             }
         ],
         "Motions": {
-            "Speak": [
-                {
-                    "File": "motions/haru_g_idle.motion3.json",
-                    "Sound": "",
-                    "Text": ""
-                }
-            ],
             "Idle": [
                 {
                     "File": "motions/haru_g_idle.motion3.json",
                     "FadeInTime": 0.5,
-                    "FadeOutTime": 0.5,
-                    "Sound": "",
-                    "Text": ""
+                    "FadeOutTime": 0.5
                 },
                 {
                     "File": "motions/haru_g_m15.motion3.json",
                     "FadeInTime": 0.5,
-                    "FadeOutTime": 0.5,
-                    "Sound": "",
-                    "Text": ""
+                    "FadeOutTime": 0.5
                 }
             ],
             "TapBody": [
@@ -72,54 +61,25 @@
                     "File": "motions/haru_g_m26.motion3.json",
                     "FadeInTime": 0.5,
                     "FadeOutTime": 0.5,
-                    "Sound": "sounds/haru_talk_13.wav",
-                    "Text": "TapBody_0"
+                    "Sound": "sounds/haru_talk_13.wav"
                 },
                 {
                     "File": "motions/haru_g_m06.motion3.json",
                     "FadeInTime": 0.5,
                     "FadeOutTime": 0.5,
-                    "Sound": "sounds/haru_Info_14.wav",
-                    "Text": "TapBody_1"
+                    "Sound": "sounds/haru_Info_14.wav"
                 },
                 {
                     "File": "motions/haru_g_m20.motion3.json",
                     "FadeInTime": 0.5,
                     "FadeOutTime": 0.5,
-                    "Sound": "sounds/haru_normal_6.wav",
-                    "Text": "TapBody_2"
+                    "Sound": "sounds/haru_normal_6.wav"
                 },
                 {
                     "File": "motions/haru_g_m09.motion3.json",
                     "FadeInTime": 0.5,
                     "FadeOutTime": 0.5,
-                    "Sound": "sounds/haru_Info_04.wav",
-                    "Text": "TapBody_3"
-                },
-                {
-                    "File": "",
-                    "Sound": "sounds/haru_normal_6.wav",
-                    "Text": "233232323"
-                },
-                {
-                    "File": "",
-                    "Sound": "",
-                    "Text": ""
-                },
-                {
-                    "File": "",
-                    "Sound": "",
-                    "Text": ""
-                },
-                {
-                    "File": "",
-                    "Sound": "",
-                    "Text": ""
-                },
-                {
-                    "File": "",
-                    "Sound": "",
-                    "Text": ""
+                    "Sound": "sounds/haru_Info_04.wav"
                 }
             ]
         },
@@ -145,11 +105,11 @@
     "HitAreas": [
         {
             "Id": "HitArea",
-            "Name": "TapHead"
+            "Name": "Head"
         },
         {
             "Id": "HitArea2",
-            "Name": "TapBody"
+            "Name": "Body"
         }
     ]
 }

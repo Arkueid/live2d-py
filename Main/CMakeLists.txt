@@ -50,7 +50,7 @@ add_subdirectory(${FRAMEWORK_PATH} ${CMAKE_BINARY_DIR}/Framework)
 # Add rendering definition to framework.
 target_compile_definitions(Framework PUBLIC ${CSM_TARGET})
 # Add include path of GLEW to framework.
-target_include_directories(Framework PUBLIC ${GLEW_PATH}/include)
+target_include_directories(Framework PUBLIC ${GLEW_PATH}/include src)
 # If current compiler is mingw, add some options
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   # extra compile options for mingw on Windows

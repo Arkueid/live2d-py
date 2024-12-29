@@ -73,9 +73,12 @@ public:
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
     Csm::CubismMotionQueueEntryHandle StartMotion(const Csm::csmChar* group, Csm::csmInt32 no, Csm::csmInt32 priority,
-                                                  Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler = NULL,
+                                                  void* onStartedCallee = nullptr,
+                                                  Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler =
+                                                      nullptr,
+                                                  void* onFinishedCallee = nullptr,
                                                   Csm::ACubismMotion::FinishedMotionCallback onFinishedMotionHandler =
-                                                      NULL);
+                                                      nullptr);
 
     /**
      * @brief   ランダムに選ばれたモーションの再生を開始する。
@@ -86,10 +89,12 @@ public:
      * @return                                  開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するIsFinished()の引数で使用する。開始できない時は「-1」
      */
     Csm::CubismMotionQueueEntryHandle StartRandomMotion(const Csm::csmChar* group, Csm::csmInt32 priority,
+                                                        void* onStartedCallee = nullptr,
                                                         Csm::ACubismMotion::BeganMotionCallback onStartMotionHandler =
-                                                            NULL,
+                                                            nullptr,
+                                                        void* onFinishedCallee = nullptr,
                                                         Csm::ACubismMotion::FinishedMotionCallback
-                                                        onFinishedMotionHandler = NULL);
+                                                        onFinishedMotionHandler = nullptr);
 
     /**
      * @brief   引数で指定した表情モーションをセットする
@@ -124,7 +129,10 @@ public:
 
     void Resize(int ww, int wh);
 
-    void Touch(float x, float y, Live2D::Cubism::Framework::ACubismMotion::BeganMotionCallback s_call,
+    void Touch(float x, float y,
+               void* s_callee,
+               Live2D::Cubism::Framework::ACubismMotion::BeganMotionCallback s_call,
+               void* f_callee,
                Live2D::Cubism::Framework::ACubismMotion::FinishedMotionCallback f_call);
 
     /**

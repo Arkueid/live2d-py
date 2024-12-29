@@ -10,11 +10,11 @@ import time
 import pygame
 from pygame.locals import *
 
-# import live2d.v3 as live2d
-# from live2d.v3 import StandardParams
+import live2d.v3 as live2d
+from live2d.v3 import StandardParams
 from live2d.utils import log
-import live2d.v2 as live2d
-from live2d.v2 import StandardParams
+# import live2d.v2 as live2d
+# from live2d.v2 import StandardParams
 
 
 import resources
@@ -28,7 +28,7 @@ def main():
     pygame.mixer.init()
     live2d.init()
 
-    display = (200, 200)
+    display = (300, 400)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
@@ -39,7 +39,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
         )
     else:
         model.LoadModelJson(
@@ -115,9 +115,10 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                currentTopClickedPartId = getHitFeedback(x, y)
-                log.Info(f"Clicked Part: {currentTopClickedPartId}")
-                # model.Touch(x, y)
+                # currentTopClickedPartId = getHitFeedback(x, y)
+                # log.Info(f"Clicked Part: {currentTopClickedPartId}")
+                # model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
+                model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -141,7 +142,7 @@ def main():
                 # 实现拖拽
                 model.Drag(*pygame.mouse.get_pos())
                 # 测试性能？
-                currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
+                # currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
                 # pass
 
         if not running:
