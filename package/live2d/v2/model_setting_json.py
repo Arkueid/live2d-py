@@ -1,3 +1,4 @@
+from typing import Union
 import json
 import math
 
@@ -33,7 +34,7 @@ class ModelSettingJson():
         self.json = json.loads(data)
     
     
-    def getTextureFile(self, n):
+    def getTextureFile(self, n) -> Union[str, None]:
         if self.json.get(self.TEXTURES) is None or self.json[self.TEXTURES][n] is None:
             return None
         return self.json[self.TEXTURES][n]

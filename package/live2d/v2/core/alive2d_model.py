@@ -1,12 +1,11 @@
 ﻿from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Union
 
 from .DEF import LIVE2D_FORMAT_VERSION_AVAILABLE, LIVE2D_FORMAT_VERSION_V2_8_TEX_OPTION
-from .id import ParamID, PartsDataID, DrawDataID
+from .id import Id
 from .io import BinaryReader
 from .model import ModelImpl
 from .model_context import ModelContext
-
-from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from .draw import MeshContext, IDrawData, Mesh
@@ -43,30 +42,30 @@ class ALive2DModel(ABC):
 
     def getParamFloat(self, x):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(Id.getID(x))
 
         return self.modelContext.getParamFloat(x)
 
     def setParamFloat(self, x: Union[int, str], value: float, weight: float = 1):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(Id.getID(x))
         value = 0 if value is None else value
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) * (1 - weight) + value * weight)
 
     def addToParamFloat(self, x: Union[int, str], value: float, weight: float = 1):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(Id.getID(x))
 
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) + value * weight)
 
-    def multParamFloat(self, x:  Union[int, str], value: float, weight: float = 1):
+    def multParamFloat(self, x: Union[int, str], value: float, weight: float = 1):
         if not isinstance(x, int):
-            x = self.modelContext.getParamIndex(ParamID.getID(x))
+            x = self.modelContext.getParamIndex(Id.getID(x))
 
         self.modelContext.setParamFloat(x, self.modelContext.getParamFloat(x) * (1 + (value - 1) * weight))
 
     def getParamIndex(self, idStr: str) -> int:
-        return self.modelContext.getParamIndex(ParamID.getID(idStr))
+        return self.modelContext.getParamIndex(Id.getID(idStr))
 
     def loadParam(self):
         self.modelContext.loadParam()
@@ -87,21 +86,21 @@ class ALive2DModel(ABC):
     def getModelContext(self):
         return self.modelContext
 
-    def setPartsOpacity(self, aI, aH):
-        if not isinstance(aI, int):
-            aI = self.modelContext.getPartsDataIndex(PartsDataID.getID(aI))
+    def setPartsOpacity(self, index: Union[int, str], opacity: float):
+        if not isinstance(index, int):
+            index = self.modelContext.getPartsDataIndex(Id.getID(index))
 
-        self.modelContext.setPartsOpacity(aI, aH)
+        self.modelContext.setPartsOpacity(index, opacity)
 
     def getPartsDataIndex(self, aH):
-        if not (isinstance(aH, PartsDataID)):
-            aH = PartsDataID.getID(aH)
+        if not (isinstance(aH, Id)):
+            aH = Id.getID(aH)
 
         return self.modelContext.getPartsDataIndex(aH)
 
     def getPartsOpacity(self, aH):
         if not isinstance(aH, int):
-            aH = self.modelContext.getPartsDataIndex(PartsDataID.getID(aH))
+            aH = self.modelContext.getPartsDataIndex(Id.getID(aH))
 
         if aH < 0:
             return 0
@@ -113,7 +112,7 @@ class ALive2DModel(ABC):
         pass
 
     def getDrawDataIndex(self, aH):
-        return self.modelContext.getDrawDataIndex(DrawDataID.getID(aH))
+        return self.modelContext.getDrawDataIndex(Id.getID(aH))
 
     def getDrawData(self, aH):
         return self.modelContext.getDrawData(aH)

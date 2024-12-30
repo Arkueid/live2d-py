@@ -1,42 +1,49 @@
-﻿from ..type import Float32Array
+﻿from typing import List
+from typing import TYPE_CHECKING
+
 from .ut_system import UtSystem
+from ..type import Float32Array
+
+if TYPE_CHECKING:
+    from live2d.core.model_context import ModelContext
+    from live2d.core.param import PivotManager
 
 
 class UtInterpolate:
     @staticmethod
-    def interpolateInt(bb, bo, bp, a2):
-        a1 = bo.calcPivotValues(bb, bp)
-        a3 = bb.getTempPivotTableIndices()
-        ba = bb.getTempT()
-        bo.calcPivotIndices(a3, ba, a1)
+    def interpolateInt(mdc: 'ModelContext', pivotMgr: 'PivotManager', ret: List[bool], pivotValue: List[int]):
+        a1 = pivotMgr.calcPivotValues(mdc, ret)
+        a3 = mdc.getTempPivotTableIndices()
+        ba = mdc.getTempT()
+        pivotMgr.calcPivotIndices(a3, ba, a1)
         if a1 <= 0:
-            return a2[a3[0]]
+            return pivotValue[a3[0]]
 
         elif a1 == 1:
-            bj = a2[a3[0]]
-            bi = a2[a3[1]]
+            bj = pivotValue[a3[0]]
+            bi = pivotValue[a3[1]]
             a9 = ba[0]
             return int(bj + (bi - bj) * a9)
 
         elif a1 == 2:
-            bj = a2[a3[0]]
-            bi = a2[a3[1]]
-            a0 = a2[a3[2]]
-            aZ = a2[a3[3]]
+            bj = pivotValue[a3[0]]
+            bi = pivotValue[a3[1]]
+            a0 = pivotValue[a3[2]]
+            aZ = pivotValue[a3[3]]
             a9 = ba[0]
             a8 = ba[1]
             br = int(bj + (bi - bj) * a9)
             bq = int(a0 + (aZ - a0) * a9)
             return int(br + (bq - br) * a8)
         elif a1 == 3:
-            aP = a2[a3[0]]
-            aO = a2[a3[1]]
-            bn = a2[a3[2]]
-            bm = a2[a3[3]]
-            aK = a2[a3[4]]
-            aJ = a2[a3[5]]
-            bg = a2[a3[6]]
-            bf = a2[a3[7]]
+            aP = pivotValue[a3[0]]
+            aO = pivotValue[a3[1]]
+            bn = pivotValue[a3[2]]
+            bm = pivotValue[a3[3]]
+            aK = pivotValue[a3[4]]
+            aJ = pivotValue[a3[5]]
+            bg = pivotValue[a3[6]]
+            bf = pivotValue[a3[7]]
             a9 = ba[0]
             a8 = ba[1]
             a6 = ba[2]
@@ -48,22 +55,22 @@ class UtInterpolate:
             bq = int(a0 + (aZ - a0) * a8)
             return int(br + (bq - br) * a6)
         elif a1 == 4:
-            aT = a2[a3[0]]
-            aS = a2[a3[1]]
-            bu = a2[a3[2]]
-            bt = a2[a3[3]]
-            aN = a2[a3[4]]
-            aM = a2[a3[5]]
-            bl = a2[a3[6]]
-            bk = a2[a3[7]]
-            be = a2[a3[8]]
-            bc = a2[a3[9]]
-            aX = a2[a3[10]]
-            aW = a2[a3[11]]
-            a7 = a2[a3[12]]
-            a5 = a2[a3[13]]
-            aR = a2[a3[14]]
-            aQ = a2[a3[15]]
+            aT = pivotValue[a3[0]]
+            aS = pivotValue[a3[1]]
+            bu = pivotValue[a3[2]]
+            bt = pivotValue[a3[3]]
+            aN = pivotValue[a3[4]]
+            aM = pivotValue[a3[5]]
+            bl = pivotValue[a3[6]]
+            bk = pivotValue[a3[7]]
+            be = pivotValue[a3[8]]
+            bc = pivotValue[a3[9]]
+            aX = pivotValue[a3[10]]
+            aW = pivotValue[a3[11]]
+            a7 = pivotValue[a3[12]]
+            a5 = pivotValue[a3[13]]
+            aR = pivotValue[a3[14]]
+            aQ = pivotValue[a3[15]]
             a9 = ba[0]
             a8 = ba[1]
             a6 = ba[2]
@@ -97,7 +104,7 @@ class UtInterpolate:
 
             bs = Float32Array(aV)
             for aU in range(0, aV, 1):
-                bs[aU] = a2[a3[aU]]
+                bs[aU] = pivotValue[a3[aU]]
 
             bd = 0
             for aU in range(0, aV, 1):
@@ -106,57 +113,57 @@ class UtInterpolate:
             return int(bd + 0.5)
 
     @staticmethod
-    def interpolateFloat(ba, bo, bp, bg):
-        a1 = bo.calcPivotValues(ba, bp)
-        a2 = ba.getTempPivotTableIndices()
-        a9 = ba.getTempT()
-        bo.calcPivotIndices(a2, a9, a1)
+    def interpolateFloat(mdc: 'ModelContext', pivotMgr: 'PivotManager', ret: List[bool], pivotValue: List[float]):
+        a1 = pivotMgr.calcPivotValues(mdc, ret)
+        a2 = mdc.getTempPivotTableIndices()
+        a9 = mdc.getTempT()
+        pivotMgr.calcPivotIndices(a2, a9, a1)
         if a1 <= 0:
-            return bg[a2[0]]
+            return pivotValue[a2[0]]
         if a1 == 1:
-            bj = bg[a2[0]]
-            bi = bg[a2[1]]
+            bj = pivotValue[a2[0]]
+            bi = pivotValue[a2[1]]
             a8 = a9[0]
             return bj + (bi - bj) * a8
         elif a1 == 2:
-            bj = bg[a2[0]]
-            bi = bg[a2[1]]
-            a0 = bg[a2[2]]
-            aZ = bg[a2[3]]
+            bj = pivotValue[a2[0]]
+            bi = pivotValue[a2[1]]
+            a0 = pivotValue[a2[2]]
+            aZ = pivotValue[a2[3]]
             a8 = a9[0]
             a7 = a9[1]
             return (1 - a7) * (bj + (bi - bj) * a8) + a7 * (a0 + (aZ - a0) * a8)
         elif a1 == 3:
-            aP = bg[a2[0]]
-            aO = bg[a2[1]]
-            bn = bg[a2[2]]
-            bm = bg[a2[3]]
-            aK = bg[a2[4]]
-            aJ = bg[a2[5]]
-            bf = bg[a2[6]]
-            be = bg[a2[7]]
+            aP = pivotValue[a2[0]]
+            aO = pivotValue[a2[1]]
+            bn = pivotValue[a2[2]]
+            bm = pivotValue[a2[3]]
+            aK = pivotValue[a2[4]]
+            aJ = pivotValue[a2[5]]
+            bf = pivotValue[a2[6]]
+            be = pivotValue[a2[7]]
             a8 = a9[0]
             a7 = a9[1]
             a5 = a9[2]
             return (1 - a5) * ((1 - a7) * (aP + (aO - aP) * a8) + a7 * (bn + (bm - bn) * a8)) + a5 * (
                     (1 - a7) * (aK + (aJ - aK) * a8) + a7 * (bf + (be - bf) * a8))
         elif a1 == 4:
-            aT = bg[a2[0]]
-            aS = bg[a2[1]]
-            bs = bg[a2[2]]
-            br = bg[a2[3]]
-            aN = bg[a2[4]]
-            aM = bg[a2[5]]
-            bl = bg[a2[6]]
-            bk = bg[a2[7]]
-            bd = bg[a2[8]]
-            bb = bg[a2[9]]
-            aX = bg[a2[10]]
-            aW = bg[a2[11]]
-            a6 = bg[a2[12]]
-            a4 = bg[a2[13]]
-            aR = bg[a2[14]]
-            aQ = bg[a2[15]]
+            aT = pivotValue[a2[0]]
+            aS = pivotValue[a2[1]]
+            bs = pivotValue[a2[2]]
+            br = pivotValue[a2[3]]
+            aN = pivotValue[a2[4]]
+            aM = pivotValue[a2[5]]
+            bl = pivotValue[a2[6]]
+            bk = pivotValue[a2[7]]
+            bd = pivotValue[a2[8]]
+            bb = pivotValue[a2[9]]
+            aX = pivotValue[a2[10]]
+            aW = pivotValue[a2[11]]
+            a6 = pivotValue[a2[12]]
+            a4 = pivotValue[a2[13]]
+            aR = pivotValue[a2[14]]
+            aQ = pivotValue[a2[15]]
             a8 = a9[0]
             a7 = a9[1]
             a5 = a9[2]
@@ -185,7 +192,7 @@ class UtInterpolate:
 
             bq = Float32Array(aV)
             for aU in range(0, aV, 1):
-                bq[aU] = bg[a2[aU]]
+                bq[aU] = pivotValue[a2[aU]]
 
             bc = 0
             for aU in range(0, aV, 1):
@@ -194,7 +201,7 @@ class UtInterpolate:
             return bc
 
     @staticmethod
-    def interpolatePoints(mdc, pivotMgr, retParamOut, numPts, pivotPoints, dstPoints, ptOffset, ptStep):
+    def interpolatePoints(mdc: 'ModelContext', pivotMgr: 'PivotManager', retParamOut: List[bool], numPts: List[float], pivotPoints, dstPoints, ptOffset, ptStep):
         aN = pivotMgr.calcPivotValues(mdc, retParamOut)
         bw = mdc.getTempPivotTableIndices()
         a2 = mdc.getTempT()

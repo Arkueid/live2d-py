@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 
 class RotationContext(DeformerContext):
 
-    def __init__(self, aH):
-        super().__init__(aH)
+    def __init__(self, dfm):
+        super().__init__(dfm)
 
         self.tmpDeformerIndex = Deformer.DEFORMER_INDEX_NOT_INIT
         self.interpolatedAffine: None | AffineEnt = None

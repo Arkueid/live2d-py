@@ -3,11 +3,11 @@
 
 class UtMotion:
     @staticmethod
-    def r2_(aH):
-        if aH < 0:
+    def getEasingSine(value: float):
+        if value < 0:
             return 0
 
-        if aH > 1:
+        if value > 1:
             return 1
 
-        return 0.5 - 0.5 * math.cos(aH * math.pi)
+        return 0.5 - 0.5 * math.cos(value * math.pi)

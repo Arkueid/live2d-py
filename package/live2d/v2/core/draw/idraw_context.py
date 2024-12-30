@@ -5,9 +5,9 @@ if TYPE_CHECKING:
 
 class IDrawContext:
 
-    def __init__(self, dd):
+    def __init__(self, dd: 'Mesh'):
         self.interpolatedDrawOrder = None
-        self.paramOutside = [False]
+        self.paramOutside = False
         self.partsOpacity = 0
         self.available = True
         self.baseOpacity = 1
@@ -16,10 +16,10 @@ class IDrawContext:
         self.partsIndex = -1
 
     def isParamOutside(self):
-        return self.paramOutside[0]
+        return self.paramOutside
 
     def isAvailable(self):
-        return self.available and not self.paramOutside[0]
+        return self.available and not self.paramOutside
 
     def getDrawData(self) -> 'Mesh':
         return self.drawData

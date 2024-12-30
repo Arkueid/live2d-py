@@ -1,20 +1,19 @@
 ﻿import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from .DEF import PIVOT_TABLE_SIZE, MAX_INTERPOLATION
 from .draw import IDrawData
 from .graphics import ClippingManagerOpenGL
-from .id import BaseDataID
-from .id import DrawDataID
+from .id import Id
 from .type import Array, Float32Array, Int16Array
 
 if TYPE_CHECKING:
-    from .draw import MeshContext
+    from .draw import MeshContext, Mesh
     from .model import PartsDataContext
+    from .graphics import DrawParamOpenGL
 
 
 class ModelContext:
-    __verbose = True
     NOT_USED_ORDER = -1
     NO_NEXT = -1
     DEFAULT_PARAM_UPDATE_FLAG = False
@@ -35,12 +34,12 @@ class ModelContext:
         self.savedParamValues = Float32Array(ModelContext.DEFAULT_ARRAY_LENGTH)
         self.updatedParamFlags = Array(ModelContext.DEFAULT_ARRAY_LENGTH)
         self.deformerList = Array()
-        self.drawDataList = Array()
+        self.drawDataList: List[Optional['Mesh']] = Array()
         self.tmpDrawDataList = None
         self.partsDataList = Array()
         self.deformerContextList = Array()
         self.drawContextList = Array()
-        self.partsContextList: 'list[PartsDataContext]' = Array()
+        self.partsContextList: List[Optional[PartsDataContext]] = Array()
         self.orderList_firstDrawIndex = None
         self.orderList_lastDrawIndex = None
         self.nextList_drawIndex = None
@@ -50,15 +49,15 @@ class ModelContext:
         self.clipManager = None
         self.dpGL = None
 
-    def getDrawDataIndex(self, aI):
+    def getDrawDataIndex(self, drawDataId) -> int:
         for aH in range(len(self.drawDataList) - 1, 0 - 1, -1):
-            if self.drawDataList[aH] is not None and self.drawDataList[aH].getId() == aI:
+            if self.drawDataList[aH] is not None and self.drawDataList[aH].getId() == drawDataId:
                 return aH
 
         return -1
 
     def getDrawData(self, aH):
-        if isinstance(aH, DrawDataID):
+        if isinstance(aH, Id):
             if self.tmpDrawDataList is None:
                 self.tmpDrawDataList = {}
                 count = len(self.drawDataList)
@@ -122,7 +121,7 @@ class ModelContext:
                 self.drawContextList.append(a0)
 
         aY = len(aH)
-        aN = BaseDataID.DST_BASE_ID()
+        aN = Id.DST_BASE_ID()
         while True:
             aX = False
             for aV in range(0, aY, 1):
@@ -191,8 +190,7 @@ class ModelContext:
             aJ.setupTransform(self, aH)
 
         if aL is not None:
-            if ModelContext.__verbose:
-                print(aL)
+            raise RuntimeError
 
         aR = None
         for aO in range(0, aN, 1):
@@ -215,8 +213,7 @@ class ModelContext:
             self.orderList_lastDrawIndex[aT] = aO
 
         if aR is not None:
-            if ModelContext.__verbose:
-                print(aR)
+            raise RuntimeError
 
         for i in range(len(self.updatedParamFlags) - 1, -1, -1):
             self.updatedParamFlags[i] = ModelContext.DEFAULT_PARAM_UPDATE_FLAG
@@ -224,7 +221,7 @@ class ModelContext:
         self.needSetup = False
         return aX
 
-    def preDraw(self, aH):
+    def preDraw(self, aH: 'DrawParamOpenGL'):
         if self.clipManager is not None:
             aH.setupDraw()
             self.clipManager.setupClip(self, aH)

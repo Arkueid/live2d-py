@@ -1,9 +1,13 @@
-﻿class PartsDataContext:
+﻿from typing import TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+    from .part import PartsData
+
+class PartsDataContext:
 
     def __init__(self, parts):
         super().__init__()
         self.partsOpacity = None
-        self.partsData = parts
+        self.partsData: Optional['PartsData'] = parts
         self.screenColor = [0.0, 0.0, 0.0, 1.0]
         self.multiplyColor = [1.0, 1.0, 1.0, 1.0]
 

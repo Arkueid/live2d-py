@@ -1,8 +1,14 @@
 ﻿from abc import ABC
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from live2d.core.deformer import Deformer
+
+
 class DeformerContext(ABC):
 
-    def __init__(self, deformer):
+    def __init__(self, deformer: 'Deformer'):
         self.partsIndex = None
         self.outsideParam = False
         self.available = True
@@ -49,5 +55,3 @@ class DeformerContext(ABC):
 
     def setTotalOpacity(self, aH):
         self.totalOpacity = aH
-
-

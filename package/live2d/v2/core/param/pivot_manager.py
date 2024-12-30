@@ -39,7 +39,7 @@ class PivotManager(ISerializable):
             aI = aH.getParamIndex(aJ)
             if aI == ParamPivots.PARAM_INDEX_NOT_INIT:
                 aI = aL.getParamIndex(aH.getParamID())
-                aH.Pb_(aI, aJ)
+                aH.setParamIndex(aI, aJ)
 
             if aI < 0:
                 raise Exception("err 23242 : " + aH.getParamID())

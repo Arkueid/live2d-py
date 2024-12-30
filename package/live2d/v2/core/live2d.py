@@ -1,3 +1,4 @@
+from .id import Id
 from .util import log
 from .live2d_gl_wrapper import Live2DGLWrapper
 
@@ -22,4 +23,4 @@ class Live2D:
 
     @staticmethod
     def dispose():
-        pass
+        Id.releaseStored()

@@ -1,4 +1,6 @@
-﻿from .clip_context import ClipContext
+﻿from typing import List, Optional
+
+from .clip_context import ClipContext
 from .clip_matrix import ClipMatrix
 from .clip_rectf import ClipRectF
 from .texture_info import TextureInfo
@@ -11,46 +13,46 @@ class ClippingManagerOpenGL:
     CHANNEL_COUNT = 4
 
     def __init__(self, aJ):
-        self.clipContextList = Array()
+        self.clipContextList: List[Optional[ClipContext]] = Array()
         self.glcontext = aJ.gl
         self.dpGL = aJ
         self.curFrameNo = 0
         self.firstError_clipInNotUpdate = True
         self.colorBuffer = 0
-        self.isInitGLFBFunc = False
+        self.isInitGLFBFunc: bool = False
         self.tmpBoundsOnModel = ClipRectF()
         self.genMaskRenderTexture()
         self.tmpModelToViewMatrix = ClipMatrix()
         self.tmpMatrix2 = ClipMatrix()
         self.tmpMatrixForMask = ClipMatrix()
         self.tmpMatrixForDraw = ClipMatrix()
-        self.CHANNEL_COLORS = Array()
+        self.channelColors: List[Optional[TextureInfo]] = Array()
         aI = TextureInfo()
         aI.r = 0
         aI.g = 0
         aI.b = 0
         aI.a = 1
-        self.CHANNEL_COLORS.append(aI)
+        self.channelColors.append(aI)
         aI = TextureInfo()
         aI.r = 1
         aI.g = 0
         aI.b = 0
         aI.a = 0
-        self.CHANNEL_COLORS.append(aI)
+        self.channelColors.append(aI)
         aI = TextureInfo()
         aI.r = 0
         aI.g = 1
         aI.b = 0
         aI.a = 0
-        self.CHANNEL_COLORS.append(aI)
+        self.channelColors.append(aI)
         aI = TextureInfo()
         aI.r = 0
         aI.g = 0
         aI.b = 1
         aI.a = 0
-        self.CHANNEL_COLORS.append(aI)
-        for aH in range(0, len(self.CHANNEL_COLORS), 1):
-            self.dpGL.setChannelFlagAsColor(aH, self.CHANNEL_COLORS[aH])
+        self.channelColors.append(aI)
+        for aH in range(0, len(self.channelColors), 1):
+            self.dpGL.setChannelFlagAsColor(aH, self.channelColors[aH])
 
     def releaseShader(self):
         aI = len(Live2D.frameBuffers)
@@ -90,11 +92,11 @@ class ClippingManagerOpenGL:
 
         if aK > 0:
             oldFbo = aQ.gl.getParameter(aQ.gl.FRAMEBUFFER_BINDING)
-            aW = Array(4)
-            aW[0] = 0
-            aW[1] = 0
-            aW[2] = aQ.gl.width
-            aW[3] = aQ.gl.height
+            rect = Array(4)
+            rect[0] = 0
+            rect[1] = 0
+            rect[2] = aQ.gl.width
+            rect[3] = aQ.gl.height
             aQ.gl.viewport(0, 0, Live2D.clippingMaskBufferSize, Live2D.clippingMaskBufferSize)
             self.setupLayoutBounds(aK)
             aQ.gl.bindFramebuffer(aQ.gl.FRAMEBUFFER, aQ.framebufferObject.framebuffer)
@@ -139,7 +141,7 @@ class ClippingManagerOpenGL:
 
             aQ.gl.bindFramebuffer(aQ.gl.FRAMEBUFFER, oldFbo)
             aQ.setClipBufPre_clipContextForMask(None)
-            aQ.gl.viewport(aW[0], aW[1], aW[2], aW[3])
+            aQ.gl.viewport(rect[0], rect[1], rect[2], rect[3])
 
     def getColorBuffer(self):
         return self.colorBuffer

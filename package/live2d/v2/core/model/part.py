@@ -1,4 +1,5 @@
-﻿from typing import TYPE_CHECKING
+﻿from typing import TYPE_CHECKING, Optional
+
 
 from .parts_context import PartsDataContext
 from ..io.iserializable import ISerializable
@@ -6,6 +7,7 @@ from ..type import Array
 
 if TYPE_CHECKING:
     from ..draw import Mesh
+    from ..id import Id
 
 
 class PartsData(ISerializable):
@@ -13,7 +15,7 @@ class PartsData(ISerializable):
     def __init__(self):
         self.visible = True
         self.locked = False
-        self.id = None
+        self.id: Optional['Id'] = None
         self.deformerList = None
         self.drawDataList: list[Mesh] | None = None
 

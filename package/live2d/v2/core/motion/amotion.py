@@ -45,8 +45,8 @@ class AMotion(ABC):
                 aN.endTimeMSec = -1 if (aM <= 0) else aN.startTimeMSec + aM
 
         aI = self.weight
-        aH = 1 if (self.fadeInMSec == 0) else UtMotion.r2_(((aL - aN.fadeInStartTimeMSec) / self.fadeInMSec))
-        aK = 1 if (self.fadeOutMSec == 0 or aN.endTimeMSec < 0) else UtMotion.r2_(((aN.endTimeMSec - aL) / self.fadeOutMSec))
+        aH = 1 if (self.fadeInMSec == 0) else UtMotion.getEasingSine(((aL - aN.fadeInStartTimeMSec) / self.fadeInMSec))
+        aK = 1 if (self.fadeOutMSec == 0 or aN.endTimeMSec < 0) else UtMotion.getEasingSine(((aN.endTimeMSec - aL) / self.fadeOutMSec))
         aI = aI * aH * aK
         if not (0 <= aI <= 1):
             print("### assert!! ### ")

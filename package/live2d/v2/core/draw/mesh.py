@@ -130,7 +130,7 @@ class Mesh(IDrawData):
             return
 
         super().setupInterpolate(aJ, aK)
-        if aK.paramOutside[0]:
+        if aK.paramOutside:
             return
 
         aI = Mesh.paramOutside
@@ -143,7 +143,7 @@ class Mesh(IDrawData):
             raise RuntimeError("context not match")
 
         aL = False
-        if dc.paramOutside[0]:
+        if dc.paramOutside:
             aL = True
 
         if not aL:
@@ -172,7 +172,7 @@ class Mesh(IDrawData):
         if not (self == dctx.getDrawData()):
             raise RuntimeError("context not match")
 
-        if dctx.paramOutside[0]:
+        if dctx.paramOutside:
             return
 
         texNr = self.textureNo

@@ -1,4 +1,4 @@
-﻿from typing import Union
+﻿from typing import Union, List
 
 
 class UtString:
@@ -19,7 +19,7 @@ class UtString:
         return buf[offset:offset + size].decode("utf-8")
 
     @staticmethod
-    def strToFloat(s, length, offset, ret) -> float:
+    def strToFloat(s: bytes, length: int, offset: int, ret: List[bool]) -> float:
         result = 0
         _n = 10
         _p = False

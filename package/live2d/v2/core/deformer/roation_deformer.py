@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 
 class RotationDeformer(Deformer):
+    # 代替c语言中的指针/引用
     Xo_ = [0.0, 0.0]
     io_ = [0.0, 0.0]
     _0o = [0.0, 0.0]
@@ -26,7 +27,7 @@ class RotationDeformer(Deformer):
         self.pivotManager = None
         self.affines = None
 
-    def getType(self):
+    def getType(self) -> int:
         return Deformer.TYPE_ROTATION
 
     def read(self, br):
@@ -35,42 +36,42 @@ class RotationDeformer(Deformer):
         self.affines = br.readObject()
         super().readOpacity(br)
 
-    def init(self, mc):
-        aI = RotationContext(self)
-        aI.interpolatedAffine = AffineEnt()
+    def init(self, mc) -> 'RotationContext':
+        rctx = RotationContext(self)
+        rctx.interpolatedAffine = AffineEnt()
         if self.needTransform():
-            aI.transformedAffine = AffineEnt()
+            rctx.transformedAffine = AffineEnt()
 
-        return aI
+        return rctx
 
-    def setupInterpolate(self, modelContext: 'ModelContext', deformerContext: 'RotationContext'):
-        if not (self == deformerContext.getDeformer()):
+    def setupInterpolate(self, mctx: 'ModelContext', rctx: 'RotationContext'):
+        if not (self == rctx.getDeformer()):
             raise RuntimeError("context not match")
 
-        if not self.pivotManager.checkParamUpdated(modelContext):
+        if not self.pivotManager.checkParamUpdated(mctx):
             return
 
         success = RotationDeformer.success
         success[0] = False
-        a2 = self.pivotManager.calcPivotValues(modelContext, success)
-        deformerContext.setOutsideParam(success[0])
-        self.interpolateOpacity(modelContext, self.pivotManager, deformerContext, success)
-        a3 = modelContext.getTempPivotTableIndices()
-        ba = modelContext.getTempT()
+        a2 = self.pivotManager.calcPivotValues(mctx, success)
+        rctx.setOutsideParam(success[0])
+        self.interpolateOpacity(mctx, self.pivotManager, rctx, success)
+        a3 = mctx.getTempPivotTableIndices()
+        ba = mctx.getTempT()
         self.pivotManager.calcPivotIndices(a3, ba, a2)
         if a2 <= 0:
             bn_3 = self.affines[a3[0]]
-            deformerContext.interpolatedAffine.init(bn_3)
+            rctx.interpolatedAffine.init(bn_3)
         else:
             if a2 == 1:
                 bn_1 = self.affines[a3[0]]
                 bl = self.affines[a3[1]]
                 a9 = ba[0]
-                deformerContext.interpolatedAffine.originX = bn_1.originX + (bl.originX - bn_1.originX) * a9
-                deformerContext.interpolatedAffine.originY = bn_1.originY + (bl.originY - bn_1.originY) * a9
-                deformerContext.interpolatedAffine.scaleX = bn_1.scaleX + (bl.scaleX - bn_1.scaleX) * a9
-                deformerContext.interpolatedAffine.scaleY = bn_1.scaleY + (bl.scaleY - bn_1.scaleY) * a9
-                deformerContext.interpolatedAffine.rotationDeg = bn_1.rotationDeg + (
+                rctx.interpolatedAffine.originX = bn_1.originX + (bl.originX - bn_1.originX) * a9
+                rctx.interpolatedAffine.originY = bn_1.originY + (bl.originY - bn_1.originY) * a9
+                rctx.interpolatedAffine.scaleX = bn_1.scaleX + (bl.scaleX - bn_1.scaleX) * a9
+                rctx.interpolatedAffine.scaleY = bn_1.scaleY + (bl.scaleY - bn_1.scaleY) * a9
+                rctx.interpolatedAffine.rotationDeg = bn_1.rotationDeg + (
                         bl.rotationDeg - bn_1.rotationDeg) * a9
             else:
                 if a2 == 2:
@@ -82,19 +83,19 @@ class RotationDeformer(Deformer):
                     a8 = ba[1]
                     bC = bn_1.originX + (bl.originX - bn_1.originX) * a9
                     bB = a1.originX + (a0.originX - a1.originX) * a9
-                    deformerContext.interpolatedAffine.originX = bC + (bB - bC) * a8
+                    rctx.interpolatedAffine.originX = bC + (bB - bC) * a8
                     bC = bn_1.originY + (bl.originY - bn_1.originY) * a9
                     bB = a1.originY + (a0.originY - a1.originY) * a9
-                    deformerContext.interpolatedAffine.originY = bC + (bB - bC) * a8
+                    rctx.interpolatedAffine.originY = bC + (bB - bC) * a8
                     bC = bn_1.scaleX + (bl.scaleX - bn_1.scaleX) * a9
                     bB = a1.scaleX + (a0.scaleX - a1.scaleX) * a9
-                    deformerContext.interpolatedAffine.scaleX = bC + (bB - bC) * a8
+                    rctx.interpolatedAffine.scaleX = bC + (bB - bC) * a8
                     bC = bn_1.scaleY + (bl.scaleY - bn_1.scaleY) * a9
                     bB = a1.scaleY + (a0.scaleY - a1.scaleY) * a9
-                    deformerContext.interpolatedAffine.scaleY = bC + (bB - bC) * a8
+                    rctx.interpolatedAffine.scaleY = bC + (bB - bC) * a8
                     bC = bn_1.rotationDeg + (bl.rotationDeg - bn_1.rotationDeg) * a9
                     bB = a1.rotationDeg + (a0.rotationDeg - a1.rotationDeg) * a9
-                    deformerContext.interpolatedAffine.rotationDeg = bC + (bB - bC) * a8
+                    rctx.interpolatedAffine.rotationDeg = bC + (bB - bC) * a8
                 else:
                     if a2 == 3:
                         aP = self.affines[a3[0]]
@@ -112,31 +113,31 @@ class RotationDeformer(Deformer):
                         bB = bu.originX + (bs.originX - bu.originX) * a9
                         bz = aK.originX + (aJ.originX - aK.originX) * a9
                         by = bj.originX + (bi.originX - bj.originX) * a9
-                        deformerContext.interpolatedAffine.originX = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
+                        rctx.interpolatedAffine.originX = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
                                 bz + (by - bz) * a8)
                         bC = aP.originY + (aO.originY - aP.originY) * a9
                         bB = bu.originY + (bs.originY - bu.originY) * a9
                         bz = aK.originY + (aJ.originY - aK.originY) * a9
                         by = bj.originY + (bi.originY - bj.originY) * a9
-                        deformerContext.interpolatedAffine.originY = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
+                        rctx.interpolatedAffine.originY = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
                                 bz + (by - bz) * a8)
                         bC = aP.scaleX + (aO.scaleX - aP.scaleX) * a9
                         bB = bu.scaleX + (bs.scaleX - bu.scaleX) * a9
                         bz = aK.scaleX + (aJ.scaleX - aK.scaleX) * a9
                         by = bj.scaleX + (bi.scaleX - bj.scaleX) * a9
-                        deformerContext.interpolatedAffine.scaleX = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
+                        rctx.interpolatedAffine.scaleX = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
                                 bz + (by - bz) * a8)
                         bC = aP.scaleY + (aO.scaleY - aP.scaleY) * a9
                         bB = bu.scaleY + (bs.scaleY - bu.scaleY) * a9
                         bz = aK.scaleY + (aJ.scaleY - aK.scaleY) * a9
                         by = bj.scaleY + (bi.scaleY - bj.scaleY) * a9
-                        deformerContext.interpolatedAffine.scaleY = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
+                        rctx.interpolatedAffine.scaleY = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
                                 bz + (by - bz) * a8)
                         bC = aP.rotationDeg + (aO.rotationDeg - aP.rotationDeg) * a9
                         bB = bu.rotationDeg + (bs.rotationDeg - bu.rotationDeg) * a9
                         bz = aK.rotationDeg + (aJ.rotationDeg - aK.rotationDeg) * a9
                         by = bj.rotationDeg + (bi.rotationDeg - bj.rotationDeg) * a9
-                        deformerContext.interpolatedAffine.rotationDeg = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
+                        rctx.interpolatedAffine.rotationDeg = (1 - a6) * (bC + (bB - bC) * a8) + a6 * (
                                 bz + (by - bz) * a8)
                     else:
                         if a2 == 4:
@@ -168,11 +169,11 @@ class RotationDeformer(Deformer):
                             bt = aY.originX + (aW.originX - aY.originX) * a9
                             br = a7.originX + (a5.originX - a7.originX) * a9
                             bq = aR.originX + (aQ.originX - aR.originX) * a9
-                            deformerContext.interpolatedAffine.originX = (1 - a4) * (
+                            rctx.interpolatedAffine.originX = (1 - a4) * (
                                     (1 - a6) * (bC + (bB - bC) * a8) + a6 * (bz + (by - bz) * a8)) + a4 * (
-                                                                                 (1 - a6) * (
-                                                                                 bv + (bt - bv) * a8) + a6 * (
-                                                                                         br + (bq - br) * a8))
+                                                                      (1 - a6) * (
+                                                                      bv + (bt - bv) * a8) + a6 * (
+                                                                              br + (bq - br) * a8))
                             bC = aT.originY + (aS.originY - aT.originY) * a9
                             bB = bE.originY + (bD.originY - bE.originY) * a9
                             bz = aN.originY + (aM.originY - aN.originY) * a9
@@ -181,11 +182,11 @@ class RotationDeformer(Deformer):
                             bt = aY.originY + (aW.originY - aY.originY) * a9
                             br = a7.originY + (a5.originY - a7.originY) * a9
                             bq = aR.originY + (aQ.originY - aR.originY) * a9
-                            deformerContext.interpolatedAffine.originY = (1 - a4) * (
+                            rctx.interpolatedAffine.originY = (1 - a4) * (
                                     (1 - a6) * (bC + (bB - bC) * a8) + a6 * (bz + (by - bz) * a8)) + a4 * (
-                                                                                 (1 - a6) * (
-                                                                                 bv + (bt - bv) * a8) + a6 * (
-                                                                                         br + (bq - br) * a8))
+                                                                      (1 - a6) * (
+                                                                      bv + (bt - bv) * a8) + a6 * (
+                                                                              br + (bq - br) * a8))
                             bC = aT.scaleX + (aS.scaleX - aT.scaleX) * a9
                             bB = bE.scaleX + (bD.scaleX - bE.scaleX) * a9
                             bz = aN.scaleX + (aM.scaleX - aN.scaleX) * a9
@@ -194,11 +195,11 @@ class RotationDeformer(Deformer):
                             bt = aY.scaleX + (aW.scaleX - aY.scaleX) * a9
                             br = a7.scaleX + (a5.scaleX - a7.scaleX) * a9
                             bq = aR.scaleX + (aQ.scaleX - aR.scaleX) * a9
-                            deformerContext.interpolatedAffine.scaleX = (1 - a4) * (
+                            rctx.interpolatedAffine.scaleX = (1 - a4) * (
                                     (1 - a6) * (bC + (bB - bC) * a8) + a6 * (bz + (by - bz) * a8)) + a4 * (
-                                                                                (1 - a6) * (
-                                                                                bv + (bt - bv) * a8) + a6 * (
-                                                                                        br + (bq - br) * a8))
+                                                                     (1 - a6) * (
+                                                                     bv + (bt - bv) * a8) + a6 * (
+                                                                             br + (bq - br) * a8))
                             bC = aT.scaleY + (aS.scaleY - aT.scaleY) * a9
                             bB = bE.scaleY + (bD.scaleY - bE.scaleY) * a9
                             bz = aN.scaleY + (aM.scaleY - aN.scaleY) * a9
@@ -207,11 +208,11 @@ class RotationDeformer(Deformer):
                             bt = aY.scaleY + (aW.scaleY - aY.scaleY) * a9
                             br = a7.scaleY + (a5.scaleY - a7.scaleY) * a9
                             bq = aR.scaleY + (aQ.scaleY - aR.scaleY) * a9
-                            deformerContext.interpolatedAffine.scaleY = (1 - a4) * (
+                            rctx.interpolatedAffine.scaleY = (1 - a4) * (
                                     (1 - a6) * (bC + (bB - bC) * a8) + a6 * (bz + (by - bz) * a8)) + a4 * (
-                                                                                (1 - a6) * (
-                                                                                bv + (bt - bv) * a8) + a6 * (
-                                                                                        br + (bq - br) * a8))
+                                                                     (1 - a6) * (
+                                                                     bv + (bt - bv) * a8) + a6 * (
+                                                                             br + (bq - br) * a8))
                             bC = aT.rotationDeg + (aS.rotationDeg - aT.rotationDeg) * a9
                             bB = bE.rotationDeg + (bD.rotationDeg - bE.rotationDeg) * a9
                             bz = aN.rotationDeg + (aM.rotationDeg - aN.rotationDeg) * a9
@@ -220,11 +221,11 @@ class RotationDeformer(Deformer):
                             bt = aY.rotationDeg + (aW.rotationDeg - aY.rotationDeg) * a9
                             br = a7.rotationDeg + (a5.rotationDeg - a7.rotationDeg) * a9
                             bq = aR.rotationDeg + (aQ.rotationDeg - aR.rotationDeg) * a9
-                            deformerContext.interpolatedAffine.rotationDeg = (1 - a4) * (
+                            rctx.interpolatedAffine.rotationDeg = (1 - a4) * (
                                     (1 - a6) * (bC + (bB - bC) * a8) + a6 * (bz + (by - bz) * a8)) + a4 * (
-                                                                                     (1 - a6) * (
-                                                                                     bv + (bt - bv) * a8) + a6 * (
-                                                                                             br + (bq - br) * a8))
+                                                                          (1 - a6) * (
+                                                                          bv + (bt - bv) * a8) + a6 * (
+                                                                                  br + (bq - br) * a8))
                         else:
                             aV = int(pow(2, a2))
                             aZ = Float32Array(aV)
@@ -253,15 +254,15 @@ class RotationDeformer(Deformer):
                                 bb += aZ[aU] * bA[aU].scaleY
                                 aX += aZ[aU] * bA[aU].rotationDeg
 
-                            deformerContext.interpolatedAffine.originX = be
-                            deformerContext.interpolatedAffine.originY = bc
-                            deformerContext.interpolatedAffine.scaleX = bd
-                            deformerContext.interpolatedAffine.scaleY = bb
-                            deformerContext.interpolatedAffine.rotationDeg = aX
+                            rctx.interpolatedAffine.originX = be
+                            rctx.interpolatedAffine.originY = bc
+                            rctx.interpolatedAffine.scaleX = bd
+                            rctx.interpolatedAffine.scaleY = bb
+                            rctx.interpolatedAffine.rotationDeg = aX
 
         bn = self.affines[a3[0]]
-        deformerContext.interpolatedAffine.reflectX = bn.reflectX
-        deformerContext.interpolatedAffine.reflectY = bn.reflectY
+        rctx.interpolatedAffine.reflectX = bn.reflectX
+        rctx.interpolatedAffine.reflectY = bn.reflectY
 
     def setupTransform(self, modelContext, deformerContext):
         if not (self == deformerContext.getDeformer()):
@@ -341,39 +342,39 @@ class RotationDeformer(Deformer):
             dstPoints[aK + 1] = a1 * aN + aZ * aM + aX
 
     @staticmethod
-    def getDirectionOnDst(aP, aK, aI, aR, aQ, aH):
-        if not (aK == aI.getDeformer()):
+    def getDirectionOnDst(mdc, targetToDst, targetToDstContext, srcOrigin, srcDir, retDir):
+        if not (targetToDst == targetToDstContext.getDeformer()):
             raise RuntimeError("context not match")
 
         aO = RotationDeformer.Lo_
-        RotationDeformer.Lo_[0] = aR[0]
-        RotationDeformer.Lo_[1] = aR[1]
-        aK.transformPoints(aP, aI, aO, aO, 1, 0, 2)
+        RotationDeformer.Lo_[0] = srcOrigin[0]
+        RotationDeformer.Lo_[1] = srcOrigin[1]
+        targetToDst.transformPoints(mdc, targetToDstContext, aO, aO, 1, 0, 2)
         aL = RotationDeformer.To_
         aS = RotationDeformer.Po_
         aN = 10
         aJ = 1
         for aM in range(0, aN, 1):
-            aS[0] = aR[0] + aJ * aQ[0]
-            aS[1] = aR[1] + aJ * aQ[1]
-            aK.transformPoints(aP, aI, aS, aL, 1, 0, 2)
+            aS[0] = srcOrigin[0] + aJ * srcDir[0]
+            aS[1] = srcOrigin[1] + aJ * srcDir[1]
+            targetToDst.transformPoints(mdc, targetToDstContext, aS, aL, 1, 0, 2)
             aL[0] -= aO[0]
             aL[1] -= aO[1]
             if aL[0] != 0 or aL[1] != 0:
-                aH[0] = aL[0]
-                aH[1] = aL[1]
+                retDir[0] = aL[0]
+                retDir[1] = aL[1]
                 return
 
-            aS[0] = aR[0] - aJ * aQ[0]
-            aS[1] = aR[1] - aJ * aQ[1]
-            aK.transformPoints(aP, aI, aS, aL, 1, 0, 2)
+            aS[0] = srcOrigin[0] - aJ * srcDir[0]
+            aS[1] = srcOrigin[1] - aJ * srcDir[1]
+            targetToDst.transformPoints(mdc, targetToDstContext, aS, aL, 1, 0, 2)
             aL[0] -= aO[0]
             aL[1] -= aO[1]
             if aL[0] != 0 or aL[1] != 0:
                 aL[0] = -aL[0]
                 aL[0] = -aL[0]
-                aH[0] = aL[0]
-                aH[1] = aL[1]
+                retDir[0] = aL[0]
+                retDir[1] = aL[1]
                 return
 
             aJ *= 0.1

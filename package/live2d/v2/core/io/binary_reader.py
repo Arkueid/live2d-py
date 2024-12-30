@@ -1,8 +1,9 @@
 ﻿import struct
+from typing import List, Any
 
 from .live2d_object_factory import Live2DObjectFactory
 from ..DEF import OBJECT_REF
-from ..id import BaseDataID, DrawDataID, ParamID, PartsDataID
+from ..id import Id
 from ..type import Int32Array, Float32Array, Float64Array, Array
 
 
@@ -12,7 +13,7 @@ class BinaryReader:
         self.offset8Bit = 0
         self.current8Bit = 0
         self.formatVersion = 0
-        self.objects = []
+        self.objects: List[Any] = []
         self.buf = buf
         self.offset = 0
 
@@ -116,14 +117,11 @@ class BinaryReader:
         aH = Float64Array(aI)
         for aJ in range(0, aI, 1):
             aH[aJ] = self.readDouble()
-            self.offset += 8
 
         return aH
 
-    def readObject(self):
-        return self.readKnownObject(-1)
 
-    def readKnownObject(self, aJ):
+    def readObject(self, aJ = -1):
         self.checkBits()
         if aJ < 0:
             aJ = self.readType()
@@ -135,36 +133,33 @@ class BinaryReader:
             else:
                 raise RuntimeError("_sL _4i @_m0")
         else:
-            aI = self._4b(aJ)
+            aI = self.readKnownTypeObject(aJ)
             self.objects.append(aI)
             return aI
 
-    def _4b(self, aN):
+    def readKnownTypeObject(self, aN):
         if aN == 0:
             return None
         elif aN == 50:
             aK = self.readUTF8String()
-            aI = DrawDataID.getID(aK)
+            aI = Id.getID(aK)
             return aI
         elif aN == 51:
             aK = self.readUTF8String()
-            aI = BaseDataID.getID(aK)
+            aI = Id.getID(aK)
             return aI
         elif aN == 134:
             aK = self.readUTF8String()
-            aI = PartsDataID.getID(aK)
+            aI = Id.getID(aK)
             return aI
         elif aN == 60:
             aK = self.readUTF8String()
-            aI = ParamID.getID(aK)
+            aI = Id.getID(aK)
             return aI
         elif aN >= 48:
             aL = Live2DObjectFactory.create(aN)
-            if aL is not None:
-                aL.read(self)
-                return aL
-            else:
-                return None
+            aL.read(self)
+            return aL
         elif aN == 1:
             return self.readUTF8String()
         elif aN == 15:

@@ -6,7 +6,7 @@ class Live2DModelOpenGL(ALive2DModel):
 
     def __init__(self):
         super().__init__()
-        self.drawParamGL = DrawParamOpenGL()
+        self.drawParamGL: DrawParamOpenGL = DrawParamOpenGL()
 
     def resize(self, ww, wh):
         self.drawParamGL.resize(ww, wh)
@@ -28,10 +28,10 @@ class Live2DModelOpenGL(ALive2DModel):
         self.drawParamGL.setMatrix(aH)
 
     def setPremultipliedAlpha(self, aH):
-        self.drawParamGL.setPremultipliedAlpha(aH)
+        self.drawParamGL.setPreMultipliedAlpha(aH)
 
     def isPremultipliedAlpha(self):
-        return self.drawParamGL.isPremultipliedAlpha()
+        return self.drawParamGL.isPreMultipliedAlpha()
 
     def setAnisotropy(self, aH):
         self.drawParamGL.setAnisotropy(aH)

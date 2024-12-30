@@ -97,7 +97,7 @@ class L2DPose:
             if parts_param.partsIndex < 0:
                 continue
             opacity = model.getPartsOpacity(parts_param.partsIndex)
-            for i_link, link_parts in enumerate(parts_param.link):
+            for link_parts in parts_param.link:
                 if link_parts.partsIndex < 0:
                     continue
                 model.setPartsOpacity(link_parts.partsIndex, opacity)

@@ -19,18 +19,18 @@ class DrawParam(ABC):
         self.baseBlue = 1
         self.culling = False
         self.matrix4x4 = Float32Array(16)
-        self.premultipliedAlpha = False
+        self.preMultipliedAlpha = False
         self.anisotropy = 0
         self.clippingProcess = DrawParam.CLIPPING_PROCESS_NONE
         self.clipBufPre_clipContextMask = None
         self.clipBufPre_clipContextDraw = None
-        self.CHANNEL_COLORS = {}
+        self.channel_colors = {}
 
     def setChannelFlagAsColor(self, aH, aI):
-        self.CHANNEL_COLORS[aH] = aI
+        self.channel_colors[aH] = aI
 
     def getChannelFlagAsColor(self, aY):
-        return self.CHANNEL_COLORS[aY]
+        return self.channel_colors[aY]
 
     @abstractmethod
     def setupDraw(self):
@@ -50,11 +50,11 @@ class DrawParam(ABC):
     def getMatrix(self):
         return self.matrix4x4
 
-    def setPremultipliedAlpha(self, aH):
-        self.premultipliedAlpha = aH
+    def setPreMultipliedAlpha(self, aH):
+        self.preMultipliedAlpha = aH
 
-    def isPremultipliedAlpha(self):
-        return self.premultipliedAlpha
+    def isPreMultipliedAlpha(self):
+        return self.preMultipliedAlpha
 
     def setAnisotropy(self, aH):
         self.anisotropy = aH

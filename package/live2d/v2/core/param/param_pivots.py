@@ -1,4 +1,9 @@
-﻿from ..io.iserializable import ISerializable
+﻿from typing import TYPE_CHECKING
+
+from ..io.iserializable import ISerializable
+
+if TYPE_CHECKING:
+    from ..id import Id
 
 
 class ParamPivots(ISerializable):
@@ -13,10 +18,10 @@ class ParamPivots(ISerializable):
         self.tmpPivotIndex = 0
         self.tmpT = 0
 
-    def read(self, aH):
-        self.paramId = aH.readObject()
-        self.pivotCount = aH.readInt32()
-        self.pivotValues = aH.readObject()
+    def read(self, br):
+        self.paramId = br.readObject()
+        self.pivotCount = br.readInt32()
+        self.pivotValues = br.readObject()
 
     def getParamIndex(self, initVersion):
         if self.initVersion != initVersion:
@@ -24,15 +29,12 @@ class ParamPivots(ISerializable):
 
         return self.paramIndex
 
-    def Pb_(self, aI, aH):
-        self.paramIndex = aI
-        self.initVersion = aH
+    def setParamIndex(self, index: int, initVersion: int):
+        self.paramIndex = index
+        self.initVersion = initVersion
 
-    def getParamID(self):
+    def getParamID(self) -> 'Id':
         return self.paramId
-
-    def setParamId(self, aH):
-        self.paramId = aH
 
     def getPivotCount(self):
         return self.pivotCount
@@ -40,18 +42,14 @@ class ParamPivots(ISerializable):
     def getPivotValues(self):
         return self.pivotValues
 
-    def setPivotValues(self, count, values):
-        self.pivotCount = count
-        self.pivotValues = values
-
     def getTmpPivotIndex(self):
         return self.tmpPivotIndex
 
     def setTmpPivotIndex(self, index):
         self.tmpPivotIndex = index
 
-    def getTmpT(self):
+    def getTmpT(self) -> float:
         return self.tmpT
 
-    def setTmpT(self, value):
+    def setTmpT(self, value: float):
         self.tmpT = value

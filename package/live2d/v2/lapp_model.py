@@ -158,7 +158,7 @@ class LAppModel(L2DBaseModel):
         return len(self.live2DModel.getModelImpl().getPartsDataList())
 
     def GetPartId(self, index: int) -> str:
-        return self.live2DModel.getModelContext().getPartsContext(index)
+        return self.live2DModel.getModelContext().getPartsContext(index).partsData.id.id
 
     def GetPartIds(self) -> List[str]:
         return [str(i.id) for i in self.live2DModel.getModelContext().partsDataList]

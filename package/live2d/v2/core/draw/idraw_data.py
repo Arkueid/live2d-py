@@ -1,8 +1,8 @@
 ﻿from abc import abstractmethod
 
 from ..DEF import LIVE2D_FORMAT_VERSION_AVAILABLE
+from ..id import Id
 from ..io.iserializable import ISerializable
-from ..id import BaseDataID
 from ..live2d import Live2D
 from ..util import UtInterpolate
 
@@ -60,10 +60,10 @@ class IDrawData(ISerializable):
         return ls
 
     def setupInterpolate(self, aI, aH):
-        aH.paramOutside[0] = False
+        aH.paramOutside = False
         aH.interpolatedDrawOrder = UtInterpolate.interpolateInt(aI, self.pivotMgr, aH.paramOutside,
                                                                 self.pivotDrawOrders)
-        if not Live2D.L2D_OUTSIDE_PARAM_AVAILABLE and aH.paramOutside[0]:
+        if not Live2D.L2D_OUTSIDE_PARAM_AVAILABLE and aH.paramOutside:
             return
 
         aH.interpolatedOpacity = UtInterpolate.interpolateFloat(aI, self.pivotMgr, aH.paramOutside, self.pivotOpacities)
@@ -93,7 +93,7 @@ class IDrawData(ISerializable):
         self.targetId = aH
 
     def needTransform(self):
-        return self.targetId is not None and (self.targetId != BaseDataID.DST_BASE_ID())
+        return self.targetId is not None and (self.targetId != Id.DST_BASE_ID())
 
     @abstractmethod
     def getType(self):
