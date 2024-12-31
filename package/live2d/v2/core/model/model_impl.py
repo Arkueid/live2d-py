@@ -1,15 +1,20 @@
-﻿from ..io.iserializable import ISerializable
+﻿from typing import Optional, List, TYPE_CHECKING
+
+from ..io.iserializable import ISerializable
 from ..type import Array
 from ..param import ParamDefSet
+
+if TYPE_CHECKING:
+    from .part import PartsData
 
 
 class ModelImpl(ISerializable):
 
     def __init__(self):
-        self.paramDefSet = None
-        self.partsDataList = None
-        self.canvasWidth = 400
-        self.canvasHeight = 400
+        self.paramDefSet: Optional[ParamDefSet] = None
+        self.partsDataList: Optional[List['PartsData']] = None
+        self.canvasWidth: int = 400
+        self.canvasHeight: int = 400
 
     def initDirect(self):
         if self.paramDefSet is None:
@@ -30,11 +35,8 @@ class ModelImpl(ISerializable):
         self.canvasWidth = br.readInt32()
         self.canvasHeight = br.readInt32()
 
-    def _6S(self, aH):
-        self.partsDataList.append(aH)
-
     def getPartsDataList(self):
         return self.partsDataList
 
-    def E2_(self):
+    def getParamDefSet(self):
         return self.paramDefSet

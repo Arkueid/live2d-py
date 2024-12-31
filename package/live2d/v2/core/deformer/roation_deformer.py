@@ -1,36 +1,39 @@
 ﻿import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, List
 
-from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
 from .deformer import Deformer
 from .rotation_context import RotationContext
+from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
 from ..live2d import Live2D
+from ..param import PivotManager
 from ..type import Float32Array, Array
 from ..util import UtMath
 
 if TYPE_CHECKING:
+    from .deformer_context import DeformerContext
     from ..model_context import ModelContext
+    from ..io import BinaryReader
 
 
 class RotationDeformer(Deformer):
     # 代替c语言中的指针/引用
-    Xo_ = [0.0, 0.0]
-    io_ = [0.0, 0.0]
-    _0o = [0.0, 0.0]
-    Lo_ = [0.0, 0.0]
-    To_ = [0.0, 0.0]
-    Po_ = [0.0, 0.0]
-    success = [False]
+    temp1 = [0.0, 0.0]
+    temp2 = [0.0, 0.0]
+    temp3 = [0.0, 0.0]
+    temp4 = [0.0, 0.0]
+    temp5 = [0.0, 0.0]
+    temp6 = [0.0, 0.0]
+    paramOutside = [False]
 
     def __init__(self):
         super().__init__()
-        self.pivotManager = None
-        self.affines = None
+        self.pivotManager: Optional['PivotManager'] = None
+        self.affines: Optional[List['AffineEnt']] = None
 
     def getType(self) -> int:
         return Deformer.TYPE_ROTATION
 
-    def read(self, br):
+    def read(self, br: 'BinaryReader'):
         super().read(br)
         self.pivotManager = br.readObject()
         self.affines = br.readObject()
@@ -51,7 +54,7 @@ class RotationDeformer(Deformer):
         if not self.pivotManager.checkParamUpdated(mctx):
             return
 
-        success = RotationDeformer.success
+        success = RotationDeformer.paramOutside
         success[0] = False
         a2 = self.pivotManager.calcPivotValues(mctx, success)
         rctx.setOutsideParam(success[0])
@@ -264,60 +267,59 @@ class RotationDeformer(Deformer):
         rctx.interpolatedAffine.reflectX = bn.reflectX
         rctx.interpolatedAffine.reflectY = bn.reflectY
 
-    def setupTransform(self, modelContext, deformerContext):
-        if not (self == deformerContext.getDeformer()):
+    def setupTransform(self, mctx: 'ModelContext', rctx: 'RotationContext'):
+        if not (self == rctx.getDeformer()):
             raise RuntimeError("Invalid Deformer")
 
-        deformerContext.setAvailable(True)
+        rctx.setAvailable(True)
         if not self.needTransform():
-            deformerContext.setTotalScale_notForClient(deformerContext.interpolatedAffine.scaleX)
-            deformerContext.setTotalOpacity(deformerContext.getInterpolatedOpacity())
+            rctx.setTotalScale_notForClient(rctx.interpolatedAffine.scaleX)
+            rctx.setTotalOpacity(rctx.getInterpolatedOpacity())
         else:
             aT = self.getTargetId()
-            if deformerContext.tmpDeformerIndex == Deformer.DEFORMER_INDEX_NOT_INIT:
-                deformerContext.tmpDeformerIndex = modelContext.getDeformerIndex(aT)
+            if rctx.tmpDeformerIndex == Deformer.DEFORMER_INDEX_NOT_INIT:
+                rctx.tmpDeformerIndex = mctx.getDeformerIndex(aT)
 
-            if deformerContext.tmpDeformerIndex < 0:
-                if Live2D.L2D_VERBOSE:
-                    print("_L _0P _G :: %s", aT)
-
-                deformerContext.setAvailable(False)
+            if rctx.tmpDeformerIndex < 0:
+                print("deformer is not reachable")
+                rctx.setAvailable(False)
             else:
-                baseData = modelContext.getDeformer(deformerContext.tmpDeformerIndex)
-                if baseData is not None:
-                    aL = modelContext.getDeformerContext(deformerContext.tmpDeformerIndex)
-                    aS = RotationDeformer.Xo_
-                    aS[0] = deformerContext.interpolatedAffine.originX
-                    aS[1] = deformerContext.interpolatedAffine.originY
-                    aJ = RotationDeformer.io_
+                deformer = mctx.getDeformer(rctx.tmpDeformerIndex)
+                if deformer is not None:
+                    dctx = mctx.getDeformerContext(rctx.tmpDeformerIndex)
+                    aS = RotationDeformer.temp1
+                    aS[0] = rctx.interpolatedAffine.originX
+                    aS[1] = rctx.interpolatedAffine.originY
+                    aJ = RotationDeformer.temp2
                     aJ[0] = 0
                     aJ[1] = -0.1
-                    aO = aL.getDeformer().getType()
+                    aO = dctx.getDeformer().getType()
                     if aO == Deformer.TYPE_ROTATION:
                         aJ[1] = -10
                     else:
                         aJ[1] = -0.1
 
-                    aQ = RotationDeformer._0o
-                    self.getDirectionOnDst(modelContext, baseData, aL, aS, aJ, aQ)
+                    aQ = RotationDeformer.temp3
+                    self.getDirectionOnDst(mctx, deformer, dctx, aS, aJ, aQ)
                     aP = UtMath.getAngleNotAbs(aJ, aQ)
-                    baseData.transformPoints(modelContext, aL, aS, aS, 1, 0, 2)
-                    deformerContext.transformedAffine.originX = aS[0]
-                    deformerContext.transformedAffine.originY = aS[1]
-                    deformerContext.transformedAffine.scaleX = deformerContext.interpolatedAffine.scaleX
-                    deformerContext.transformedAffine.scaleY = deformerContext.interpolatedAffine.scaleY
-                    deformerContext.transformedAffine.rotationDeg = deformerContext.interpolatedAffine.rotationDeg - aP * UtMath.RAD_TO_DEG
-                    aK = aL.getTotalScale()
-                    deformerContext.setTotalScale_notForClient(aK * deformerContext.transformedAffine.scaleX)
-                    aN = aL.getTotalOpacity()
-                    deformerContext.setTotalOpacity(aN * deformerContext.getInterpolatedOpacity())
-                    deformerContext.transformedAffine.reflectX = deformerContext.interpolatedAffine.reflectX
-                    deformerContext.transformedAffine.reflectY = deformerContext.interpolatedAffine.reflectY
-                    deformerContext.setAvailable(aL.isAvailable())
+                    deformer.transformPoints(mctx, dctx, aS, aS, 1, 0, 2)
+                    rctx.transformedAffine.originX = aS[0]
+                    rctx.transformedAffine.originY = aS[1]
+                    rctx.transformedAffine.scaleX = rctx.interpolatedAffine.scaleX
+                    rctx.transformedAffine.scaleY = rctx.interpolatedAffine.scaleY
+                    rctx.transformedAffine.rotationDeg = rctx.interpolatedAffine.rotationDeg - aP * UtMath.RAD_TO_DEG
+                    aK = dctx.getTotalScale()
+                    rctx.setTotalScale_notForClient(aK * rctx.transformedAffine.scaleX)
+                    aN = dctx.getTotalOpacity()
+                    rctx.setTotalOpacity(aN * rctx.getInterpolatedOpacity())
+                    rctx.transformedAffine.reflectX = rctx.interpolatedAffine.reflectX
+                    rctx.transformedAffine.reflectY = rctx.interpolatedAffine.reflectY
+                    rctx.setAvailable(dctx.isAvailable())
                 else:
-                    deformerContext.setAvailable(False)
+                    rctx.setAvailable(False)
 
-    def transformPoints(self, mc, dc: 'RotationContext', srcPoints, dstPoints, numPoint, ptOffset, ptStep):
+    def transformPoints(self, mc: 'ModelContext', dc: 'RotationContext', srcPoints: List[float], dstPoints: List[float],
+                        numPoint: int, ptOffset: int, ptStep: int):
         if not (self == dc.getDeformer()):
             raise RuntimeError("context not match")
 
@@ -342,16 +344,16 @@ class RotationDeformer(Deformer):
             dstPoints[aK + 1] = a1 * aN + aZ * aM + aX
 
     @staticmethod
-    def getDirectionOnDst(mdc, targetToDst, targetToDstContext, srcOrigin, srcDir, retDir):
+    def getDirectionOnDst(mdc: 'ModelContext', targetToDst: 'Deformer', targetToDstContext: 'DeformerContext', srcOrigin, srcDir, retDir):
         if not (targetToDst == targetToDstContext.getDeformer()):
             raise RuntimeError("context not match")
 
-        aO = RotationDeformer.Lo_
-        RotationDeformer.Lo_[0] = srcOrigin[0]
-        RotationDeformer.Lo_[1] = srcOrigin[1]
+        aO = RotationDeformer.temp4
+        RotationDeformer.temp4[0] = srcOrigin[0]
+        RotationDeformer.temp4[1] = srcOrigin[1]
         targetToDst.transformPoints(mdc, targetToDstContext, aO, aO, 1, 0, 2)
-        aL = RotationDeformer.To_
-        aS = RotationDeformer.Po_
+        aL = RotationDeformer.temp5
+        aS = RotationDeformer.temp6
         aN = 10
         aJ = 1
         for aM in range(0, aN, 1):
@@ -379,8 +381,8 @@ class RotationDeformer(Deformer):
 
             aJ *= 0.1
 
-        if Live2D.L2D_VERBOSE:
-            print("Invalid state\n")
+
+        print("Invalid state\n")
 
 
 class AffineEnt:
@@ -403,12 +405,12 @@ class AffineEnt:
         self.reflectX = other.reflectX
         self.reflectY = other.reflectY
 
-    def read(self, aH):
-        self.originX = aH.readFloat32()
-        self.originY = aH.readFloat32()
-        self.scaleX = aH.readFloat32()
-        self.scaleY = aH.readFloat32()
-        self.rotationDeg = aH.readFloat32()
-        if aH.getFormatVersion() >= LIVE2D_FORMAT_VERSION_V2_10_SDK2:
-            self.reflectX = aH.readBoolean()
-            self.reflectY = aH.readBoolean()
+    def read(self, br: 'BinaryReader'):
+        self.originX = br.readFloat32()
+        self.originY = br.readFloat32()
+        self.scaleX = br.readFloat32()
+        self.scaleY = br.readFloat32()
+        self.rotationDeg = br.readFloat32()
+        if br.getFormatVersion() >= LIVE2D_FORMAT_VERSION_V2_10_SDK2:
+            self.reflectX = br.readBoolean()
+            self.reflectY = br.readBoolean()

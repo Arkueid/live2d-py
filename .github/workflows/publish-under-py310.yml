@@ -6,7 +6,7 @@ on:
     tags:
       - "v*.*.*"
     branches: [build]
-  
+
 
 jobs:
   build-n-publish:
@@ -17,7 +17,7 @@ jobs:
       matrix:
         python-version: ['3.8.0', '3.9.0']
         architecture: ['x86', 'x64']
-    
+
     steps:
     - uses: actions/checkout@v4
 
@@ -28,14 +28,10 @@ jobs:
         architecture: ${{ matrix.architecture }}
 
     - name: Install pypa/build
-      run: python -m pip install build
-
-    - name: Build a source tarball
-      if: ${{ matrix.python-version == '3.9.0' && matrix.architecture == 'x86' }}
-      run: python -m build --sdist . --outdir dist/
+      run: python -m pip install setuptools
 
     - name: Build a binary wheel
-      run: python -m build --wheel . --outdir dist/
+      run: python setup.py bdist_wheel
 
     - name: Install twine
       run: python -m pip install twine
@@ -61,13 +57,4 @@ jobs:
         files: |
           ${{ steps.get_filenames.outputs.WHEEL_FILE }}
 
-    - name: Upload Source Distribution to Release
-      uses: softprops/action-gh-release@v2
-      if: ${{ matrix.python-version == '3.9.0' && matrix.architecture == 'x86' }}
-      with:
-        # tag_name: v0.2.2-alpha
-        files: |
-          ${{ steps.get_filenames.outputs.SDIST_FILE }}
 
-
-    

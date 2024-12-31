@@ -94,7 +94,7 @@ class UtInterpolate:
             aV = 1 << a1
             aY = Float32Array(aV)
             for bh in range(0, aV, 1):
-                aI = bh
+                aI: float = bh
                 aH = 1
                 for aL in range(0, a1, 1):
                     aH *= (1 - ba[aL]) if (aI % 2 == 0) else ba[aL]
@@ -182,7 +182,7 @@ class UtInterpolate:
             aV = 1 << a1
             aY = Float32Array(aV)
             for bh in range(0, aV, 1):
-                aI = bh
+                aI: float = bh
                 aH = 1
                 for aL in range(0, a1, 1):
                     aH *= (1 - a9[aL]) if (aI % 2 == 0) else a9[aL]
@@ -201,7 +201,7 @@ class UtInterpolate:
             return bc
 
     @staticmethod
-    def interpolatePoints(mdc: 'ModelContext', pivotMgr: 'PivotManager', retParamOut: List[bool], numPts: List[float], pivotPoints, dstPoints, ptOffset, ptStep):
+    def interpolatePoints(mdc: 'ModelContext', pivotMgr: 'PivotManager', retParamOut: List[bool], numPts: int, pivotPoints: List[float], dstPoints, ptOffset, ptStep):
         aN = pivotMgr.calcPivotValues(mdc, retParamOut)
         bw = mdc.getTempPivotTableIndices()
         a2 = mdc.getTempT()
@@ -342,7 +342,7 @@ class UtInterpolate:
             b4 = 1 << aN
             bJ = Float32Array(b4)
             for bj in range(0, b4, 1):
-                aH = bj
+                aH: float = bj
                 aM = 1
                 for bF in range(0, aN, 1):
                     aM *= (1 - a2[bF]) if (aH % 2 == 0) else a2[bF]

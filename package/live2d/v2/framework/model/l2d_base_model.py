@@ -1,4 +1,6 @@
-﻿from ...core import Live2DModelOpenGL, Live2DMotion
+﻿from typing import Dict, Union, Optional
+
+from ...core import Live2DModelOpenGL, Live2DMotion
 from ..Live2DFramework import Live2DFramework
 from ..matrix import L2DModelMatrix
 from ..motion import L2DExpressionMotion, L2DMotionManager
@@ -10,8 +12,8 @@ class L2DBaseModel:
     texCount = 0
 
     def __init__(self):
-        self.live2DModel: Live2DModelOpenGL | None = None
-        self.modelMatrix: None | L2DModelMatrix = None
+        self.live2DModel: Optional[Live2DModelOpenGL] = None
+        self.modelMatrix: Optional[L2DModelMatrix] = None
         self.eyeBlink = None
         self.physics = None
         self.pose = None
@@ -29,7 +31,7 @@ class L2DBaseModel:
         self.mainMotionManager = L2DMotionManager()
         self.expressionManager = L2DMotionManager()
         self.motions = {}
-        self.expressions = {}
+        self.expressions: Dict = {}
         self.isTexLoaded = False
 
     def getModelMatrix(self):

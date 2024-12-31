@@ -1,5 +1,5 @@
 ﻿from abc import abstractmethod
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
 from ..id import Id
@@ -20,10 +20,10 @@ class Deformer(ISerializable):
     TYPE_WARP = 2
 
     def __init__(self):
-        self.id = None
-        self.targetId = None
-        self.dirty = True
-        self.pivotOpacities = None
+        self.id: Optional[Id] = None
+        self.targetId: Optional[Id] = None
+        self.dirty: bool = True
+        self.pivotOpacities: Optional[List[float]] = None
 
     def read(self, br: 'BinaryReader'):
         self.id = br.readObject()

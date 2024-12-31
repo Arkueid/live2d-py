@@ -3,7 +3,7 @@
 
 class UtString:
     @staticmethod
-    def startswith(s: Union[str, bytes], offset: int, pat: str) -> bool:
+    def startswith(s: bytes, offset: int, pat: str) -> bool:
         end_pos = offset + len(pat)
         if end_pos >= len(s):
             return False

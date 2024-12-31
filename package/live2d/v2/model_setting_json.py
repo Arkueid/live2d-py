@@ -28,7 +28,7 @@ class ModelSettingJson():
         self.json = {}
     
     
-    def loadModelSetting(self, path):
+    def loadModelSetting(self, path) -> None:
         pm = Live2DFramework.getPlatformManager()
         data = pm.loadBytes(path)
         self.json = json.loads(data)
@@ -44,7 +44,7 @@ class ModelSettingJson():
         return self.json[self.MODEL]
     
     
-    def getTextureNum(self):
+    def getTextureNum(self) -> int:
         if self.json.get(self.TEXTURES) is None:
             return 0
         return len(self.json[self.TEXTURES])

@@ -154,8 +154,7 @@ class Mesh(IDrawData):
                     dc.tmpDeformerIndex = mc.getDeformerIndex(target_id)
 
                 if dc.tmpDeformerIndex < 0:
-                    if Live2D.L2D_VERBOSE:
-                        print(f"deformer not found: {target_id}")
+                    print(f"deformer not found: {target_id}")
                 else:
                     d = mc.getDeformer(dc.tmpDeformerIndex)
                     dctx = mc.getDeformerContext(dc.tmpDeformerIndex)

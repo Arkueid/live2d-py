@@ -18,8 +18,8 @@ class ALive2DModel(ABC):
         self.modelContext = None
         self.modelContext = ModelContext(self)
 
-    def setModelImpl(self, aH):
-        self.modelImpl = aH
+    def setModelImpl(self, moc):
+        self.modelImpl = moc
 
     def getModelImpl(self):
         if self.modelImpl is None:
@@ -98,21 +98,23 @@ class ALive2DModel(ABC):
 
         return self.modelContext.getPartsDataIndex(aH)
 
-    def getPartsOpacity(self, aH):
-        if not isinstance(aH, int):
-            aH = self.modelContext.getPartsDataIndex(Id.getID(aH))
+    def getPartsOpacity(self, partIndex):
+        if not isinstance(partIndex, int):
+            partIndex = self.modelContext.getPartsDataIndex(Id.getID(partIndex))
 
-        if aH < 0:
+        if partIndex < 0:
             return 0
 
-        return self.modelContext.getPartsOpacity(aH)
+        return self.modelContext.getPartsOpacity(partIndex)
 
     @abstractmethod
     def getDrawParam(self):
         pass
 
-    def getDrawDataIndex(self, aH):
-        return self.modelContext.getDrawDataIndex(Id.getID(aH))
+    def getDrawDataIndex(self, drawId: str):
+        if not isinstance(drawId, str):
+            raise RuntimeError
+        return self.modelContext.getDrawDataIndex(Id.getID(drawId))
 
     def getDrawData(self, aH):
         return self.modelContext.getDrawData(aH)

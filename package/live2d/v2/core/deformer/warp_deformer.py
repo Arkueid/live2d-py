@@ -69,8 +69,7 @@ class WarpDeformer(Deformer):
                 aL.tmpDeformerIndex = modelContext.getDeformerIndex(aH)
 
             if aL.tmpDeformerIndex < 0:
-                if Live2D.L2D_VERBOSE:
-                    print("_L _0P _G :: %s", aH)
+                print("deformer is not reachable")
 
                 aL.setAvailable(False)
             else:

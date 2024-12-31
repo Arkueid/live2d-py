@@ -2,10 +2,10 @@
 
 class IPhysicsParam(ABC):
 
-    def __init__(self, aJ, aI, aH):
-        self.paramId = aJ
-        self.scale = aI
-        self.weight = aH
+    def __init__(self, paramId, scale, weight):
+        self.paramId = paramId
+        self.scale = scale
+        self.weight = weight
 
     @abstractmethod
     def update(self, aI, aH):

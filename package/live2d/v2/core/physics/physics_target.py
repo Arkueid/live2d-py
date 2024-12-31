@@ -4,9 +4,9 @@ from .iphysics_param import IPhysicsParam
 
 class PhysicsTarget(IPhysicsParam):
 
-    def __init__(self, aI, aK, aJ, aH):
-        super().__init__(aK, aJ, aH)
-        self.YP_ = aI
+    def __init__(self, scale, aK, paramId, weight):
+        super().__init__(aK, paramId, weight)
+        self.YP_ = scale
 
     def update(self, aI, aH):
         if self.YP_ == TARGET_FROM_ANGLE:

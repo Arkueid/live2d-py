@@ -11,7 +11,7 @@ from .model_setting_json import ModelSettingJson
 from .params import Parameter
 
 if TYPE_CHECKING:
-    from core.draw import MeshContext, Mesh
+    from .core.draw import MeshContext, Mesh
 
 
 class LAppModel(L2DBaseModel):

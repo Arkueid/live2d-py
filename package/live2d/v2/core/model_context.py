@@ -139,7 +139,7 @@ class ModelContext:
             if not aX:
                 break
 
-        aI = aO.E2_()
+        aI = aO.getParamDefSet()
         if aI is not None:
             aJ = aI.getParamDefFloatList()
             if aJ is not None:

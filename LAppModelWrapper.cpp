@@ -1,7 +1,4 @@
 #include <GL/glew.h>
-#ifdef WIN32
-#include <GL/wglew.h>
-#endif // WIN32
 
 #include <LAppModel.hpp>
 #include <CubismFramework.hpp>

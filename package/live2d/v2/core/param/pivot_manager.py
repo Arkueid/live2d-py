@@ -1,4 +1,9 @@
-﻿from ..DEF import GOSA, PIVOT_TABLE_SIZE
+﻿from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..model_context import ModelContext
+
+from ..DEF import GOSA, PIVOT_TABLE_SIZE
 from ..io.iserializable import ISerializable
 from ..param import ParamPivots
 from ..type import Array
@@ -30,21 +35,21 @@ class PivotManager(ISerializable):
 
         return False
 
-    def calcPivotValues(self, aL, aV):
+    def calcPivotValues(self, mdc: 'ModelContext', ret: List[bool]):
         aX = len(self.paramPivotTable)
-        aJ = aL.getInitVersion()
+        aJ = mdc.getInitVersion()
         aN = 0
         for aK in range(0, aX, 1):
             aH = self.paramPivotTable[aK]
             aI = aH.getParamIndex(aJ)
             if aI == ParamPivots.PARAM_INDEX_NOT_INIT:
-                aI = aL.getParamIndex(aH.getParamID())
+                aI = mdc.getParamIndex(aH.getParamID())
                 aH.setParamIndex(aI, aJ)
 
             if aI < 0:
                 raise Exception("err 23242 : " + aH.getParamID())
 
-            aU = 0 if aI < 0 else aL.getParamFloat(aI)
+            aU = 0 if aI < 0 else mdc.getParamFloat(aI)
             aQ = aH.getPivotCount()
             aM = aH.getPivotValues()
             aP = -1
@@ -59,12 +64,12 @@ class PivotManager(ISerializable):
                         aT = 0
                     else:
                         aP = 0
-                        aV[0] = True
+                        ret[0] = True
                 else:
                     aS = aM[0]
                     if aU < aS - GOSA:
                         aP = 0
-                        aV[0] = True
+                        ret[0] = True
                     else:
                         if aU < aS + GOSA:
                             aP = 0
@@ -88,7 +93,7 @@ class PivotManager(ISerializable):
                             if not aW:
                                 aP = aQ - 1
                                 aT = 0
-                                aV[0] = True
+                                ret[0] = True
 
             aH.setTmpPivotIndex(aP)
             aH.setTmpT(aT)

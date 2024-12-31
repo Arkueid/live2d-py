@@ -20,6 +20,8 @@
 
     @staticmethod
     def getID(idStr: str) -> 'Id':
+        if not isinstance(idStr, str):
+            raise RuntimeError
         id_obj = Id.__instances.get(idStr, None)
         if id_obj is None:
             id_obj = Id(idStr)
@@ -28,4 +30,4 @@
 
     @staticmethod
     def releaseStored() -> None:
-        pass
+        Id.__instances.clear()

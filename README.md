@@ -19,6 +19,8 @@
 
 详细使用文档：[Wiki](https://github.com/Arkueid/live2d-py/wiki)
 
+修改和开发的一点提示：[CONTRIBUTING](./CONTRIBUTING.md)
+
 ## 兼容UI库
 
 理论上兼容所有能使用 OpenGL 进行绘制的UI库： Pygame / PyQt5 / PySide2 / PySide6 / GLFW / pyopengltk/ FreeGlut / Qfluentwidgets ...

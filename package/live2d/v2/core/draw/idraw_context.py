@@ -1,14 +1,14 @@
-﻿from typing import TYPE_CHECKING
+﻿from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from .mesh import Mesh
+    from mesh import Mesh
 
 class IDrawContext:
 
     def __init__(self, dd: 'Mesh'):
-        self.interpolatedDrawOrder = None
-        self.paramOutside = False
-        self.partsOpacity = 0
+        self.interpolatedDrawOrder: Optional[int] = None
+        self.paramOutside: bool = False
+        self.partsOpacity: float = 0
         self.available = True
         self.baseOpacity = 1
         self.clipBufPre_clipContext = None
