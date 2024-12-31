@@ -27,8 +27,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
 
-    - name: Install pypa/build
-      run: python -m pip install setuptools
+    - name: Install build deps
+      run: python -m pip install setuptools wheel
 
     - name: Build a binary wheel
       run: python setup.py bdist_wheel
