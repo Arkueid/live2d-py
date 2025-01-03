@@ -4,9 +4,7 @@
 
 # 开发说明
 
-在修改或参与开发这个项目之前，需要了解一些 CMake、 Cubism Native SDK、Live2D 模型文件结构的相关知识。
-
-深入开发需要少量图形学和 OpenGL 基础，了解部分 Python C API。
+本项目涉及：CMake、Cubism Native SDK、Python C API、OpenGL。
 
 * Cubism 相关部分可以查阅官方文档，这里推荐官方的 [Core api 文档]（可以下载pdf），可以对整个 Live2D 绘制流程有一个整体把握。
 * [Python c api]
