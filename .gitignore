@@ -35,3 +35,5 @@ test
 !package/test.mp4
 
 !Core/lib/windows/x64/*.lib
+
+.benchmarks
