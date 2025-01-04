@@ -39,26 +39,31 @@ void MatrixManager::ScreenToScene(float* x, float* y)
     *y = _screenToScene.TransformY(*y);
 }
 
-Csm::CubismMatrix44& MatrixManager::GetProjection(LAppModel* model)
+Csm::CubismMatrix44& MatrixManager::GetMvp(LAppModel* model)
 {
-    _projection.LoadIdentity();
+    _mvp.LoadIdentity();
 
     if (model->GetModel()->GetCanvasWidth() > 1.0f && _ww < _wh)
     {
         // 横に長いモデルを縦長ウィンドウに表示する際モデルの横サイズでscaleを算出する
         model->GetModelMatrix()->SetWidth(2.0f);
-        _projection.Scale(1.0f, static_cast<float>(_ww) / static_cast<float>(_wh));
+        _mvp.Scale(1.0f, static_cast<float>(_ww) / static_cast<float>(_wh));
     }
     else
     {
-        _projection.Scale(static_cast<float>(_wh) / static_cast<float>(_ww), 1.0f);
+        _mvp.Scale(static_cast<float>(_wh) / static_cast<float>(_ww), 1.0f);
     }
 
-    _projection.ScaleRelative(_scale, _scale);
+    Csm::CubismModelMatrix* m = model->GetModelMatrix();
 
-    _projection.Translate(_offsetX, _offsetY);
+    m->Scale(_scale, _scale);
 
-    return _projection;
+    m->SetX(_offsetX);
+    m->SetY(_offsetY);
+
+    _mvp.MultiplyByMatrix(m);
+
+    return _mvp;
 }
 
 void MatrixManager::SetOffset(float x, float y)

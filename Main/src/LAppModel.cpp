@@ -589,8 +589,7 @@ void LAppModel::Draw()
 
     _model->Update();
 
-    CubismMatrix44 &matrix = _matrixManager.GetProjection(this);
-    matrix.MultiplyByMatrix(_modelMatrix);
+    CubismMatrix44 &matrix = _matrixManager.GetMvp(this);
 
     GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->SetMvpMatrix(&matrix);
 

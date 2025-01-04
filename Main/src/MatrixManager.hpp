@@ -12,12 +12,12 @@ public:
     MatrixManager();
     void UpdateScreenToScene(int ww, int wh);
     void ScreenToScene(float *x, float *y);
-    Csm::CubismMatrix44 &GetProjection(LAppModel *model);
+    Csm::CubismMatrix44 &GetMvp(LAppModel *model);
     void SetOffset(float x, float y);
     void SetScale(float scale);
 private:
     Csm::CubismMatrix44 _screenToScene;
-    Csm::CubismMatrix44 _projection;
+    Csm::CubismMatrix44 _mvp;
     float _offsetX;
     float _offsetY;
     float _scale;

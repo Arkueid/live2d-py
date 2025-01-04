@@ -24,7 +24,7 @@ class Win(QOpenGLWidget):
         super().__init__()
         self.isInLA = False
         self.clickInLA = False
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
         self.resize(200, 200)
@@ -46,7 +46,7 @@ class Win(QOpenGLWidget):
         self.model = live2d.LAppModel()
 
         if live2d.LIVE2D_VERSION == 3:
-            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"))
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
         else:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
 

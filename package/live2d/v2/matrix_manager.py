@@ -1,6 +1,10 @@
-﻿from typing import Tuple
+﻿from typing import Tuple, TYPE_CHECKING
 
 from .framework import L2DMatrix44
+
+if TYPE_CHECKING:
+    from .framework.matrix import L2DModelMatrix
+
 
 
 class MatrixManager:
@@ -53,16 +57,17 @@ class MatrixManager:
         self.__offsetX = dx
         self.__offsetY = dy
 
-    def getMvp(self, model_matrix) -> list:
+    def getMvp(self, model_matrix: 'L2DModelMatrix') -> list:
         self.__projection.identity()
 
         if self.__wh > self.__ww:
+            model_matrix.setWidth(2.0)
             self.__projection.multScale(1.0, self.__ww / self.__wh)
         else:
             self.__projection.multScale(self.__wh / self.__ww, 1.0)
 
         self.__projection.multScale(self.__scale, self.__scale)
-        self.__projection.multTranslate(self.__offsetX, self.__offsetY)
+        self.__projection.translate(self.__offsetX, self.__offsetY)
 
         self.__projection.mul(self.__projection.getArray(), model_matrix.getArray(), self.__projection.getArray())
         return self.__projection.getArray()
