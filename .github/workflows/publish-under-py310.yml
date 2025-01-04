@@ -1,5 +1,5 @@
 ﻿
-name: Publish Python 🐍 distributions 📦
+name: Build📦 for Python 🐍 3.10-
 
 on:
   push:

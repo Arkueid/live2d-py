@@ -1,14 +1,17 @@
 # 简易面捕示例
 
+import os
+import threading as td
+
 import pygame
 from pygame.locals import *
+
 import live2d.v3 as live2d
-from mediapipe_capture.capture_task import mediapipe_capture_task
-from facial_params import Params
-import threading as td
-import os
 import resources
+from facial_params import Params
 from live2d.v3.params import StandardParams
+from mediapipe_capture.capture_task import mediapipe_capture_task
+from open_see_face.capture_task import open_see_face_task
 
 live2d.setLogEnable(True)
 
@@ -60,6 +63,7 @@ def main():
         if not params:
             params = Params()
             td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
+            # td.Thread(None, open_see_face_task, "Capture Task", (params,), daemon=True).start()
 
         model.Update()
         if params:
@@ -73,7 +77,7 @@ def main():
             model.SetParameterValue(StandardParams.ParamAngleY, params.AngleY, 1)
             model.SetParameterValue(StandardParams.ParamAngleZ, params.AngleZ, 1)
             model.SetParameterValue(StandardParams.ParamBodyAngleX, params.BodyAngleX, 1)
-        
+
         # 去除水印
         model.SetParameterValue("Param14", 1, 1)
 

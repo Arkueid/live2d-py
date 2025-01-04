@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦
+    name: Build📦 for Python 🐍 3.10+
     runs-on: windows-latest
 
     strategy:

@@ -75,7 +75,7 @@ pip install live2d-py
 
 ## 简易面部动捕示例
 
-源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind_mediapipe.py)
+源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
