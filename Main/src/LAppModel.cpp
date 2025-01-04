@@ -60,7 +60,7 @@ public:
 
 LAppModel::LAppModel()
     : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _autoBlink(true), _autoBreath(true),
-      _matrixManager()
+      _matrixManager(), _tmpOrderedDrawIndices(NULL)
 {
     _mocConsistency = MocConsistencyValidationEnable;
 
@@ -90,6 +90,8 @@ LAppModel::~LAppModel()
         ReleaseMotionGroup(group);
     }
     delete (_modelSetting);
+
+    delete[] _tmpOrderedDrawIndices;
 }
 
 void LAppModel::LoadAssets(const csmChar *fileName)
@@ -272,6 +274,8 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
 
     _updating = false;
     _initialized = true;
+
+    _tmpOrderedDrawIndices = new int[_model->GetDrawableCount()];
 }
 
 void LAppModel::PreloadMotionGroup(const csmChar *group)
@@ -887,11 +891,10 @@ void LAppModel::HitPart(float x, float y, bool topOnly, void *collector, void (*
     y = _modelMatrix->InvertTransformY(y);
     const csmInt32 drawableCount = _model->GetDrawableCount();
     const csmInt32 *renderOrders = _model->GetDrawableRenderOrders();
-    int *drawableIndices = new int[drawableCount];
     for (csmInt32 i = 0; i < drawableCount; i++)
     {
         // 绘制顺序，先绘制的被后绘制的覆盖
-        drawableIndices[drawableCount - 1 - renderOrders[i]] = i;
+        _tmpOrderedDrawIndices[drawableCount - 1 - renderOrders[i]] = i;
     }
     // 多个 part index 可能指向同一个 part id，所以用 part id set
     std::unordered_set<const char *> hitParts;
@@ -899,7 +902,7 @@ void LAppModel::HitPart(float x, float y, bool topOnly, void *collector, void (*
 
     for (int i = 0; i < drawableCount; i++)
     {
-        int drawableIndex = drawableIndices[i];
+        int drawableIndex = _tmpOrderedDrawIndices[i];
         if (_model->GetDrawableOpacity(drawableIndex) == 0.0f)
         {
             continue;
@@ -946,7 +949,6 @@ void LAppModel::HitPart(float x, float y, bool topOnly, void *collector, void (*
             break;
         }
     }
-    delete[] drawableIndices;
 }
 
 void LAppModel::SetPartMultiplyColor(int partNo, float r, float g, float b, float a) const

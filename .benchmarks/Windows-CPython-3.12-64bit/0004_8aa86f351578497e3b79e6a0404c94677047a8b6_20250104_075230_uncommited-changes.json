@@ -1,0 +1,1445 @@
+{
+    "machine_info": {
+        "node": "kasumi",
+        "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+        "machine": "AMD64",
+        "python_compiler": "MSC v.1935 64 bit (AMD64)",
+        "python_implementation": "CPython",
+        "python_implementation_version": "3.12.0",
+        "python_version": "3.12.0",
+        "python_build": [
+            "tags/v3.12.0:0fb18b0",
+            "Oct  2 2023 13:03:39"
+        ],
+        "release": "11",
+        "system": "Windows",
+        "cpu": {
+            "python_version": "3.12.0.final.0 (64 bit)",
+            "cpuinfo_version": [
+                9,
+                0,
+                0
+            ],
+            "cpuinfo_version_string": "9.0.0",
+            "arch": "X86_64",
+            "bits": 64,
+            "count": 4,
+            "arch_string_raw": "AMD64",
+            "vendor_id_raw": "GenuineIntel",
+            "brand_raw": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+            "hz_advertised_friendly": "2.1000 GHz",
+            "hz_actual_friendly": "2.5920 GHz",
+            "hz_advertised": [
+                2100000000,
+                0
+            ],
+            "hz_actual": [
+                2592000000,
+                0
+            ],
+            "flags": [
+                "3dnow",
+                "3dnowprefetch",
+                "abm",
+                "acpi",
+                "adx",
+                "aes",
+                "apic",
+                "avx",
+                "avx2",
+                "bmi1",
+                "bmi2",
+                "clflush",
+                "clflushopt",
+                "cmov",
+                "cx16",
+                "cx8",
+                "de",
+                "dtes64",
+                "dts",
+                "erms",
+                "est",
+                "f16c",
+                "fma",
+                "fpu",
+                "fxsr",
+                "ht",
+                "hypervisor",
+                "ia64",
+                "invpcid",
+                "lahf_lm",
+                "mca",
+                "mce",
+                "mmx",
+                "monitor",
+                "movbe",
+                "mpx",
+                "msr",
+                "mtrr",
+                "osxsave",
+                "pae",
+                "pat",
+                "pbe",
+                "pcid",
+                "pclmulqdq",
+                "pdcm",
+                "pge",
+                "pni",
+                "popcnt",
+                "pse",
+                "pse36",
+                "rdrnd",
+                "rdseed",
+                "sep",
+                "serial",
+                "sgx",
+                "smap",
+                "smep",
+                "ss",
+                "sse",
+                "sse2",
+                "sse4_1",
+                "sse4_2",
+                "ssse3",
+                "tm",
+                "tm2",
+                "tsc",
+                "tscdeadline",
+                "vme",
+                "x2apic",
+                "xsave",
+                "xtpr"
+            ],
+            "l2_cache_size": 65536,
+            "l2_cache_line_size": 256,
+            "l2_cache_associativity": 6,
+            "stepping": 12,
+            "model": 142,
+            "family": 6
+        }
+    },
+    "commit_info": {
+        "id": "8aa86f351578497e3b79e6a0404c94677047a8b6",
+        "time": "2025-01-04T15:31:01+08:00",
+        "author_time": "2025-01-04T15:31:01+08:00",
+        "dirty": true,
+        "project": "live2d-py",
+        "branch": "main"
+    },
+    "benchmarks": [
+        {
+            "group": null,
+            "name": "test_myfunction[point0-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point0-True]",
+            "params": {
+                "point": [
+                    0,
+                    0
+                ],
+                "topOnly": true
+            },
+            "param": "point0-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022489999537356198,
+                "max": 0.0005514999938895926,
+                "mean": 0.00024004824740666327,
+                "stddev": 2.2808544279962675e-05,
+                "rounds": 3994,
+                "median": 0.000229199999012053,
+                "iqr": 1.8099992303177714e-05,
+                "q1": 0.0002283000067109242,
+                "q3": 0.0002463999990141019,
+                "iqr_outliers": 265,
+                "stddev_outliers": 625,
+                "outliers": "625;265",
+                "ld15iqr": 0.00022489999537356198,
+                "hd15iqr": 0.0002736000024015084,
+                "ops": 4165.829206434114,
+                "total": 0.9587527001422131,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point0-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point0-False]",
+            "params": {
+                "point": [
+                    0,
+                    0
+                ],
+                "topOnly": false
+            },
+            "param": "point0-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022539999918080866,
+                "max": 0.0005191999953240156,
+                "mean": 0.0002417673970668912,
+                "stddev": 2.5964271216284193e-05,
+                "rounds": 4107,
+                "median": 0.0002300000051036477,
+                "iqr": 1.990000600926578e-05,
+                "q1": 0.00022909999825060368,
+                "q3": 0.00024900000425986946,
+                "iqr_outliers": 260,
+                "stddev_outliers": 402,
+                "outliers": "402;260",
+                "ld15iqr": 0.00022539999918080866,
+                "hd15iqr": 0.00027910000062547624,
+                "ops": 4136.206999504256,
+                "total": 0.9929386997537222,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point1-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point1-True]",
+            "params": {
+                "point": [
+                    50,
+                    0
+                ],
+                "topOnly": true
+            },
+            "param": "point1-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022470000840257853,
+                "max": 0.0008463999984087422,
+                "mean": 0.00024133011762256693,
+                "stddev": 2.8777357469204315e-05,
+                "rounds": 3825,
+                "median": 0.00022929999977350235,
+                "iqr": 1.7700003809295595e-05,
+                "q1": 0.00022839999292045832,
+                "q3": 0.0002460999967297539,
+                "iqr_outliers": 303,
+                "stddev_outliers": 344,
+                "outliers": "344;303",
+                "ld15iqr": 0.00022470000840257853,
+                "hd15iqr": 0.0002727999963099137,
+                "ops": 4143.701622704092,
+                "total": 0.9230876999063184,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point1-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point1-False]",
+            "params": {
+                "point": [
+                    50,
+                    0
+                ],
+                "topOnly": false
+            },
+            "param": "point1-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022499999613501132,
+                "max": 0.00046999999904073775,
+                "mean": 0.0002402722208620721,
+                "stddev": 2.4052478443155448e-05,
+                "rounds": 4129,
+                "median": 0.00022990000434219837,
+                "iqr": 1.3425000361166894e-05,
+                "q1": 0.00022899999748915434,
+                "q3": 0.00024242499785032123,
+                "iqr_outliers": 482,
+                "stddev_outliers": 433,
+                "outliers": "433;482",
+                "ld15iqr": 0.00022499999613501132,
+                "hd15iqr": 0.00026259999140165746,
+                "ops": 4161.945964506852,
+                "total": 0.9920839999394957,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point2-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point2-True]",
+            "params": {
+                "point": [
+                    100,
+                    0
+                ],
+                "topOnly": true
+            },
+            "param": "point2-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00028449999808799475,
+                "max": 0.0006385000015143305,
+                "mean": 0.0003081421633134558,
+                "stddev": 3.1049062389083246e-05,
+                "rounds": 3069,
+                "median": 0.00029120000544935465,
+                "iqr": 3.479998849797994e-05,
+                "q1": 0.00028670000028796494,
+                "q3": 0.0003214999887859449,
+                "iqr_outliers": 135,
+                "stddev_outliers": 262,
+                "outliers": "262;135",
+                "ld15iqr": 0.00028449999808799475,
+                "hd15iqr": 0.00037400001019705087,
+                "ops": 3245.2553368451427,
+                "total": 0.9456882992089959,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point2-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point2-False]",
+            "params": {
+                "point": [
+                    100,
+                    0
+                ],
+                "topOnly": false
+            },
+            "param": "point2-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00028450001263991,
+                "max": 0.0007545999978901818,
+                "mean": 0.0003070423883582352,
+                "stddev": 3.266008062809058e-05,
+                "rounds": 3291,
+                "median": 0.00029009999707341194,
+                "iqr": 3.500000457279384e-05,
+                "q1": 0.0002869000018108636,
+                "q3": 0.00032190000638365746,
+                "iqr_outliers": 144,
+                "stddev_outliers": 278,
+                "outliers": "278;144",
+                "ld15iqr": 0.00028450001263991,
+                "hd15iqr": 0.00037460000021383166,
+                "ops": 3256.879303691682,
+                "total": 1.010476500086952,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point3-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point3-True]",
+            "params": {
+                "point": [
+                    150,
+                    0
+                ],
+                "topOnly": true
+            },
+            "param": "point3-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003167000104440376,
+                "max": 0.0006466000049840659,
+                "mean": 0.0003375252727728236,
+                "stddev": 3.381012623415353e-05,
+                "rounds": 2659,
+                "median": 0.0003206999972462654,
+                "iqr": 3.480000304989517e-05,
+                "q1": 0.00031859999580774456,
+                "q3": 0.00035339999885763973,
+                "iqr_outliers": 129,
+                "stddev_outliers": 236,
+                "outliers": "236;129",
+                "ld15iqr": 0.0003167000104440376,
+                "hd15iqr": 0.00040600000647827983,
+                "ops": 2962.7411061247103,
+                "total": 0.897479700302938,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point3-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point3-False]",
+            "params": {
+                "point": [
+                    150,
+                    0
+                ],
+                "topOnly": false
+            },
+            "param": "point3-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003167999966535717,
+                "max": 0.0005624000041279942,
+                "mean": 0.00033926296447004593,
+                "stddev": 3.4177114109627165e-05,
+                "rounds": 2800,
+                "median": 0.0003214499956811778,
+                "iqr": 3.4899989259429276e-05,
+                "q1": 0.0003189999988535419,
+                "q3": 0.0003538999881129712,
+                "iqr_outliers": 155,
+                "stddev_outliers": 288,
+                "outliers": "288;155",
+                "ld15iqr": 0.0003167999966535717,
+                "hd15iqr": 0.00040669999725650996,
+                "ops": 2947.566061512416,
+                "total": 0.9499363005161285,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point4-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point4-True]",
+            "params": {
+                "point": [
+                    0,
+                    50
+                ],
+                "topOnly": true
+            },
+            "param": "point4-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0002246000076411292,
+                "max": 0.000520200002938509,
+                "mean": 0.00024114369390483,
+                "stddev": 2.4701508093197232e-05,
+                "rounds": 4131,
+                "median": 0.00022960000205785036,
+                "iqr": 2.277498788316734e-05,
+                "q1": 0.00022850000823382288,
+                "q3": 0.0002512749961169902,
+                "iqr_outliers": 195,
+                "stddev_outliers": 396,
+                "outliers": "396;195",
+                "ld15iqr": 0.0002246000076411292,
+                "hd15iqr": 0.0002855000057024881,
+                "ops": 4146.905041583467,
+                "total": 0.9961645995208528,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point4-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point4-False]",
+            "params": {
+                "point": [
+                    0,
+                    50
+                ],
+                "topOnly": false
+            },
+            "param": "point4-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.000225499999942258,
+                "max": 0.00047199999971780926,
+                "mean": 0.00024386503607461073,
+                "stddev": 2.4868113918086545e-05,
+                "rounds": 4150,
+                "median": 0.00023049999435897917,
+                "iqr": 2.5200002710334957e-05,
+                "q1": 0.00022909999825060368,
+                "q3": 0.00025430000096093863,
+                "iqr_outliers": 198,
+                "stddev_outliers": 396,
+                "outliers": "396;198",
+                "ld15iqr": 0.000225499999942258,
+                "hd15iqr": 0.0002927000023191795,
+                "ops": 4100.628840019727,
+                "total": 1.0120398997096345,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point5-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point5-True]",
+            "params": {
+                "point": [
+                    50,
+                    50
+                ],
+                "topOnly": true
+            },
+            "param": "point5-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022489999537356198,
+                "max": 0.0005458000086946413,
+                "mean": 0.00024041010858743834,
+                "stddev": 2.5899362411781097e-05,
+                "rounds": 4145,
+                "median": 0.00022929999977350235,
+                "iqr": 9.749986929818988e-06,
+                "q1": 0.0002283000067109242,
+                "q3": 0.0002380499936407432,
+                "iqr_outliers": 831,
+                "stddev_outliers": 423,
+                "outliers": "423;831",
+                "ld15iqr": 0.00022489999537356198,
+                "hd15iqr": 0.00025269998877774924,
+                "ops": 4159.558871611653,
+                "total": 0.996499900094932,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point5-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point5-False]",
+            "params": {
+                "point": [
+                    50,
+                    50
+                ],
+                "topOnly": false
+            },
+            "param": "point5-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022499999613501132,
+                "max": 0.0007411999977193773,
+                "mean": 0.00024251732073505202,
+                "stddev": 2.924571204150339e-05,
+                "rounds": 4128,
+                "median": 0.00022999999055173248,
+                "iqr": 2.335000317543745e-05,
+                "q1": 0.00022899999748915434,
+                "q3": 0.0002523500006645918,
+                "iqr_outliers": 229,
+                "stddev_outliers": 359,
+                "outliers": "359;229",
+                "ld15iqr": 0.00022499999613501132,
+                "hd15iqr": 0.0002874000056181103,
+                "ops": 4123.416822225621,
+                "total": 1.0011114999942947,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point6-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point6-True]",
+            "params": {
+                "point": [
+                    100,
+                    50
+                ],
+                "topOnly": true
+            },
+            "param": "point6-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00021749999723397195,
+                "max": 0.0006175000016810372,
+                "mean": 0.00023063092303899743,
+                "stddev": 2.559917095554504e-05,
+                "rounds": 4204,
+                "median": 0.00022000000171829015,
+                "iqr": 5.399997462518513e-06,
+                "q1": 0.00021939999714959413,
+                "q3": 0.00022479999461211264,
+                "iqr_outliers": 927,
+                "stddev_outliers": 434,
+                "outliers": "434;927",
+                "ld15iqr": 0.00021749999723397195,
+                "hd15iqr": 0.0002330999996047467,
+                "ops": 4335.93200262616,
+                "total": 0.9695724004559452,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point6-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point6-False]",
+            "params": {
+                "point": [
+                    100,
+                    50
+                ],
+                "topOnly": false
+            },
+            "param": "point6-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00024959999427665025,
+                "max": 0.0005429000011645257,
+                "mean": 0.00026861665312862004,
+                "stddev": 2.7333583033101067e-05,
+                "rounds": 3717,
+                "median": 0.00025430000096093863,
+                "iqr": 2.820001100189984e-05,
+                "q1": 0.00025189999723806977,
+                "q3": 0.0002801000082399696,
+                "iqr_outliers": 150,
+                "stddev_outliers": 320,
+                "outliers": "320;150",
+                "ld15iqr": 0.00024959999427665025,
+                "hd15iqr": 0.0003228999994462356,
+                "ops": 3722.777379409817,
+                "total": 0.9984480996790808,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point7-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point7-True]",
+            "params": {
+                "point": [
+                    150,
+                    50
+                ],
+                "topOnly": true
+            },
+            "param": "point7-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00031599999056197703,
+                "max": 0.0006603999936487526,
+                "mean": 0.0003357528363384547,
+                "stddev": 3.1868281965458076e-05,
+                "rounds": 2697,
+                "median": 0.0003208999987691641,
+                "iqr": 3.3500007702969015e-05,
+                "q1": 0.00031859999580774456,
+                "q3": 0.0003521000035107136,
+                "iqr_outliers": 102,
+                "stddev_outliers": 238,
+                "outliers": "238;102",
+                "ld15iqr": 0.00031599999056197703,
+                "hd15iqr": 0.00040330000047106296,
+                "ops": 2978.3813918163087,
+                "total": 0.9055253996048123,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point7-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point7-False]",
+            "params": {
+                "point": [
+                    150,
+                    50
+                ],
+                "topOnly": false
+            },
+            "param": "point7-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003166000096825883,
+                "max": 0.0006117000011727214,
+                "mean": 0.00033673060990168323,
+                "stddev": 3.1413955649498004e-05,
+                "rounds": 2999,
+                "median": 0.00032139998802449554,
+                "iqr": 3.367499812156893e-05,
+                "q1": 0.0003189999988535419,
+                "q3": 0.00035267499697511084,
+                "iqr_outliers": 132,
+                "stddev_outliers": 308,
+                "outliers": "308;132",
+                "ld15iqr": 0.0003166000096825883,
+                "hd15iqr": 0.0004034000012325123,
+                "ops": 2969.7329871257457,
+                "total": 1.009855099095148,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point8-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point8-True]",
+            "params": {
+                "point": [
+                    0,
+                    100
+                ],
+                "topOnly": true
+            },
+            "param": "point8-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022499999613501132,
+                "max": 0.0004398000019136816,
+                "mean": 0.0002393345952287414,
+                "stddev": 2.3387771992619256e-05,
+                "rounds": 4015,
+                "median": 0.00022929999977350235,
+                "iqr": 5.799996870337054e-06,
+                "q1": 0.00022840000747237355,
+                "q3": 0.0002342000043427106,
+                "iqr_outliers": 943,
+                "stddev_outliers": 451,
+                "outliers": "451;943",
+                "ld15iqr": 0.00022499999613501132,
+                "hd15iqr": 0.0002429999876767397,
+                "ops": 4178.250950491554,
+                "total": 0.9609283998433966,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point8-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point8-False]",
+            "params": {
+                "point": [
+                    0,
+                    100
+                ],
+                "topOnly": false
+            },
+            "param": "point8-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022519999765791,
+                "max": 0.0005271999980323017,
+                "mean": 0.0002417140810257817,
+                "stddev": 2.443228318738535e-05,
+                "rounds": 3629,
+                "median": 0.00023030000738799572,
+                "iqr": 2.4199995095841587e-05,
+                "q1": 0.00022909999825060368,
+                "q3": 0.00025329999334644526,
+                "iqr_outliers": 143,
+                "stddev_outliers": 347,
+                "outliers": "347;143",
+                "ld15iqr": 0.00022519999765791,
+                "hd15iqr": 0.0002896999940276146,
+                "ops": 4137.1193426391155,
+                "total": 0.8771804000425618,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point9-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point9-True]",
+            "params": {
+                "point": [
+                    50,
+                    100
+                ],
+                "topOnly": true
+            },
+            "param": "point9-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0002249000099254772,
+                "max": 0.0005318000039551407,
+                "mean": 0.00024338887011393897,
+                "stddev": 2.536410747631961e-05,
+                "rounds": 4160,
+                "median": 0.00022960000205785036,
+                "iqr": 2.610000956337899e-05,
+                "q1": 0.00022839999292045832,
+                "q3": 0.0002545000024838373,
+                "iqr_outliers": 179,
+                "stddev_outliers": 379,
+                "outliers": "379;179",
+                "ld15iqr": 0.0002249000099254772,
+                "hd15iqr": 0.0002939000114565715,
+                "ops": 4108.651309864188,
+                "total": 1.012497699673986,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point9-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point9-False]",
+            "params": {
+                "point": [
+                    50,
+                    100
+                ],
+                "topOnly": false
+            },
+            "param": "point9-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022509999689646065,
+                "max": 0.0005417000065790489,
+                "mean": 0.0002432056070442029,
+                "stddev": 2.8209601600155513e-05,
+                "rounds": 4102,
+                "median": 0.00023009999131318182,
+                "iqr": 2.2799998987466097e-05,
+                "q1": 0.00022899999748915434,
+                "q3": 0.00025179999647662044,
+                "iqr_outliers": 280,
+                "stddev_outliers": 394,
+                "outliers": "394;280",
+                "ld15iqr": 0.00022509999689646065,
+                "hd15iqr": 0.0002860000095097348,
+                "ops": 4111.7473077758805,
+                "total": 0.9976294000953203,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point10-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point10-True]",
+            "params": {
+                "point": [
+                    100,
+                    100
+                ],
+                "topOnly": true
+            },
+            "param": "point10-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00017269999079871923,
+                "max": 0.00036920000275131315,
+                "mean": 0.00018396740159883055,
+                "stddev": 2.0002846678289337e-05,
+                "rounds": 4445,
+                "median": 0.00017499999376013875,
+                "iqr": 7.099995855242014e-06,
+                "q1": 0.00017430000298190862,
+                "q3": 0.00018139999883715063,
+                "iqr_outliers": 1005,
+                "stddev_outliers": 511,
+                "outliers": "511;1005",
+                "ld15iqr": 0.00017269999079871923,
+                "hd15iqr": 0.00019209999300073832,
+                "ops": 5435.7456337870935,
+                "total": 0.8177351001068018,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point10-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point10-False]",
+            "params": {
+                "point": [
+                    100,
+                    100
+                ],
+                "topOnly": false
+            },
+            "param": "point10-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.000258100000792183,
+                "max": 0.0006190999993123114,
+                "mean": 0.00027569399205654935,
+                "stddev": 2.9412099372138467e-05,
+                "rounds": 3096,
+                "median": 0.00026220000290777534,
+                "iqr": 2.7699992642737925e-05,
+                "q1": 0.00026020000223070383,
+                "q3": 0.00028789999487344176,
+                "iqr_outliers": 142,
+                "stddev_outliers": 286,
+                "outliers": "286;142",
+                "ld15iqr": 0.000258100000792183,
+                "hd15iqr": 0.0003296000068075955,
+                "ops": 3627.2099821271536,
+                "total": 0.8535485994070768,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point11-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point11-True]",
+            "params": {
+                "point": [
+                    150,
+                    100
+                ],
+                "topOnly": true
+            },
+            "param": "point11-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003164999943692237,
+                "max": 0.0006303999980445951,
+                "mean": 0.00036474423404842904,
+                "stddev": 5.707407384286442e-05,
+                "rounds": 3009,
+                "median": 0.00035319999733474106,
+                "iqr": 5.2824998419964686e-05,
+                "q1": 0.00031940000189933926,
+                "q3": 0.00037222500031930394,
+                "iqr_outliers": 379,
+                "stddev_outliers": 470,
+                "outliers": "470;379",
+                "ld15iqr": 0.0003164999943692237,
+                "hd15iqr": 0.0004520999937085435,
+                "ops": 2741.647178080476,
+                "total": 1.097515400251723,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point11-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point11-False]",
+            "params": {
+                "point": [
+                    150,
+                    100
+                ],
+                "topOnly": false
+            },
+            "param": "point11-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003166999958921224,
+                "max": 0.0006473999965237454,
+                "mean": 0.0003398628858439218,
+                "stddev": 3.4678884825477924e-05,
+                "rounds": 2980,
+                "median": 0.0003218999918317422,
+                "iqr": 3.5200006095692515e-05,
+                "q1": 0.00031909999961499125,
+                "q3": 0.00035430000571068376,
+                "iqr_outliers": 164,
+                "stddev_outliers": 295,
+                "outliers": "295;164",
+                "ld15iqr": 0.0003166999958921224,
+                "hd15iqr": 0.00040720000106375664,
+                "ops": 2942.3630577280474,
+                "total": 1.012791399814887,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point12-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point12-True]",
+            "params": {
+                "point": [
+                    0,
+                    150
+                ],
+                "topOnly": true
+            },
+            "param": "point12-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022480000916402787,
+                "max": 0.0006304999988060445,
+                "mean": 0.0002483339964940584,
+                "stddev": 3.319653658707477e-05,
+                "rounds": 4121,
+                "median": 0.00023180000425782055,
+                "iqr": 2.6399997295811772e-05,
+                "q1": 0.00022869999520480633,
+                "q3": 0.0002550999925006181,
+                "iqr_outliers": 312,
+                "stddev_outliers": 385,
+                "outliers": "385;312",
+                "ld15iqr": 0.00022480000916402787,
+                "hd15iqr": 0.000294700002996251,
+                "ops": 4026.8348841392963,
+                "total": 1.0233843995520147,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point12-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point12-False]",
+            "params": {
+                "point": [
+                    0,
+                    150
+                ],
+                "topOnly": false
+            },
+            "param": "point12-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022509999689646065,
+                "max": 0.00046210001164581627,
+                "mean": 0.00024406260415839795,
+                "stddev": 2.7318081995052422e-05,
+                "rounds": 3725,
+                "median": 0.00023019999207463115,
+                "iqr": 2.5200002710334957e-05,
+                "q1": 0.00022909999825060368,
+                "q3": 0.00025430000096093863,
+                "iqr_outliers": 200,
+                "stddev_outliers": 341,
+                "outliers": "341;200",
+                "ld15iqr": 0.00022509999689646065,
+                "hd15iqr": 0.00029240000003483146,
+                "ops": 4097.309390958537,
+                "total": 0.9091332004900323,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point13-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point13-True]",
+            "params": {
+                "point": [
+                    50,
+                    150
+                ],
+                "topOnly": true
+            },
+            "param": "point13-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022500001068692654,
+                "max": 0.00046699999074917287,
+                "mean": 0.0002557768685163999,
+                "stddev": 4.09529573092077e-05,
+                "rounds": 4107,
+                "median": 0.00023330000112764537,
+                "iqr": 3.4899989259429276e-05,
+                "q1": 0.00022860000899527222,
+                "q3": 0.0002634999982547015,
+                "iqr_outliers": 501,
+                "stddev_outliers": 550,
+                "outliers": "550;501",
+                "ld15iqr": 0.00022500001068692654,
+                "hd15iqr": 0.0003159000043524429,
+                "ops": 3909.657686406001,
+                "total": 1.0504755989968544,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point13-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point13-False]",
+            "params": {
+                "point": [
+                    50,
+                    150
+                ],
+                "topOnly": false
+            },
+            "param": "point13-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00022539999918080866,
+                "max": 0.0005889000021852553,
+                "mean": 0.00024646808725101854,
+                "stddev": 2.7810764802515426e-05,
+                "rounds": 3754,
+                "median": 0.00023160000273492187,
+                "iqr": 2.7700007194653153e-05,
+                "q1": 0.00022909999825060368,
+                "q3": 0.00025680000544525683,
+                "iqr_outliers": 173,
+                "stddev_outliers": 317,
+                "outliers": "317;173",
+                "ld15iqr": 0.00022539999918080866,
+                "hd15iqr": 0.000298400002066046,
+                "ops": 4057.3204066842836,
+                "total": 0.9252411995403236,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point14-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point14-True]",
+            "params": {
+                "point": [
+                    100,
+                    150
+                ],
+                "topOnly": true
+            },
+            "param": "point14-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00027990000671707094,
+                "max": 0.0006180000054882839,
+                "mean": 0.00030337380100736147,
+                "stddev": 3.019797257861157e-05,
+                "rounds": 3107,
+                "median": 0.00028670000028796494,
+                "iqr": 3.470000228844583e-05,
+                "q1": 0.00028310000197961926,
+                "q3": 0.0003178000042680651,
+                "iqr_outliers": 122,
+                "stddev_outliers": 270,
+                "outliers": "270;122",
+                "ld15iqr": 0.00027990000671707094,
+                "hd15iqr": 0.0003701000096043572,
+                "ops": 3296.263542466327,
+                "total": 0.9425823997298721,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point14-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point14-False]",
+            "params": {
+                "point": [
+                    100,
+                    150
+                ],
+                "topOnly": false
+            },
+            "param": "point14-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0002810000005410984,
+                "max": 0.0006706999993184581,
+                "mean": 0.0003159066161419924,
+                "stddev": 3.883564818336376e-05,
+                "rounds": 2902,
+                "median": 0.0003139000036753714,
+                "iqr": 3.979999746661633e-05,
+                "q1": 0.0002838000073097646,
+                "q3": 0.00032360000477638096,
+                "iqr_outliers": 209,
+                "stddev_outliers": 291,
+                "outliers": "291;209",
+                "ld15iqr": 0.0002810000005410984,
+                "hd15iqr": 0.00038499999209307134,
+                "ops": 3165.4924237184205,
+                "total": 0.9167610000440618,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point15-True]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point15-True]",
+            "params": {
+                "point": [
+                    150,
+                    150
+                ],
+                "topOnly": true
+            },
+            "param": "point15-True",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003163999936077744,
+                "max": 0.0006399999983841553,
+                "mean": 0.00033836295923311295,
+                "stddev": 3.357756150233745e-05,
+                "rounds": 2994,
+                "median": 0.0003208999987691641,
+                "iqr": 3.5200006095692515e-05,
+                "q1": 0.00031859999580774456,
+                "q3": 0.0003538000019034371,
+                "iqr_outliers": 131,
+                "stddev_outliers": 276,
+                "outliers": "276;131",
+                "ld15iqr": 0.0003163999936077744,
+                "hd15iqr": 0.0004071000003023073,
+                "ops": 2955.406236741938,
+                "total": 1.0130586999439402,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_myfunction[point15-False]",
+            "fullname": "package/test_hit_part.py::test_myfunction[point15-False]",
+            "params": {
+                "point": [
+                    150,
+                    150
+                ],
+                "topOnly": false
+            },
+            "param": "point15-False",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.0003167000104440376,
+                "max": 0.0006436999974539503,
+                "mean": 0.00039082148046255415,
+                "stddev": 7.058940005286552e-05,
+                "rounds": 1932,
+                "median": 0.00035579998802859336,
+                "iqr": 0.0001320000010309741,
+                "q1": 0.00033200001053046435,
+                "q3": 0.00046400001156143844,
+                "iqr_outliers": 0,
+                "stddev_outliers": 885,
+                "outliers": "885;0",
+                "ld15iqr": 0.0003167000104440376,
+                "hd15iqr": 0.0006436999974539503,
+                "ops": 2558.7129929922394,
+                "total": 0.7550671002536546,
+                "iterations": 1
+            }
+        }
+    ],
+    "datetime": "2025-01-04T07:53:09.127054+00:00",
+    "version": "5.1.0"
+}

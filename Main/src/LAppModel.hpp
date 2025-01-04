@@ -276,4 +276,6 @@ private:
 
     bool _autoBreath;
     bool _autoBlink;
+
+    int* _tmpOrderedDrawIndices;
 };
