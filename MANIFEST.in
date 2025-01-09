@@ -1,5 +1,5 @@
 recursive-include Core *
-recursive-include include *
+recursive-include stb_image *
 recursive-include Main *
 recursive-include glew *
 recursive-include Framework *
