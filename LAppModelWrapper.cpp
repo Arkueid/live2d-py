@@ -206,6 +206,12 @@ static PyObject* PyLAppModel_StopAllMotions(PyLAppModelObject* self, PyObject* a
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    self->model->ResetPose();
+    Py_RETURN_NONE;
+}
+
 static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args)
 {
     const char* expressionID;
@@ -611,6 +617,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
     {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
     {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, ""},
+    {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_VARARGS | METH_KEYWORDS, ""},
 
     {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
     {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, ""},

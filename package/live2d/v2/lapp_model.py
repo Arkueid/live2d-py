@@ -380,8 +380,13 @@ class LAppModel(L2DBaseModel):
 
     def StopAllMotions(self):
         self.mainMotionManager.stopAllMotions()
+
+    def ResetPose(self):
         if self.pose:
+            self.live2DModel.loadParam()
             self.pose.initParam(self.live2DModel)
+            self.pose.updateParam(self.live2DModel)
+            self.live2DModel.saveParam()
     
     def ResetExpression(self):
         self.expressionManager.stopAllMotions()

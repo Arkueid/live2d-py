@@ -10,11 +10,11 @@ import time
 import pygame
 from pygame.locals import *
 
-# import live2d.v3 as live2d
-# from live2d.v3 import StandardParams
+import live2d.v3 as live2d
+from live2d.v3 import StandardParams
 from live2d.utils import log
-import live2d.v2 as live2d
-from live2d.v2 import StandardParams
+# import live2d.v2 as live2d
+# from live2d.v2 import StandardParams
 
 
 import resources
@@ -120,7 +120,7 @@ def main():
                 # model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
                 # model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
                 model.SetRandomExpression()
-                model.StartRandomMotion()
+                model.StartRandomMotion(priority=3)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -142,6 +142,7 @@ def main():
                 
                 elif event.key == pygame.K_r:
                     model.StopAllMotions()
+                    model.ResetPose()
                 
                 elif event.key == pygame.K_e:
                     model.ResetExpression()

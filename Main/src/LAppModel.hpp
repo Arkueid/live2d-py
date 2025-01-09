@@ -198,7 +198,9 @@ public:
                        void (*OnItem)(void* collector, const char* paramId, int type, float value,
                                       float maxValue, float minValue, float defaultValue)) const;
 
-    void StopAllMotions();                              
+    void StopAllMotions();          
+
+    void ResetPose();                    
 
     void ResetExpression();
 

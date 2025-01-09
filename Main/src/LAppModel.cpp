@@ -1008,6 +1008,10 @@ void LAppModel::SetScale(float scale)
 void LAppModel::StopAllMotions()
 {
     _motionManager->StopAllMotions();
+}
+
+void LAppModel::ResetPose()
+{
     _pose->Reset(_model);
 }
 
