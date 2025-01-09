@@ -70,7 +70,6 @@ static PyObject* PyLAppModel_Resize(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-// LAppModel->Update
 static PyObject* PyLAppModel_Draw(PyLAppModelObject* self, PyObject* args)
 {
     self->model->Draw();
@@ -201,6 +200,12 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_StopAllMotions(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    self->model->StopAllMotions();
+    Py_RETURN_NONE;
+}
+
 static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args)
 {
     const char* expressionID;
@@ -212,6 +217,12 @@ static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* ar
 
     self->model->SetExpression(expressionID);
 
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject* args)
+{
+    self->model->ResetExpression();
     Py_RETURN_NONE;
 }
 
@@ -599,8 +610,12 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"Draw", (PyCFunction)PyLAppModel_Draw, METH_VARARGS, ""},
     {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
     {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
+    {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, ""},
+
     {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
     {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, ""},
+    {"ResetExpression", (PyCFunction)PyLAppModel_ResetExpression, METH_VARARGS, ""},
+
     {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, "Get the name of the area being hit."},
     {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
     {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, ""},

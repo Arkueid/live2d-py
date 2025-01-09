@@ -39,7 +39,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
         )
     else:
         model.LoadModelJson(
@@ -117,8 +117,10 @@ def main():
                 x, y = pygame.mouse.get_pos()
                 # currentTopClickedPartId = getHitFeedback(x, y)
                 # log.Info(f"Clicked Part: {currentTopClickedPartId}")
-                model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
+                # model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
                 # model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
+                model.SetRandomExpression()
+                model.StartRandomMotion()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -137,6 +139,12 @@ def main():
 
                 elif event.key == pygame.K_u:
                     scale -= 0.01
+                
+                elif event.key == pygame.K_r:
+                    model.StopAllMotions()
+                
+                elif event.key == pygame.K_e:
+                    model.ResetExpression()
 
             if event.type == pygame.MOUSEMOTION:
                 # 实现拖拽

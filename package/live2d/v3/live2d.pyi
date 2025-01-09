@@ -244,3 +244,9 @@ class LAppModel:
     
     def GetPartMultiplyColor(self, partIndex: int) -> tuple[float]:
         ...
+
+    def StopAllMotions() -> None:
+        ...
+
+    def ResetExpression() -> None:
+        ...

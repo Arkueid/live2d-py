@@ -1004,3 +1004,14 @@ void LAppModel::SetScale(float scale)
 {
     _matrixManager.SetScale(scale);
 }
+
+void LAppModel::StopAllMotions()
+{
+    _motionManager->StopAllMotions();
+    _pose->Reset(_model);
+}
+
+void LAppModel::ResetExpression()
+{
+    _expressionManager->StopAllMotions();
+}

@@ -24,7 +24,7 @@ if(DEFINED PYTHON_INSTALLATION_PATH)
 else()
     # 手动设置 python 路径
     message("Not found PYTHON_INSTALLATION_PATH in environment variables. \nUse default path.")
-    set(CMAKE_PREFIX_PATH D:/Miniconda/envs/py3100)
+    set(CMAKE_PREFIX_PATH D:/Python/x64/3.10.0)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

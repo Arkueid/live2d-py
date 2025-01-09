@@ -198,6 +198,10 @@ public:
                        void (*OnItem)(void* collector, const char* paramId, int type, float value,
                                       float maxValue, float minValue, float defaultValue)) const;
 
+    void StopAllMotions();                              
+
+    void ResetExpression();
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。
