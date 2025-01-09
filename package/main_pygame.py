@@ -108,6 +108,10 @@ def main():
             ret = hitPartIds[0]
             return ret
 
+    fc = None
+    sc = None
+    model.StartRandomMotion("TapBody", 300, sc, fc)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

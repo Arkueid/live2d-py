@@ -245,19 +245,19 @@ class LAppModel:
     def GetPartMultiplyColor(self, partIndex: int) -> tuple[float]:
         ...
 
-    def StopAllMotions() -> None:
+    def StopAllMotions(self) -> None:
         """
         终止所有动作，但不会对Part进行复位
         """
         ...
 
-    def ResetPose() -> None:
+    def ResetPose(self) -> None:
         """
         仅对有 pose3.json 的模型生效
         """
         ...
 
-    def ResetExpression() -> None:
+    def ResetExpression(self) -> None:
         """
         重置为默认表情
         """

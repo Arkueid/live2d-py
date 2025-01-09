@@ -108,6 +108,27 @@ void OnMotionFinishedCallback(ACubismMotion* motion)
     PyGILState_Release(state);
 }
 
+static PyObject* MakeCallee(PyObject* callback)
+{
+    if (callback == nullptr)
+        return nullptr;
+
+    if (Py_IsNone(callback))
+    {
+        return nullptr;
+    }
+
+    if (!PyCallable_Check(callback))
+    {
+        PyErr_SetString(PyExc_TypeError, "handler must be callable or None");
+        return NULL;
+    }
+
+    Py_XINCREF(callback);
+
+    return callback;
+}
+
 static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* group;
@@ -125,30 +146,11 @@ static PyObject* PyLAppModel_StartMotion(PyLAppModelObject* self, PyObject* args
         return NULL;
     }
 
-    if (onStartHandler != nullptr)
-    {
-        if (!Py_IsNone(onStartHandler) && !PyCallable_Check(onStartHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
-            return NULL;
-        }
-        Py_XINCREF(onStartHandler);
-    }
-
-    if (onFinishHandler != nullptr)
-    {
-        if (!Py_IsNone(onFinishHandler) && !PyCallable_Check(onFinishHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
-            return NULL;
-        }
-        Py_XINCREF(onFinishHandler);
-    }
 
     Csm::CubismMotionQueueEntryHandle _ = self->model->StartMotion(group, no, priority,
-                                                                   onStartHandler,
+                                                                   MakeCallee(onStartHandler),
                                                                    OnMotionStartedCallback,
-                                                                   onFinishHandler,
+                                                                   MakeCallee(onFinishHandler),
                                                                    OnMotionFinishedCallback);
 
     Py_RETURN_NONE;
@@ -171,30 +173,10 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
         return NULL;
     }
 
-    if (onStartHandler != nullptr)
-    {
-        if (!Py_IsNone(onStartHandler) && !PyCallable_Check(onStartHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
-            return NULL;
-        }
-        Py_XINCREF(onStartHandler);
-    }
-
-    if (onFinishHandler != nullptr)
-    {
-        if (!Py_IsNone(onFinishHandler) && !PyCallable_Check(onFinishHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
-            return NULL;
-        }
-        Py_XINCREF(onFinishHandler);
-    }
-
     self->model->StartRandomMotion(group, priority,
-                                   onStartHandler,
+                                   MakeCallee(onStartHandler),
                                    OnMotionStartedCallback,
-                                   onFinishHandler,
+                                   MakeCallee(onFinishHandler),
                                    OnMotionFinishedCallback);
 
     Py_RETURN_NONE;
@@ -283,31 +265,10 @@ static PyObject* PyLAppModel_Touch(PyLAppModelObject* self, PyObject* args, PyOb
         return NULL;
     }
 
-
-    if (onStartHandler != nullptr)
-    {
-        if (!Py_IsNone(onStartHandler) && !PyCallable_Check(onStartHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 4 must be callable.");
-            return NULL;
-        }
-        Py_XINCREF(onStartHandler);
-    }
-
-    if (onFinishHandler != nullptr)
-    {
-        if (!Py_IsNone(onFinishHandler) && !PyCallable_Check(onFinishHandler))
-        {
-            PyErr_SetString(PyExc_TypeError, "Argument 5 must be callable.");
-            return NULL;
-        }
-        Py_XINCREF(onFinishHandler);
-    }
-    
     self->model->Touch(mx, my,
-                       onStartHandler,
+                       MakeCallee(onStartHandler),
                        OnMotionStartedCallback,
-                       onFinishHandler,
+                       MakeCallee(onFinishHandler),
                        OnMotionFinishedCallback);
 
     Py_RETURN_NONE;
