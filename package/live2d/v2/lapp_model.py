@@ -377,3 +377,11 @@ class LAppModel(L2DBaseModel):
         :return: ref of the part multiply color
         """
         return self.live2DModel.modelContext.getPartMultiplyColor(part_index)
+
+    def StopAllMotions(self):
+        self.mainMotionManager.stopAllMotions()
+        if self.pose:
+            self.pose.initParam(self.live2DModel)
+    
+    def ResetExpression(self):
+        self.expressionManager.stopAllMotions()
