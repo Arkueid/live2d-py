@@ -14,7 +14,7 @@ LONG_DESCRIPTION = open("README.md", "r", encoding="utf-8").read()
 AUTHOR = "Arkueid"
 AUTHOR_EMAIL = "thetardis@qq.com"
 URL = "https://github.com/Arkueid/live2d-py"
-REQUIRES_PYTHON = [">=3.2"]
+REQUIRES_PYTHON = ">=3.2"
 INSTALL_REQUIRES = ["numpy", "pyopengl", "pillow"]
 
 
@@ -39,7 +39,7 @@ class CMakeBuild(build_ext):
         try:
             out = subprocess.check_output(["cmake", "--version"])
         except:
-            sys.stderr.write("CMake must be installed to build the following extensions: " + ", ".join(self.extensions))
+            sys.stderr.write("CMake must be installed to build the following extensions: " + ", ".join(str(self.extensions)))
             sys.exit(1)
         return re.search(r"cmake version ([0-9.]+)", out.decode()).group(1)
 
@@ -110,13 +110,5 @@ setup(
     package_data={"": ["*.pyd", "*.so"]},
     package_dir={"": "package"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"],
-    python_requires=">=3.2,<=3.12",
-    classifiers=[
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-    ]
+    python_requires=REQUIRES_PYTHON
 )
