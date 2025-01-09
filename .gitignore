@@ -40,4 +40,4 @@ test
 
 assets
 
-*.hit_part.html
+**.hit_part.html
