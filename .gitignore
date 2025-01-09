@@ -39,3 +39,5 @@ test
 .benchmarks
 
 assets
+
+*.hit_part.html
