@@ -15,6 +15,7 @@ public:
     Csm::CubismMatrix44 &GetMvp(LAppModel *model);
     void SetOffset(float x, float y);
     void SetScale(float scale);
+    void InvertTransform(float* x, float* y);
 private:
     Csm::CubismMatrix44 _screenToScene;
     Csm::CubismMatrix44 _mvp;
@@ -23,4 +24,6 @@ private:
     float _scale;
     int _ww;
     int _wh;
+    float _baseScaleX;
+    float _baseScaleY;
 };

@@ -3,7 +3,9 @@
 
 MatrixManager::MatrixManager(): _offsetX(0.0f), _offsetY(0.0f), _scale(1.0f),
                                 _ww(800),
-                                _wh(600)
+                                _wh(600),
+                                _baseScaleX(-1.0f),
+                                _baseScaleY(-1.0f)
 {
 }
 
@@ -56,7 +58,13 @@ Csm::CubismMatrix44& MatrixManager::GetMvp(LAppModel* model)
 
     Csm::CubismModelMatrix* m = model->GetModelMatrix();
 
-    m->Scale(_scale, _scale);
+    if (_baseScaleX < 0)
+    {
+        _baseScaleX = m->GetScaleX();
+        _baseScaleY = m->GetScaleY();
+    }
+
+    m->Scale(_baseScaleX * _scale, _baseScaleY * _scale);
 
     m->SetX(_offsetX);
     m->SetY(_offsetY);
@@ -75,4 +83,10 @@ void MatrixManager::SetOffset(float x, float y)
 void MatrixManager::SetScale(float scale)
 {
     _scale = scale;
+}
+
+void MatrixManager::InvertTransform(float* x, float* y)
+{
+    *x = (*x - _offsetX) / _scale;
+    *y = (*y - _offsetY) / _scale;
 }
