@@ -2,12 +2,11 @@ import os.path
 import tkinter
 
 import pyautogui
-from OpenGL import GL
 from pyopengltk import OpenGLFrame
 import resources
 
-
-# import live2d.v2 as live2d
+from time import sleep
+import live2d.v2 as live2d
 import live2d.v3 as live2d
 
 class AppOgl(OpenGLFrame):
@@ -17,11 +16,13 @@ class AppOgl(OpenGLFrame):
 
     def initgl(self):
         """Initalize gl states when the frame is created"""
+        if self.model:
+            del self.model
+        live2d.dispose()
+
         live2d.init()
         live2d.glewInit()
 
-        GL.glViewport(0, 0, self.width, self.height)
-        GL.glClearColor(0.0, 1.0, 0.0, 0.0)
         self.model = live2d.LAppModel()
         if live2d.LIVE2D_VERSION == 2:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
@@ -31,7 +32,7 @@ class AppOgl(OpenGLFrame):
 
     def redraw(self):
         """Render a single frame"""
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        live2d.clearBuffer()
 
         screen_x, screen_y = pyautogui.position()
         x = screen_x - self.winfo_rootx()
@@ -40,15 +41,18 @@ class AppOgl(OpenGLFrame):
         self.model.Update()
         self.model.Drag(x, y)
         self.model.Draw()
+        # 控制帧率
+        sleep(1 / 60)
 
 
 
 if __name__ == '__main__':
     root = tkinter.Tk()
-    app = AppOgl(root, width=320, height=200)
+    root.attributes('-transparent', 'black')
+    app = AppOgl(root, width=400, height=500)
+    root.bind("<Button-1>", lambda _: app.model.StartRandomMotion())
     app.pack(fill=tkinter.BOTH, expand=tkinter.YES)
     app.animate = 1
-    app.after(100, app.printContext)
     app.mainloop()
 
     live2d.dispose()

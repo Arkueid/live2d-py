@@ -26,12 +26,18 @@ struct PyLAppModelObject
 {
     PyObject_HEAD
     LAppModel* model;
+    char* lastExpression;
+    time_t expStartedAt;
+    time_t fadeout;
 };
 
 // LAppModel()
 static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* kwds)
 {
     self->model = new LAppModel();
+    self->lastExpression = nullptr;
+    self->expStartedAt = -1;
+    self->fadeout = -1;
     Info("[M] allocate LAppModel(at=%p)", self->model);
     return 0;
 }
@@ -194,15 +200,38 @@ static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject* args, 
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args)
+static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* expressionID;
+    int fadeout = -1;
 
-    if (!(PyArg_ParseTuple(args, "s", &expressionID)))
+    static char* kwlist[] = {
+        (char*)"expressionId", (char*)"fadeout", NULL};
+
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", kwlist, &expressionID, &fadeout)))
     {
         return NULL;
     }
 
+    if (fadeout >= 0)
+    {
+        auto now = std::chrono::system_clock::now();
+        self->expStartedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
+    }
+    else
+    {
+        int len = strlen(expressionID);
+        if (self->lastExpression != nullptr)
+        {
+            delete[] self->lastExpression;
+            self->lastExpression = nullptr;
+        }
+        self->lastExpression = new char[len + 1];
+        strcpy(self->lastExpression, expressionID);
+        self->lastExpression[len] = '\0';
+    }
+
+    self->fadeout = fadeout;
     self->model->SetExpression(expressionID);
 
     Py_RETURN_NONE;
@@ -361,6 +390,27 @@ static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject
 
 static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args)
 {
+    if (self->fadeout >= 0)
+    {
+        auto now = std::chrono::system_clock::now();
+        auto value = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
+        time_t elapsed = value - self->expStartedAt;
+        if (elapsed >= self->fadeout)
+        {
+            if (self->lastExpression != nullptr)
+            {
+                self->model->SetExpression(self->lastExpression);
+                Info("reset expression %s", self->lastExpression);
+            }
+            else
+            {
+                self->model->ResetExpression();
+                Info("reset expression");
+            }
+            self->fadeout = -1;
+        }
+    }
+
     self->model->Update();
 
     Py_RETURN_NONE;
@@ -580,7 +630,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, ""},
     {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_VARARGS | METH_KEYWORDS, ""},
 
-    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS, ""},
+    {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS | METH_KEYWORDS, ""},
     {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, ""},
     {"ResetExpression", (PyCFunction)PyLAppModel_ResetExpression, METH_VARARGS, ""},
 

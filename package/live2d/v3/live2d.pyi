@@ -99,7 +99,7 @@ class LAppModel:
         """
         ...
 
-    def SetExpression(self, expressionID: str | Any) -> None:
+    def SetExpression(self, expressionID: str | Any, fadeout=-1) -> None:
         """
         Set a specific expression for the model.
         

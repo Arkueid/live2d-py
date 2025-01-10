@@ -680,8 +680,7 @@ void LAppModel::SetExpression(const csmChar *expressionID)
     }
     else
     {
-        if (_debugMode)
-            Info("expression[%s] is null ", expressionID);
+        Info("expression[%s] is null ", expressionID);
     }
 }
 
