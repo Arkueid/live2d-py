@@ -413,7 +413,7 @@ static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args)
             else
             {
                 self->model->ResetExpression();
-                Info("reset expression");
+                Info("clear expression");
             }
             self->fadeout = -1;
         }
