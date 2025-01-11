@@ -239,6 +239,14 @@ static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* ar
 
 static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject* args)
 {
+    self->fadeout = -1;
+    self->expStartedAt = -1;
+    if (self->lastExpression != nullptr)
+    {
+        delete[] self->lastExpression;
+        self->lastExpression = nullptr;
+    }
+
     self->model->ResetExpression();
     Py_RETURN_NONE;
 }
