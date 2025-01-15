@@ -16,7 +16,7 @@ def main():
     live2d.init()
 
     display = (300, 400)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL, vsync=0)
     pygame.display.set_caption("pygame window")
 
     live2d.glewInit()
@@ -35,12 +35,6 @@ def main():
     model.Resize(*display)
 
     running = True
-
-    def on_start_motion_callback(group: str, no: int):
-        log.Info("start motion: [%s_%d]" % (group, no))
-
-    def on_finish_motion_callback():
-        log.Info("motion finished")
 
     model.SetExpression("exp_03") # 默认表情设置为 exp_03
     while True:

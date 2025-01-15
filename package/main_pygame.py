@@ -29,7 +29,7 @@ def main():
     live2d.init()
 
     display = (300, 400)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL, vsync=1)
     pygame.display.set_caption("pygame window")
 
     if live2d.LIVE2D_VERSION == 3:
@@ -39,7 +39,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")
         )
     else:
         model.LoadModelJson(

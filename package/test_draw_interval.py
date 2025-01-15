@@ -27,7 +27,7 @@ class Win(QOpenGLWidget):
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
-        self.resize(200, 200)
+        self.resize(400, 500)
         self.read = False
         self.clickX = -1
         self.clickY = -1
@@ -46,11 +46,11 @@ class Win(QOpenGLWidget):
         self.model = live2d.LAppModel()
 
         if live2d.LIVE2D_VERSION == 3:
-            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json"))
         else:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
 
-        # 以 fps = 30 的频率进行绘图
+        # 以高帧率绘制
         self.startTimer(int(1000 / 120))
 
     def resizeGL(self, w: int, h: int) -> None:
@@ -65,52 +65,13 @@ class Win(QOpenGLWidget):
 
         self.model.Draw()
 
-        if not self.read:
-            self.savePng('screenshot.png')
-
-            self.read = True
-
-    def savePng(self, fName):
-        data = gl.glReadPixels(0, 0, self.width(), self.height(), gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
-        data = np.frombuffer(data, dtype=np.uint8).reshape(self.height(), self.width(), 4)
-        data = np.flipud(data)
-        new_data = np.zeros_like(data)
-        for rid, row in enumerate(data):
-            for cid, col in enumerate(row):
-                color = None
-                new_data[rid][cid] = col
-                if cid > 0 and data[rid][cid - 1][3] == 0 and col[3] != 0:
-                    color = new_data[rid][cid - 1]
-                elif cid > 0 and data[rid][cid - 1][3] != 0 and col[3] == 0:
-                    color = new_data[rid][cid]
-                if color is not None:
-                    color[0] = 255
-                    color[1] = 0
-                    color[2] = 0
-                    color[3] = 255
-                color = None
-                if rid > 0:
-                    if data[rid - 1][cid][3] == 0 and col[3] != 0:
-                        color = new_data[rid - 1][cid]
-                    elif data[rid - 1][cid][3] != 0 and col[3] == 0:
-                        color = new_data[rid][cid]
-                elif col[3] != 0:
-                    color = new_data[rid][cid]
-                if color is not None:
-                    color[0] = 255
-                    color[1] = 0
-                    color[2] = 0
-                    color[3] = 255
-        img = Image.fromarray(new_data, 'RGBA')
-        img.save(fName)
-
     def timerEvent(self, a0: QTimerEvent | None) -> None:
         if not self.isVisible():
             return
 
-        if self.a == 0:  # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinishMotionHandler=callback)
-            self.a += 1
+        # if self.a == 0:  # 测试一次播放动作和回调函数
+            # self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinishMotionHandler=callback)
+            # self.a += 1
 
         local_x, local_y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()
         if self.isInL2DArea(local_x, local_y):
@@ -147,6 +108,8 @@ class Win(QOpenGLWidget):
         x, y = event.scenePosition().x(), event.scenePosition().y()
         if self.clickInLA:
             self.move(int(self.x() + x - self.clickX), int(self.y() + y - self.clickY))
+        else:
+            self.model.Drag(x, y)
 
 
 if __name__ == "__main__":
@@ -155,9 +118,11 @@ if __name__ == "__main__":
     from PySide6.QtGui import QSurfaceFormat
 
     live2d.init()
+    # --垂直同步--
     format = QSurfaceFormat.defaultFormat()
-    format.setSwapInterval(0)
+    format.setSwapInterval(0) # 1=>开启
     QSurfaceFormat.setDefaultFormat(format)
+    # --垂直同步--
 
     app = QApplication(sys.argv)
     win = Win()

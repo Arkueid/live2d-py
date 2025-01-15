@@ -3,8 +3,8 @@ import os.path
 import resources
 
 import glfw
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 
 
 # 窗口初始化
@@ -47,6 +47,7 @@ def main():
     model.StartRandomMotion("TapBody", 3, onStartMotionHandler=lambda group, no: print(f"start 1 {group} {no}"),
                             onFinishMotionHandler=lambda: print("end 3"))
 
+    glfw.swap_interval(0)
     read = False
     model.Resize(270, 200)
     while not glfw.window_should_close(window):
