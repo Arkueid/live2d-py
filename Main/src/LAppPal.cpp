@@ -80,10 +80,17 @@ csmFloat32  LAppPal::GetDeltaTime()
     return static_cast<csmFloat32>(s_deltaTime);
 }
 
+bool ok = false;
+
 void LAppPal::UpdateTime()
 {
     s_currentFrame = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
     s_deltaTime = s_currentFrame - s_lastFrame;
+    if (!ok)
+    {
+        Debug("%lf %lf", s_currentFrame, s_deltaTime);
+        ok = true;
+    }
     s_lastFrame = s_currentFrame;
 }
 

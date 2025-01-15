@@ -24,7 +24,7 @@ def init_window(width, height, title):
 
 # 渲染循环
 def main():
-    window = init_window(270, 200, "glfw")
+    window = init_window(400, 500, "glfw")
     if not window:
         print("Failed to create GLFW window")
         return
@@ -49,7 +49,7 @@ def main():
 
     glfw.swap_interval(0)
     read = False
-    model.Resize(270, 200)
+    model.Resize(400, 500)
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
