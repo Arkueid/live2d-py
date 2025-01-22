@@ -684,7 +684,7 @@ void LAppModel::SetExpression(const csmChar *expressionID)
     }
 }
 
-void LAppModel::SetRandomExpression()
+void LAppModel::SetRandomExpression(void* callee, void(*callback)(void*, const char*))
 {
     if (_expressions.GetSize() == 0)
     {
@@ -700,6 +700,10 @@ void LAppModel::SetRandomExpression()
         {
             csmString name = (*map_ite).First;
             SetExpression(name.GetRawString());
+            if (callee && callback)
+            {
+                callback(callee, name.GetRawString());
+            }
             return;
         }
         i++;

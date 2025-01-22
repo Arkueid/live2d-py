@@ -43,7 +43,8 @@ def main():
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
-                model.SetExpression("exp_04", fadeout=5000)
+                # model.SetExpression("exp_04", fadeout=5000)
+                model.SetRandomExpression(fadeout=5000)
         
         if not running:
             break

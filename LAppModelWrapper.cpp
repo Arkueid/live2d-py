@@ -251,9 +251,38 @@ static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject* 
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject* args)
+static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
-    self->model->SetRandomExpression();
+    int fadeout = -1;
+    static char* kwlist[] = {(char*)"fadeout", NULL};
+
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fadeout)))
+    {
+        return NULL;
+    }
+
+    self->fadeout = fadeout;
+
+    self->model->SetRandomExpression(self, [](void* callee, const char* exp_id){
+        PyLAppModelObject* obj = (PyLAppModelObject*)callee;
+          if (obj->fadeout >= 0)
+        {
+            auto now = std::chrono::system_clock::now();
+            obj->expStartedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
+        }
+        else
+        {
+            int len = strlen(exp_id);
+            if (obj->lastExpression != nullptr)
+            {
+                delete[] obj->lastExpression;
+                obj->lastExpression = nullptr;
+            }
+            obj->lastExpression = new char[len + 1];
+            strcpy(obj->lastExpression, exp_id);
+            obj->lastExpression[len] = '\0';
+        }
+    });
     Py_RETURN_NONE;
 }
 
@@ -639,7 +668,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_VARARGS | METH_KEYWORDS, ""},
 
     {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS | METH_KEYWORDS, ""},
-    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS, ""},
+    {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS | METH_KEYWORDS, ""},
     {"ResetExpression", (PyCFunction)PyLAppModel_ResetExpression, METH_VARARGS, ""},
 
     {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, "Get the name of the area being hit."},

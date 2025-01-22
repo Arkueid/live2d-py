@@ -107,7 +107,7 @@ public:
      * @brief   ランダムに選ばれた表情モーションをセットする
      *
      */
-    void SetRandomExpression();
+    void SetRandomExpression(void* callee = nullptr, void(*callback)(void*, const char*) = nullptr);
 
     /**
      * @brief   イベントの発火を受け取る

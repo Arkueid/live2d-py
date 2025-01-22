@@ -107,7 +107,7 @@ class LAppModel:
         """
         ...
 
-    def SetRandomExpression(self) -> None:
+    def SetRandomExpression(self, fadeout=-1) -> None:
         """
         Set a random expression for the model.
         """
