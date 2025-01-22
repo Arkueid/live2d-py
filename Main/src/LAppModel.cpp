@@ -686,11 +686,6 @@ void LAppModel::SetExpression(const csmChar *expressionID)
 
 void LAppModel::SetRandomExpression(void* callee, void(*callback)(void*, const char*))
 {
-    if (_expressions.GetSize() == 0)
-    {
-        return;
-    }
-
     csmInt32 no = rand() % _expressions.GetSize();
     csmMap<csmString, ACubismMotion *>::const_iterator map_ite;
     csmInt32 i = 0;
