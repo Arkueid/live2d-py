@@ -538,6 +538,18 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
     return CreatePyParameter(id, type, value, maxValue, minValue, defaultValue);
 }
 
+static PyObject* PyLAppModel_GetParameterValue(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    if (PyArg_ParseTuple(args, "i", &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+
+    return PyFloat_FromDouble(self->model->GetParameterValue(index));
+}
+
 // GetPartCount() -> int
 static PyObject* PyLAppModel_GetPartCount(PyLAppModelObject* self, PyObject* args)
 {
@@ -598,21 +610,11 @@ static PyObject* PyLAppModel_HitPart(PyLAppModelObject* self, PyObject* args)
     }
 
     PyObject* list = PyList_New(0);
-    // std::vector<const char*> list;
     self->model->HitPart(x, y, topOnly, list, [](void* collector, const char* paramId)
     {
         PyList_Append((PyObject*)collector, PyUnicode_FromString(paramId));
-        // ((std::vector<const char*>*)collector)->push_back(paramId);
     });
 
-    // PyObject* pylist = PyList_New(list.size());
-    // int i = 0;
-    // for (auto s: list)
-    // {
-    // PyList_SetItem(pylist, i, PyUnicode_FromString(s));
-    // }
-
-    // return pylist;
     return list;
 }
 
@@ -703,6 +705,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
     {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
     {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
+    {"GetParameterValue", (PyCFunction)PyLAppModel_GetParameterValue, METH_VARARGS, ""},
 
     {"GetPartCount", (PyCFunction)PyLAppModel_GetPartCount, METH_VARARGS, ""},
     {"GetPartId", (PyCFunction)PyLAppModel_GetPartId, METH_VARARGS, ""},

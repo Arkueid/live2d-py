@@ -822,6 +822,11 @@ void LAppModel::GetParameter(int i, const char *&id, int &type, float &value, fl
     defaultValue = _model->GetParameterDefaultValue(i);
 }
 
+float LAppModel::GetParameterValue(int index)
+{
+    return _model->GetParameterValue(index);
+}
+
 int LAppModel::GetPartCount()
 {
     return _model->GetPartCount();

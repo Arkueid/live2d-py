@@ -162,6 +162,8 @@ public:
 
     void GetParameter(int i, const char*& id, int& type, float& value, float& maxValue, float& minValue,
                       float& defaultValue);
+    
+    float GetParameterValue(int index);
 
     int GetPartCount();
 

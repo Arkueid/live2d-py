@@ -210,6 +210,9 @@ class LAppModel:
 
     def GetParameter(self, index: int) -> Parameter:
         ...
+    
+    def GetParameterValue(self, index: int) -> float:
+        ...
 
     def GetPartCount(self) -> int:
         ...

@@ -32,6 +32,9 @@ def main():
 
     model.SetRandomExpression()
 
+    param_values = {}
+    # f = open("test.log", "w", encoding="utf-8")
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -45,20 +48,22 @@ def main():
         count = model.GetParameterCount()
         for i in range(count):
             param = model.GetParameter(i)
+            val = model.GetParameterValue(i)
+            param_values[param.id] = val
             # print(param)
             # del param
         # model.GetPartIds()
-
+        # print(param_values, file=f)
         live2d.clearBuffer()
         model.Draw()
         pygame.display.flip()
-        pygame.time.wait(int(1000 / 120))
+        pygame.time.wait(int(1000 / 60))
+    # f.close()
 
     live2d.dispose()
 
     pygame.quit()
     quit()
-
 
 if __name__ == "__main__":
     main()
