@@ -50,3 +50,6 @@ class Parameter:
         self.max: float = 0
         self.min: float = 0
         self.default: float = 0
+    
+    def __str__(self):
+        return f"Parameter(id={self.id}, type={self.type}, value={self.value}, max={self.max}, min={self.min}, default={self.default})"

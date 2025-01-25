@@ -490,6 +490,36 @@ static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject
 
 static PyObject* module_live2d_v3_params = nullptr;
 static PyObject* typeobject_live2d_v3_parameter = nullptr;
+static PyObject* CreatePyParameter(const char* id, int type, float value, float maxValue, float minValue, float defaultValue)
+{
+    PyObject* instance = PyObject_CallObject(typeobject_live2d_v3_parameter, NULL);
+    if (instance == NULL)
+    {
+        PyErr_Print();
+        return NULL;
+    }
+    PyObject* py_id = PyUnicode_FromString(id);
+    PyObject* py_type = PyLong_FromLong(type);
+    PyObject* py_val = PyLong_FromLong(value);
+    PyObject* py_max = PyLong_FromLong(maxValue);
+    PyObject* py_min = PyLong_FromLong(minValue);
+    PyObject* py_def = PyFloat_FromDouble(defaultValue);
+
+    PyObject_SetAttrString(instance, "id", py_id);
+    PyObject_SetAttrString(instance, "type", py_type);
+    PyObject_SetAttrString(instance, "value", py_val);
+    PyObject_SetAttrString(instance, "max", py_max);
+    PyObject_SetAttrString(instance, "min", py_min);
+    PyObject_SetAttrString(instance, "default", py_def);
+
+    Py_DECREF(py_id);
+    Py_DECREF(py_type);
+    Py_DECREF(py_val);
+    Py_DECREF(py_max);
+    Py_DECREF(py_min);
+    Py_DECREF(py_def);
+    return instance;
+}
 
 static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* args)
 {
@@ -505,21 +535,7 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
     float value, maxValue, minValue, defaultValue;
     self->model->GetParameter(index, id, type, value, maxValue, minValue, defaultValue);
 
-    PyObject* instance = PyObject_CallObject(typeobject_live2d_v3_parameter, NULL);
-    if (instance == NULL)
-    {
-        PyErr_Print();
-        return NULL;
-    }
-
-    PyObject_SetAttrString(instance, "id", PyUnicode_FromString(id));
-    PyObject_SetAttrString(instance, "type", PyLong_FromLong(type));
-    PyObject_SetAttrString(instance, "value", PyFloat_FromDouble(value));
-    PyObject_SetAttrString(instance, "max", PyFloat_FromDouble(maxValue));
-    PyObject_SetAttrString(instance, "min", PyFloat_FromDouble(minValue));
-    PyObject_SetAttrString(instance, "default", PyFloat_FromDouble(defaultValue));
-
-    return instance;
+    return CreatePyParameter(id, type, value, maxValue, minValue, defaultValue);
 }
 
 // GetPartCount() -> int

@@ -7,7 +7,7 @@ import resources
 
 from time import sleep
 import live2d.v2 as live2d
-import live2d.v3 as live2d
+# import live2d.v3 as live2d
 
 class AppOgl(OpenGLFrame):
     def __init__(self, master, **kw):

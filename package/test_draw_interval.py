@@ -24,7 +24,7 @@ class Win(QOpenGLWidget):
         super().__init__()
         self.isInLA = False
         self.clickInLA = False
-        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
         self.resize(400, 500)
@@ -57,11 +57,16 @@ class Win(QOpenGLWidget):
         # 使模型的参数按窗口大小进行更新
         if self.model:
             self.model.Resize(w, h)
+        
+    def onMotionStarted(self, group, no):
+        print(group, no)
 
     def paintGL(self) -> None:
         live2d.clearBuffer()
 
         self.model.Update()
+        if self.model.IsMotionFinished():
+            self.model.StartRandomMotion(onStartMotionHandler=self.onMotionStarted)
 
         self.model.Draw()
 
@@ -69,11 +74,8 @@ class Win(QOpenGLWidget):
         if not self.isVisible():
             return
 
-        # if self.a == 0:  # 测试一次播放动作和回调函数
-            # self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinishMotionHandler=callback)
-            # self.a += 1
-
         local_x, local_y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()
+        self.model.Drag(local_x, local_y)
         if self.isInL2DArea(local_x, local_y):
             self.isInLA = True
             # print("in l2d area")
@@ -108,8 +110,6 @@ class Win(QOpenGLWidget):
         x, y = event.scenePosition().x(), event.scenePosition().y()
         if self.clickInLA:
             self.move(int(self.x() + x - self.clickX), int(self.y() + y - self.clickY))
-        else:
-            self.model.Drag(x, y)
 
 
 if __name__ == "__main__":
