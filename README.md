@@ -7,8 +7,8 @@
     <img title="Windows Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-windows.yml/badge.svg">
     <br>
     <img title="Release Version" src="https://img.shields.io/github/v/release/Arkueid/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
-    <img title="Python Version" src="https://img.shields.io/badge/python-3.10+-blue" alt="Python Version" style="margin: 0 10px;">
-    <img title="CMake" src="https://img.shields.io/badge/CMake-3.13+-orange" alt="CMake" style="margin: 0 10px;">
+    <img title="Python Version" src="https://img.shields.io/badge/python-3.8+-blue" alt="Python Version" style="margin: 0 10px;">
+    <img title="CMake" src="https://img.shields.io/badge/CMake-3.16+-orange" alt="CMake" style="margin: 0 10px;">
     <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
 </p>
 
@@ -21,7 +21,7 @@
 
 详细使用文档：[Wiki](https://github.com/Arkueid/live2d-py/wiki)
 
-修改和开发的一点提示：[CONTRIBUTING](./CONTRIBUTING.md)
+修改和开发：[CONTRIBUTING](./CONTRIBUTING.md)
 
 ## 兼容UI库
 

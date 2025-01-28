@@ -8,7 +8,7 @@ from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
 NAME = "live2d-py"
-VERSION = "0.3.5"  # TODO: edit before push
+VERSION = "0.3.6"  # TODO: edit before push
 DESCRIPTION = "Live2D Python SDK"
 LONG_DESCRIPTION = open("README.md", "r", encoding="utf-8").read()
 AUTHOR = "Arkueid"
@@ -46,8 +46,8 @@ class CMakeBuild(build_ext):
     def run(self):
         cmake_version = self.get_cmake_version()
         if platform.system() == "Windows":
-            if cmake_version < "3.12":
-                sys.stderr.write("CMake >= 3.12 is required")
+            if cmake_version < "3.16":
+                sys.stderr.write("CMake >= 3.16 is required")
         for ext in self.extensions:
             self.build_extension(ext)
 
