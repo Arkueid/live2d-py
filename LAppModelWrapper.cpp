@@ -206,7 +206,8 @@ static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* ar
     int fadeout = -1;
 
     static char* kwlist[] = {
-        (char*)"expressionId", (char*)"fadeout", NULL};
+        (char*)"expressionId", (char*)"fadeout", NULL
+    };
 
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s|i", kwlist, &expressionID, &fadeout)))
     {
@@ -263,9 +264,10 @@ static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObje
 
     self->fadeout = fadeout;
 
-    self->model->SetRandomExpression(self, [](void* callee, const char* exp_id){
+    self->model->SetRandomExpression(self, [](void* callee, const char* exp_id)
+    {
         PyLAppModelObject* obj = (PyLAppModelObject*)callee;
-          if (obj->fadeout >= 0)
+        if (obj->fadeout >= 0)
         {
             auto now = std::chrono::system_clock::now();
             obj->expStartedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
@@ -490,7 +492,9 @@ static PyObject* PyLAppModel_GetParameterCount(PyLAppModelObject* self, PyObject
 
 static PyObject* module_live2d_v3_params = nullptr;
 static PyObject* typeobject_live2d_v3_parameter = nullptr;
-static PyObject* CreatePyParameter(const char* id, int type, float value, float maxValue, float minValue, float defaultValue)
+
+static PyObject* CreatePyParameter(const char* id, int type, float value, float maxValue, float minValue,
+                                   float defaultValue)
 {
     PyObject* instance = PyObject_CallObject(typeobject_live2d_v3_parameter, NULL);
     if (instance == NULL)
