@@ -255,7 +255,7 @@ static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject* 
 static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     int fadeout = -1;
-    static char* kwlist[] = {(char*)"fadeout", NULL};
+    char* kwlist[] = {(char*)"fadeout", NULL};
 
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fadeout)))
     {

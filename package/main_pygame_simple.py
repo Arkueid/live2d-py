@@ -25,7 +25,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/azunya/LiveroiD_A-Y02/LiveroiD_A-Y02.model3.json")
         )
     else:
         model.LoadModelJson(

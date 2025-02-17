@@ -1,0 +1,12 @@
+{
+	"Type": "Live2D Expression",
+	"FadeInTime": 0.5,
+	"FadeOutTime": 0.5,
+	"Parameters": [
+		{
+			"Id": "ParamBlush",
+			"Value": 1,
+			"Blend": "Add"
+		}
+	]
+}

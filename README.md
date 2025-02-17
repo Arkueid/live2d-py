@@ -10,12 +10,13 @@
     <img title="Python Version" src="https://img.shields.io/badge/python-3.8+-blue" alt="Python Version" style="margin: 0 10px;">
     <img title="CMake" src="https://img.shields.io/badge/CMake-3.16+-orange" alt="CMake" style="margin: 0 10px;">
     <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
+    <br>
+    <a href="./README.en.md">English README</a>
 </p>
 
 使用 Python 直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染。
 
-基于 Python C++ API 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d
-绘制在任何基于 OpenGL 的窗口。
+基于 Python C++ API 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
 代码使用示例：[package](./package/)
 
