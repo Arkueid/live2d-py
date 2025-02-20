@@ -3,6 +3,10 @@ import os
 
 import resources
 
+"""
+模型如果在加载motion时报错，可以尝试使用该脚本进行修复
+"""
+
 
 def recount_motion(motion: dict) -> tuple[int, int, int]:
     """

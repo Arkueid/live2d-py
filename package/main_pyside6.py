@@ -27,7 +27,7 @@ class Win(QOpenGLWidget):
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
-        self.resize(200, 200)
+        self.resize(400, 500)
         self.read = False
         self.clickX = -1
         self.clickY = -1
@@ -152,12 +152,7 @@ class Win(QOpenGLWidget):
 if __name__ == "__main__":
     import sys
 
-    from PySide6.QtGui import QSurfaceFormat
-
     live2d.init()
-    format = QSurfaceFormat.defaultFormat()
-    format.setSwapInterval(0)
-    QSurfaceFormat.setDefaultFormat(format)
 
     app = QApplication(sys.argv)
     win = Win()

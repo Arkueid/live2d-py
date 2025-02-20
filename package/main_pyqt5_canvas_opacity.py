@@ -6,7 +6,7 @@ import OpenGL.GL as GL
 from abc import abstractmethod
 
 """
-
+设置模型整体透明度示例
 """
 
 
