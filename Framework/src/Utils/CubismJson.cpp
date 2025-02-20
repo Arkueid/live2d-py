@@ -473,7 +473,7 @@ Value* CubismJson::ParseValue(const csmChar* buffer, csmInt32 length, csmInt32 b
 
     Value* o = NULL;
     csmInt32 i = begin;
-    // csmFloat32 f;
+    csmFloat32 f;
     csmString s1; //デバッグ用に使っている
 
     for (; i < length; i++)

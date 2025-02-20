@@ -120,7 +120,7 @@ void LAppModel::LoadAssets(const csmChar *fileName)
         return;
     }
 
-    CreateRenderer();
+    CreateRenderer(2);
 
     SetupTextures();
 }

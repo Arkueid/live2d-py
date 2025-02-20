@@ -194,7 +194,7 @@ public:
     /**
      * Makes the renderer.
      */
-    void CreateRenderer(csmInt32 maskBufferCount = 2);
+    void CreateRenderer(csmInt32 maskBufferCount = 1);
 
     /**
      * Destroys the renderer.

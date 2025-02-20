@@ -39,7 +39,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/azunya/LiveroiD_A-Y01/LiveroiD_A-Y01.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/LiveroiD_A-Y01/LiveroiD_A-Y01.model3.json")
         )
     else:
         model.LoadModelJson(
