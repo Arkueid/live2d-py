@@ -127,7 +127,6 @@ void LAppModel::LoadAssets(const csmChar *fileName)
 
 void LAppModel::SetupModel(ICubismModelSetting *setting)
 {
-    printf("%s\n", _modelHomeDir.GetRawString());
     _updating = true;
     _initialized = false;
 
@@ -160,7 +159,6 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
         {
             csmString name = _modelSetting->GetExpressionName(i);
             csmString path = _modelSetting->GetExpressionFileName(i);
-            printf("%s\n", path.GetRawString());
             path = _modelHomeDir + path;
 
             buffer = CreateBuffer(path.GetRawString(), &size);
