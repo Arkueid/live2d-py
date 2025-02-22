@@ -678,7 +678,7 @@ void LAppModel::SetExpression(const csmChar *expressionID)
 
     if (motion != NULL)
     {
-        _expressionManager->StartMotionPriority(motion, false, PriorityForce);
+        _expressionManager->StartMotion(motion, false);
     }
     else
     {

@@ -321,6 +321,8 @@ static PyObject* PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject* self, 
 
 static PyObject* PyLAppModel_Touch(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
+    Warn("LAppModel.Touch will be deprecated in future versions of live2d-py as it can be replaced with LAppModel.HitTest + LAppModel.StartMotion + LAppModel.SetRandomExpression.");
+
     float mx, my;
     PyObject* onStartHandler = nullptr;
     PyObject* onFinishHandler = nullptr;
