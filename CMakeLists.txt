@@ -2,13 +2,24 @@ cmake_minimum_required(VERSION 3.16)
 
 project(LAppModelWrapper)
 
+if(APPLE)
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  
+  set(CMAKE_OSX_ARCHITECTURES "arm64")
+  
+  find_package(OpenGL REQUIRED)
+  find_library(COCOA_LIBRARY Cocoa REQUIRED)
+  find_library(IOKIT_LIBRARY IOKit REQUIRED)
+  find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
+endif()
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   execute_process(
       COMMAND chcp 65001
   )
 endif()
-
-# set(CMAKE_BUILD_TYPE "Release")
 
 message("${CMAKE_BUILD_TYPE}")
 
@@ -52,6 +63,15 @@ add_subdirectory(Main)
 add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
 target_link_libraries(LAppModelWrapper PRIVATE Main Python3::SABIModule)
 
+if(APPLE)
+  target_link_libraries(LAppModelWrapper PRIVATE
+    ${OPENGL_LIBRARIES}
+    ${COCOA_LIBRARY}
+    ${IOKIT_LIBRARY}
+    ${COREVIDEO_LIBRARY}
+  )
+endif()
+
 # Configure for Linux / Windows
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(MODULE_NAME lib${OUTPUT_LIB_NAME}.so)
@@ -60,15 +80,23 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
   set(MODULE_NAME ${OUTPUT_LIB_NAME}.dll)
   set(OUTPUT_NAME live2d.pyd)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  set(MODULE_NAME lib${OUTPUT_LIB_NAME}.so)
+  set(MODULE_NAME libLAppModelWrapper.dylib)
   set(OUTPUT_NAME live2d.so)
 endif()
 
-# Post build commands
-add_custom_command(
-  TARGET ${OUTPUT_LIB_NAME}
-  POST_BUILD
-  COMMAND
-    ${CMAKE_COMMAND} -E
-      copy $<TARGET_FILE_DIR:${OUTPUT_LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
-)
+if(APPLE)
+  add_custom_command(
+    TARGET ${OUTPUT_LIB_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${OUTPUT_LIB_NAME}> ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+  )
+else()
+  add_custom_command(
+    TARGET ${OUTPUT_LIB_NAME}
+    POST_BUILD
+    COMMAND
+      ${CMAKE_COMMAND} -E
+        copy $<TARGET_FILE_DIR:${OUTPUT_LIB_NAME}>/${MODULE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/package/live2d/v3/${OUTPUT_NAME}
+  )
+endif()
