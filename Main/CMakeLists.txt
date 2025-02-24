@@ -26,8 +26,11 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
   endif()
 elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   set(CSM_TARGET CSM_TARGET_MAC_GL)
-  EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
-  set(CORE_LIB_NAME macos/${ARCHITECTURE}/libLive2DCubismCore.a)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+    set(CORE_LIB_NAME macos/arm64/libLive2DCubismCore.a)
+  else()
+    set(CORE_LIB_NAME macos/x86_64/libLive2DCubismCore.a)
+  endif()
 endif()
 
 # Specify version of compiler.
@@ -35,12 +38,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
 # ---Configure OpenGL---
 # Add GLEW
 option(BUILD_UTILS OFF)
 add_subdirectory(${GLEW_PATH}/build/cmake ${CMAKE_BINARY_DIR}/glew_s)
-
 
 # ---Configure Framework---
 # Specify Cubism Framework rendering.
@@ -89,6 +90,15 @@ target_link_libraries(${MAIN_NAME}
   ${OPENGL_LIBRARIES}
 )
 
+if(APPLE)
+  target_link_libraries(${MAIN_NAME}
+    ${OPENGL_LIBRARIES}
+    ${COCOA_LIBRARY}
+    ${IOKIT_LIBRARY} 
+    ${COREVIDEO_LIBRARY}
+  )
+endif()
+
 # Specify include directories.
 target_include_directories(${MAIN_NAME} PUBLIC 
   ${STB_IMAGE_INCLUDE}
@@ -97,5 +107,3 @@ target_include_directories(${MAIN_NAME} PUBLIC
 
 # 在配置阶段立即执行文件修改脚本
 include(${CMAKE_CURRENT_SOURCE_DIR}/insert_code.cmake)
-
-
