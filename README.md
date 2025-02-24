@@ -84,7 +84,7 @@ pip install live2d-py
 
 ## 贡献
 
-特别感谢 [@96bearli]，[@Ovizro], [@AnyaCoder], [@jahtim] 为本项目提供的帮助和支持。
+特别感谢 [@96bearli]，[@Ovizro], [@AnyaCoder], [@jahtim], [@Honghe], [@RobertMeow] 为本项目提供的帮助和支持。
 
 [@96bearli]: https://github.com/96bearli
 
@@ -93,3 +93,7 @@ pip install live2d-py
 [@AnyaCoder]: https://github.com/AnyaCoder
 
 [@jahtim]: https://github.com/jahtim
+
+[@Honghe]: https://github.com/Honghe
+
+[@RobertMeow]: https://github.com/RobertMeow

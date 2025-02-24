@@ -75,7 +75,7 @@ Source code: [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
 ![面捕-期末周破防](./docs/video_test.gif)
 
 ## Contributions
-Special thanks to [@96bearli], [@Ovizro], [@AnyaCoder], and [@jahtim] for their support and contributions to this project.
+Special thanks to [@96bearli], [@Ovizro], [@AnyaCoder], [@jahtim], [@Hongehe] and [@RobertMeow] for their support and contributions to this project.
 
 [@96bearli]: https://github.com/96bearli
 
@@ -84,3 +84,7 @@ Special thanks to [@96bearli], [@Ovizro], [@AnyaCoder], and [@jahtim] for their 
 [@AnyaCoder]: https://github.com/AnyaCoder
 
 [@jahtim]: https://github.com/jahtim
+
+[@Honghe]: https://github.com/Honghe
+
+[@RobertMeow]: https://github.com/RobertMeow
