@@ -292,15 +292,19 @@ typedef Live2D::Cubism::Framework::csmString csmString;
 
 static PyObject* PyLAppModel_HitTest(PyLAppModelObject* self, PyObject* args)
 {
+    const char* hitAreaName;
     float x, y;
-    if (!(PyArg_ParseTuple(args, "ff", &x, &y)))
+    if (!(PyArg_ParseTuple(args, "sff", &hitAreaName, &x, &y)))
     {
         return NULL;
     }
 
-    csmString area = self->model->HitTest(x, y);
+    if(self->model->HitTest(hitAreaName, x, y))
+    {
+        Py_RETURN_TRUE;
+    }
 
-    return Py_BuildValue("s", area.GetRawString());
+    Py_RETURN_FALSE;
 }
 
 static PyObject* PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject* self, PyObject* args)

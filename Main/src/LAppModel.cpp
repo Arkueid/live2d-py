@@ -607,6 +607,7 @@ void LAppModel::Draw()
 
 csmBool LAppModel::HitTest(const csmChar *hitAreaName, csmFloat32 x, csmFloat32 y)
 {
+    _matrixManager.ScreenToScene(&x, &y);
     // 透明時は当たり判定なし。
     if (_opacity < 1)
     {

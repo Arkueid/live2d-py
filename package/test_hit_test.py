@@ -15,7 +15,7 @@ def main():
     live2d.init()
 
     display = (300, 400)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL, vsync=1)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
     live2d.glewInit()
@@ -37,8 +37,10 @@ def main():
                 break
             if event.type == pygame.MOUSEMOTION:
                 x, y = pygame.mouse.get_pos()
-                area = model.HitTest(x, y)
-                print(area)
+                if model.HitTest("Body", x, y):
+                    print("Body hit")
+                if model.HitTest("Head", x, y):
+                    print("Head hit")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
                 model.Touch(x, y)

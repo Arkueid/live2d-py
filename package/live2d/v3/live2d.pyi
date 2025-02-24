@@ -4,21 +4,21 @@ from .params import Parameter
 
 def init() -> None:
     """
-    初始化 Cubism Framework
+    initialize inner memory allocator for live2d models
     """
     ...
 
 
 def dispose() -> None:
     """
-    释放 Cubism Framework
+    dispose Cubism Framework when no longer using live2d
     """
     ...
 
 
 def glewInit() -> None:
     """
-    基于 Glew 实现的 live2d, 使用模型前应初始化 Glew
+    initialize inner opengl functions
     """
     ...
 
@@ -62,16 +62,16 @@ class LAppModel:
 
     def Resize(self, ww: int | Any, wh: int | Any) -> None:
         """
-        按照画布尺寸调整模型绘制大小，画布大小改变以及第一次加载时应调用
-        :param ww: 画布宽度
-        :param wh: 画布高度
+        adjust model canvas to window size
+        :param ww: window width
+        :param wh: window height
         :return:
         """
         ...
 
     def Draw(self) -> None:
         """
-        绘制模型
+        update model shapes with the params set by `LAppModel.Update` and  `LAppModel.SetParameterValue`, and then render them 
         """
         ...
 
@@ -103,7 +103,7 @@ class LAppModel:
         """
         Set a specific expression for the model.
         
-        :param expressionID: Identifier for the expression to be set.
+        :param expressionID: name of the expression to be set.
         """
         ...
 
@@ -113,14 +113,11 @@ class LAppModel:
         """
         ...
 
-    def HitTest(self, x: float | Any, y: float | Any) -> str:
+    def HitTest(self, hitAreaName: str, x: float | Any, y: float | Any) -> bool:
         """
-        Perform a hit test to determine if a specific area of the model has been clicked.
-        
-        :param hitAreaName: Name of the hit area to be tested.
-        :param x: X coordinate of the click.
-        :param y: Y coordinate of the click.
-        :return: The hit area name if a hit is detected, otherwise an empty string.
+        to test if the current clicked area is the target `HitArea` defined in xxx.model3.json
+
+        x, y are relative to the window topleft
         """
         ...
 
