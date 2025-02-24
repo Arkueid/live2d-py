@@ -323,31 +323,6 @@ static PyObject* PyLAppModel_HasMocConsistencyFromFile(PyLAppModelObject* self, 
     Py_RETURN_FALSE;
 }
 
-static PyObject* PyLAppModel_Touch(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
-{
-    Warn("LAppModel.Touch will be deprecated in future versions of live2d-py as it can be replaced with LAppModel.HitTest + LAppModel.StartMotion + LAppModel.SetRandomExpression.");
-
-    float mx, my;
-    PyObject* onStartHandler = nullptr;
-    PyObject* onFinishHandler = nullptr;
-
-    static char* kwlist[] = {
-        (char*)"mx", (char*)"my", (char*)"onStartMotionHandler", (char*)"onFinishMotionHandler", NULL
-    };
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ff|OO", kwlist, &mx, &my, &onStartHandler, &onFinishHandler)))
-    {
-        return NULL;
-    }
-
-    self->model->Touch(mx, my,
-                       MakeCallee(onStartHandler),
-                       OnMotionStartedCallback,
-                       MakeCallee(onFinishHandler),
-                       OnMotionFinishedCallback);
-
-    Py_RETURN_NONE;
-}
-
 static PyObject* PyLAppModel_Drag(PyLAppModelObject* self, PyObject* args)
 {
     float mx, my;
@@ -701,7 +676,6 @@ static PyMethodDef PyLAppModel_methods[] = {
 
     {"HitTest", (PyCFunction)PyLAppModel_HitTest, METH_VARARGS, "Get the name of the area being hit."},
     {"HasMocConsistencyFromFile", (PyCFunction)PyLAppModel_HasMocConsistencyFromFile, METH_VARARGS, ""},
-    {"Touch", (PyCFunction)PyLAppModel_Touch, METH_VARARGS | METH_KEYWORDS, ""},
     {"Drag", (PyCFunction)PyLAppModel_Drag, METH_VARARGS, ""},
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},

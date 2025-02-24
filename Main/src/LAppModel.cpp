@@ -625,51 +625,9 @@ csmBool LAppModel::HitTest(const csmChar *hitAreaName, csmFloat32 x, csmFloat32 
     return false; // 存在しない場合はfalse
 }
 
-csmString LAppModel::HitTest(float x, float y)
-{
-    this->_matrixManager.ScreenToScene(&x, &y);
-    // 透明時は当たり判定なし。
-    if (_opacity < 1)
-    {
-        return "";
-    }
-    const csmInt32 count = _modelSetting->GetHitAreasCount();
-    for (csmInt32 i = 0; i < count; i++)
-    {
-        const CubismIdHandle drawID = _modelSetting->GetHitAreaId(i);
-        if (IsHit(drawID, x, y))
-        {
-            return _modelSetting->GetHitAreaName(i);
-        }
-    }
-    return "";
-}
-
 void LAppModel::Resize(int ww, int wh)
 {
     _matrixManager.UpdateScreenToScene(ww, wh);
-}
-
-void LAppModel::Touch(float x, float y,
-                      void *s_callee,
-                      ACubismMotion::BeganMotionCallback s_call,
-                      void *f_callee,
-                      ACubismMotion::FinishedMotionCallback f_call)
-{
-    csmString hitArea = HitTest(x, y);
-    if (strlen(hitArea.GetRawString()) != 0)
-    {
-        Info("hit area: [%s]", hitArea.GetRawString());
-        if (strcmp(hitArea.GetRawString(), HitAreaHead) == 0)
-        {
-            SetRandomExpression();
-        }
-        StartRandomMotion(hitArea.GetRawString(), 3,
-                          s_callee,
-                          s_call,
-                          f_callee,
-                          f_call);
-    }
 }
 
 void LAppModel::SetExpression(const csmChar *expressionID)

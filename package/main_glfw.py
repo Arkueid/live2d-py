@@ -36,7 +36,7 @@ def main():
     model = live2d.LAppModel()
 
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/波奇酱2.0/波奇酱2.0.model3.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
     else:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
 
@@ -48,7 +48,7 @@ def main():
                             onFinishMotionHandler=lambda: print("end 3"))
 
     glfw.swap_interval(0)
-    read = False
+
     model.Resize(400, 500)
     while not glfw.window_should_close(window):
         glfw.poll_events()

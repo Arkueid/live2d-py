@@ -125,15 +125,7 @@ public:
      */
     virtual Csm::csmBool HitTest(const Csm::csmChar* hitAreaName, Csm::csmFloat32 x, Csm::csmFloat32 y);
 
-    virtual Csm::csmString HitTest(float x, float y);
-
     void Resize(int ww, int wh);
-
-    void Touch(float x, float y,
-               void* s_callee,
-               Live2D::Cubism::Framework::ACubismMotion::BeganMotionCallback s_call,
-               void* f_callee,
-               Live2D::Cubism::Framework::ACubismMotion::FinishedMotionCallback f_call);
 
     /**
      * @brief   別ターゲットに描画する際に使用するバッファの取得

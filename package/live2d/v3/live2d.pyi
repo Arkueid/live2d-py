@@ -130,13 +130,6 @@ class LAppModel:
         """
         ...
 
-    def Touch(self, x: float | Any, y: float | Any, onStartMotionHandler=None, onFinishMotionHandler=None) -> None:
-        """
-        :param x: global_mouse_x - window_x
-        :param y: global_mouse_y - window_y
-        """
-        ...
-
     def Drag(self, x: float | Any, y: float | Any) -> None:
         """
         :param x: global_mouse_x - window_x

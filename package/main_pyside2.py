@@ -53,14 +53,18 @@ class Win(QOpenGLWidget):
     def timerEvent(self, a0: QTimerEvent | None) -> None:
 
         if self.a == 0:  # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE.value)
+            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE)
             self.a += 1
 
         self.update()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         # 传入鼠标点击位置的窗口坐标
-        self.model.Touch(event.pos().x(), event.pos().y());
+        x, y = event.pos().x(), event.pos().y()
+        if self.model.HitTest("Body", x, y):
+            self.model.StartRandomMotion("TapBody", 3)
+        if self.model.HitTest("Head", x, y):
+            self.model.SetRandomExpression()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         self.model.Drag(event.pos().x(), event.pos().y())

@@ -37,10 +37,7 @@ class Win(QOpenGLWidget):
     def initializeGL(self) -> None:
         # 将当前窗口作为 OpenGL 的上下文
         # 图形会被绘制到当前窗口
-        self.makeCurrent()
-
-        if live2d.LIVE2D_VERSION == 3:
-            live2d.glewInit()
+        live2d.glewInit()
 
         # 创建模型
         self.model = live2d.LAppModel()
@@ -50,7 +47,7 @@ class Win(QOpenGLWidget):
         else:
             self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
 
-        # 以 fps = 30 的频率进行绘图
+        # 以 fps = 120 的频率进行绘图
         self.startTimer(int(1000 / 120))
 
     def resizeGL(self, w: int, h: int) -> None:
