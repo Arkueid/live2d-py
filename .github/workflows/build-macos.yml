@@ -1,4 +1,4 @@
-name: MacOS distributions 📦
+name: MacOS 📦
 
 on:
   push:
