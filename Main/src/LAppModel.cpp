@@ -537,9 +537,14 @@ handler_label:
         fakeMotion.no = no;
         fakeMotion.onStartedCallee = onStartedCallee;
         fakeMotion.onFinishedCallee = onFinishedCallee;
-        onStartMotionHandler(&fakeMotion);
-        onFinishedMotionHandler(&fakeMotion);
-
+        if (onStartMotionHandler)
+        {
+            onStartMotionHandler(&fakeMotion);
+        }
+        if (onFinishedMotionHandler)
+        {
+            onFinishedMotionHandler(&fakeMotion);
+        }
         _motionManager->SetReservePriority(PriorityNone);
         return InvalidMotionQueueEntryHandleValue;
     }
