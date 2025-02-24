@@ -5,8 +5,8 @@
 
 <p align="center" style="font-family: 'Roboto', sans-serif; font-size: 1em; color: #555;">
     <img title="Windows Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-windows.yml/badge.svg">
-    <br>
     <img title="MacOS Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-macos.yml/badge.svg">
+    <img title="Linux Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-macos.yml/badge.svg">
     <br>
     <img title="Release Version" src="https://img.shields.io/github/v/release/Arkueid/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
     <img title="Python Version" src="https://img.shields.io/badge/python-3.8+-blue" alt="Python Version" style="margin: 0 10px;">
@@ -46,10 +46,27 @@ Theoretically compatible with all UI libraries that can use OpenGL for rendering
 Starting from live2d-py 0.3.2, the Python C Limited API is used, theoretically supporting all Python versions **3.2 and above**.  
 
 ### Cubism Live2D Versions  
-| `live2d-py` | Supported Live2D Models       | Implementation                | Supported Python Versions                  | Supported Platforms           |  
-|-------------|-------------------------------|-------------------------------|--------------------------------------------|-------------------------------|  
-| `live2d.v2` | Cubism 2.1 and earlier        | Pure Python implementation    | 32/64-bit, **Python 3.0+**                | Windows, Linux, macOS (maybe) |  
-| `live2d.v3` | Cubism 3.0 and later          | Python C Extension wrapper    | 32/64-bit, **Python 3.2+**                | Windows, Linux                 |  
+| `live2d-py` | Supported Live2D Models       | Implementation                |
+|-------------|-------------------------------|-------------------------------| 
+| `live2d.v2` | Cubism 2.1 and earlier        | Pure Python implementation    |
+| `live2d.v3` | Cubism 3.0 and later          | Python C Extension wrapper    |
+
+### Python Versions and Platform
+
+:white_check_mark:: available, supported, or passing 
+
+:question:: tests needed
+
+:construction:, :x:: errors or compatibility issues need to be solved when building distributions 
+
+|Platform|Python Version| `live2d.v2` | `live2d.v3` |Build Status|PyPI|
+|--------|--------------|-------------|-------------|------|----------|
+|MacOS  arm64| `>3.0, <=3.10`|:white_check_mark:|:question:|:construction:|:x:|
+|MacOS  arm64| `>=3.11`      |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|Windows x86/x64|`>3.0, <3.8`|:white_check_mark:|:question:|:construction:|:x:|
+|Windows x86/x64|`>=3.8`|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|Ubuntu 20.04/Arch, x64|`>3.0, <3.8`|:white_check_mark:|:question:|:construction:|:x:|
+|Ubuntu 20.04/Arch, x64|`>=3.8`|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|
 
 **Notes**:  
 * `live2d.v2` is rewritten from the Cubism Web SDK into pure Python and has not yet been optimized with libraries like numpy, resulting in lower performance [[4, 15]].  
