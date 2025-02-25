@@ -4,6 +4,7 @@
 # ptvsd.enable_attach(address=('127.0.0.1', 10010), redirect_output=True)
 # ptvsd.wait_for_attach()
 
+import math
 import os
 import time
 
@@ -39,7 +40,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/LiveroiD_A-Y01/LiveroiD_A-Y01.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
         )
     else:
         model.LoadModelJson(
@@ -139,10 +140,10 @@ def main():
                     dy -= 0.1
 
                 elif event.key == pygame.K_i:
-                    scale += 0.01
+                    scale += 0.1
 
                 elif event.key == pygame.K_u:
-                    scale -= 0.01
+                    scale -= 0.1
                 
                 elif event.key == pygame.K_r:
                     model.StopAllMotions()
@@ -154,13 +155,10 @@ def main():
             if event.type == pygame.MOUSEMOTION:
                 # 实现拖拽
                 model.Drag(*pygame.mouse.get_pos())
-                # 测试性能？
                 currentTopClickedPartId = getHitFeedback(*pygame.mouse.get_pos())
-                # pass
 
         if not running:
             break
-
         model.Update()
 
         if currentTopClickedPartId is not None:
