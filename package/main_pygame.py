@@ -120,7 +120,7 @@ def main():
     model.StartRandomMotion("TapBody", 300, sc, fc)
 
     radius_per_frame = math.pi * 10 / 1000 * 0.5
-    deg_max = 30
+    deg_max = 5
     progress = 0
     deg = math.sin(progress) * deg_max 
 

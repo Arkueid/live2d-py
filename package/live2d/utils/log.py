@@ -12,7 +12,7 @@ WHITE = "\033[37m"
 
 def Debug(*args, **kwargs):
     print(
-        time.strftime(f"{BLUE}[DEBUG  %Y-%m-%d %H:%M:%S]", time.localtime(time.time())),
+        time.strftime(f"{BLUE}[DEBUG]"),
         *args,
         RESET,
         **kwargs
@@ -21,7 +21,7 @@ def Debug(*args, **kwargs):
 
 def Info(*args, **kwargs):
     print(
-        time.strftime("[INFO  %Y-%m-%d %H:%M:%S]", time.localtime(time.time())),
+        time.strftime("[INFO] "),
         *args,
         **kwargs
     )
@@ -29,7 +29,7 @@ def Info(*args, **kwargs):
 
 def Error(*args, **kwargs):
     print(
-        time.strftime(f"{RED}[ERROR  %Y-%m-%d %H:%M:%S]", time.localtime(time.time())),
+        time.strftime(f"{RED}[ERROR]"),
         *args,
         RESET,
         **kwargs

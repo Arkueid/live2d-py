@@ -64,8 +64,6 @@ LAppModel::LAppModel()
 {
     _mocConsistency = MocConsistencyValidationEnable;
 
-    _debugMode = DebugLogEnable;
-
     _idParamAngleX = CubismFramework::GetIdManager()->GetId(ParamAngleX);
     _idParamAngleY = CubismFramework::GetIdManager()->GetId(ParamAngleY);
     _idParamAngleZ = CubismFramework::GetIdManager()->GetId(ParamAngleZ);
@@ -140,11 +138,8 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     {
         csmString path = _modelSetting->GetModelFileName();
         path = _modelHomeDir + path;
-
-        if (_debugMode)
-        {
-            Info("create model: %s", setting->GetModelFileName());
-        }
+        
+        Info("create model: %s", setting->GetModelFileName());
 
         buffer = CreateBuffer(path.GetRawString(), &size);
         LoadModel(buffer, size, _mocConsistency);
@@ -463,10 +458,8 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
     }
     else if (!_motionManager->ReserveMotion(priority))
     {
-        if (_debugMode)
-        {
-            Info("can't start motion.");
-        }
+
+        Info("can't start motion.");
         return InvalidMotionQueueEntryHandleValue;
     }
 
@@ -635,10 +628,8 @@ void LAppModel::Resize(int ww, int wh)
 void LAppModel::SetExpression(const csmChar *expressionID)
 {
     ACubismMotion *motion = _expressions[expressionID];
-    if (_debugMode)
-    {
-        Info("expression: [%s]", expressionID);
-    }
+    
+    Info("expression: [%s]", expressionID);
 
     if (motion != NULL)
     {

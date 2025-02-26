@@ -14,8 +14,6 @@
 #include <Rendering/OpenGL/CubismOffscreenSurface_OpenGLES2.hpp>
 
 #include "LAppTextureManager.hpp"
-#include <functional>
-#include <unordered_set>
 
 #include "MatrixManager.hpp"
 
