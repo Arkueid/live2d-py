@@ -4,26 +4,31 @@
 
 #include "Math/CubismMatrix44.hpp"
 
-class LAppModel;
-
 class MatrixManager
 {
 public:
     MatrixManager();
+    void SetModelWH(float mw, float mh);
     void UpdateScreenToScene(int ww, int wh);
     void ScreenToScene(float *x, float *y);
-    Csm::CubismMatrix44 &GetMvp(LAppModel *model);
+    Csm::CubismMatrix44 &GetMvp();
     void SetOffset(float x, float y);
     void SetScale(float scale);
+    void Rotate(float deg);
     void InvertTransform(float* x, float* y);
 private:
     Csm::CubismMatrix44 _screenToScene;
-    Csm::CubismMatrix44 _mvp;
+    Csm::CubismMatrix44 _p;
+    Csm::CubismMatrix44 _m;
+
+    float _rotation[16];
+
     float _offsetX;
     float _offsetY;
     float _scale;
+    float _baseScale;
     int _ww;
     int _wh;
-    float _baseScaleX;
-    float _baseScaleY;
+    float _mw;
+    float _mh;
 };

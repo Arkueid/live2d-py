@@ -3,13 +3,23 @@
 
 MatrixManager::MatrixManager(): _offsetX(0.0f), _offsetY(0.0f), _scale(1.0f),
                                 _ww(800),
-                                _wh(600),
-                                _baseScaleX(-1.0f),
-                                _baseScaleY(-1.0f)
+                                _wh(600)                          
 {
+    // load identity
+    for (int i = 0; i < 16; i++)
+    {
+        _rotation[i] = 0.0f;
+    }
+    _rotation[0] = _rotation[5] = _rotation[10] = _rotation[15] = 1.0f;
 }
 
-// call when scene is resized
+void MatrixManager::SetModelWH(float mw, float mh)
+{
+    _mw = mw;
+    _mh = mh;
+}
+
+// call when window is resized
 void MatrixManager::UpdateScreenToScene(int width, int height)
 {
     _ww = width;
@@ -24,13 +34,13 @@ void MatrixManager::UpdateScreenToScene(int width, int height)
     _screenToScene.LoadIdentity(); // サイズが変わった際などリセット必須
     if (width > height)
     {
-        float screenW = fabsf(right - left);
-        _screenToScene.ScaleRelative(screenW / width, -screenW / width);
+        float sceneW = fabsf(right - left);
+        _screenToScene.Scale(sceneW / width, -sceneW / width);
     }
     else
     {
-        float screenH = fabsf(top - bottom);
-        _screenToScene.ScaleRelative(screenH / height, -screenH / height);
+        float sceneH = fabsf(top - bottom);
+        _screenToScene.Scale(sceneH / height, -sceneH / height);
     }
     _screenToScene.TranslateRelative(-width * 0.5f, -height * 0.5f);
 }
@@ -41,37 +51,34 @@ void MatrixManager::ScreenToScene(float* x, float* y)
     *y = _screenToScene.TransformY(*y);
 }
 
-Csm::CubismMatrix44& MatrixManager::GetMvp(LAppModel* model)
+Csm::CubismMatrix44& MatrixManager::GetMvp()
 {
-    _mvp.LoadIdentity();
+    _p.LoadIdentity();
+    _m.LoadIdentity();
 
-    if (model->GetModel()->GetCanvasWidth() > 1.0f && _ww < _wh)
+    // 不清楚为什么是1.0，官方给出示例如此
+    if (_mw > 1.0f && _ww < _wh)  // 确保图像不变形
     {
-        // 横に長いモデルを縦長ウィンドウに表示する際モデルの横サイズでscaleを算出する
-        model->GetModelMatrix()->SetWidth(2.0f);
-        _mvp.Scale(1.0f, static_cast<float>(_ww) / static_cast<float>(_wh));
+        // 宽较长且窗口宽小于高
+        _p.Scale(1.0f, (float)_ww / (float)_wh);
+        // 模型宽度固定为 2.0
+        _baseScale = 2.0f / _mw;
+        _m.Scale(_baseScale, _baseScale);
     }
     else
     {
-        _mvp.Scale(static_cast<float>(_wh) / static_cast<float>(_ww), 1.0f);
+        _p.Scale((float)_wh / (float)_ww, 1.0f);
+        // 模型高度固定为 2.0
+        _baseScale = 2.0f / _mh;
+        _m.Scale(_baseScale, _baseScale);
     }
 
-    Csm::CubismModelMatrix* m = model->GetModelMatrix();
+    _m.Multiply(_rotation, _m.GetArray(), _m.GetArray());
+    _m.ScaleRelative(_scale, _scale);
+    _m.Translate(_offsetX, _offsetY);
 
-    if (_baseScaleX < 0)
-    {
-        _baseScaleX = m->GetScaleX();
-        _baseScaleY = m->GetScaleY();
-    }
-
-    m->Scale(_baseScaleX * _scale, _baseScaleY * _scale);
-
-    m->SetX(_offsetX);
-    m->SetY(_offsetY);
-
-    _mvp.MultiplyByMatrix(m);
-
-    return _mvp;
+    _p.MultiplyByMatrix(&_m);
+    return _p;
 }
 
 void MatrixManager::SetOffset(float x, float y)
@@ -85,8 +92,28 @@ void MatrixManager::SetScale(float scale)
     _scale = scale;
 }
 
+void MatrixManager::Rotate(float deg)
+{
+    float r = deg / 180.0f * 3.1415926f;
+    _rotation[0] = cosf(r);
+    _rotation[1] = sinf(r);
+    _rotation[5] = _rotation[0];
+    _rotation[4] = -_rotation[1];
+}
+
 void MatrixManager::InvertTransform(float* x, float* y)
 {
-    *x = (*x - _offsetX) / _scale;
-    *y = (*y - _offsetY) / _scale;
+    // 除 projection 以外的变换需要逆变换
+
+    // 逆平移和缩放
+    float tx = (*x - _offsetX) / _scale;
+    float ty = (*y - _offsetY) / _scale;
+
+    // 逆旋转
+    *x = _rotation[0] * tx - ty * -_rotation[1];
+    *y = -_rotation[1] * tx + ty * _rotation[0]; 
+
+    // 逆基础缩放
+    *x = *x / _baseScale;
+    *y = *y / _baseScale;
 }

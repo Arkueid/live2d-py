@@ -253,14 +253,15 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
 
     if (_modelSetting == NULL || _modelMatrix == NULL)
     {
-        Info("Failed to SetupModel().");
+        Error("Failed to SetupModel().");
         return;
     }
 
     // Layout
-    csmMap<csmString, csmFloat32> layout;
-    _modelSetting->GetLayoutMap(layout);
-    _modelMatrix->SetupFromLayout(layout);
+    // csmMap<csmString, csmFloat32> layout;
+    // _modelSetting->GetLayoutMap(layout);
+    // _modelMatrix->SetupFromLayout(layout);
+    // 目前来说不需要
 
     _model->SaveParameters();
 
@@ -276,6 +277,7 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     _initialized = true;
 
     _tmpOrderedDrawIndices = new int[_model->GetDrawableCount()];
+    _matrixManager.SetModelWH(_model->GetCanvasWidth(), _model->GetCanvasHeight());
 }
 
 void LAppModel::PreloadMotionGroup(const csmChar *group)
@@ -598,7 +600,7 @@ void LAppModel::Draw()
 
     _model->Update();
 
-    CubismMatrix44 &matrix = _matrixManager.GetMvp(this);
+    CubismMatrix44 &matrix = _matrixManager.GetMvp();
 
     GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->SetMvpMatrix(&matrix);
 
@@ -854,8 +856,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
 void LAppModel::HitPart(float x, float y, bool topOnly, void *collector, void (*OnItem)(void *, const char *))
 {
     _matrixManager.ScreenToScene(&x, &y);
-    x = _modelMatrix->InvertTransformX(x);
-    y = _modelMatrix->InvertTransformY(y);
+    _matrixManager.InvertTransform(&x, &y);
     const csmInt32 drawableCount = _model->GetDrawableCount();
     const csmInt32 *renderOrders = _model->GetDrawableRenderOrders();
     for (csmInt32 i = 0; i < drawableCount; i++)
@@ -970,6 +971,11 @@ void LAppModel::SetOffset(float dx, float dy)
 void LAppModel::SetScale(float scale)
 {
     _matrixManager.SetScale(scale);
+}
+
+void LAppModel::Rotate(float deg)
+{
+    _matrixManager.Rotate(deg);
 }
 
 void LAppModel::StopAllMotions()

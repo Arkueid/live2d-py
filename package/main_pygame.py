@@ -40,7 +40,13 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/liveroiD_A-Y01/liveroiD_A-Y01.model3.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")
             os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/magic/magic.model3.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
+            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Hiyori/Hiyori.model3.json")
         )
     else:
         model.LoadModelJson(
@@ -113,6 +119,11 @@ def main():
     sc = None
     model.StartRandomMotion("TapBody", 300, sc, fc)
 
+    radius_per_frame = math.pi * 10 / 1000 * 0.5
+    deg_max = 30
+    progress = 0
+    deg = math.sin(progress) * deg_max 
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -159,6 +170,11 @@ def main():
 
         if not running:
             break
+
+        progress += radius_per_frame
+        deg = math.sin(progress) * deg_max
+        model.Rotate(deg)
+
         model.Update()
 
         if currentTopClickedPartId is not None:

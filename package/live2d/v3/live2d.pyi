@@ -161,6 +161,11 @@ class LAppModel:
         """
         ...
 
+    def Rotate(self, degrees: float) -> None:
+        """
+        counterclockwise when degrees > 0
+        """
+
     def SetParameterValue(self, paramId: str, value: float, weight: float) -> None:
         """
         为对应控制参数设置具体值  

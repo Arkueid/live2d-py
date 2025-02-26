@@ -187,6 +187,8 @@ public:
     void SetOffset(float dx, float dy);
 
     void SetScale(float scale);
+    
+    void Rotate(float deg);
 
     void StopAllMotions();          
 

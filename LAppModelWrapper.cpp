@@ -376,6 +376,21 @@ static PyObject* PyLAppModel_SetScale(PyLAppModelObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_Rotate(PyLAppModelObject* self, PyObject* args)
+{
+    float deg;
+
+    if (PyArg_ParseTuple(args, "f", &deg) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float deg'");
+        return NULL;
+    }
+
+    self->model->Rotate(deg);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args)
 {
     const char* paramId;
@@ -680,6 +695,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
+    {"Rotate", (PyCFunction)PyLAppModel_Rotate, METH_VARARGS, ""},
     {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
 
     {"SetAutoBreathEnable", (PyCFunction)PyLAppModel_SetAutoBreathEnable, METH_VARARGS, ""},
