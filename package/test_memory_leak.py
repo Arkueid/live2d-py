@@ -6,48 +6,55 @@ import threading as t
 
 import glfw
 
+from memory_profiler import profile
 
-if not glfw.init():
-    exit()
+@profile
+def main():
 
-window = glfw.create_window(200, 200, "test context", None, None)
-if not window:
-    glfw.terminate()
-    exit()
+    if not glfw.init():
+        exit()
 
-glfw.make_context_current(window)
+    window = glfw.create_window(200, 200, "test context", None, None)
+    if not window:
+        glfw.terminate()
+        exit()
 
-live2d.init()
+    glfw.make_context_current(window)
 
-if live2d.LIVE2D_VERSION == 3:
+    live2d.init()
+
     live2d.glewInit()
 
-sem = t.Semaphore(500)
+    sem = t.Semaphore(500)
 
-models = []
+    models = []
 
-def run(num):
-    model = live2d.LAppModel()
-    models.append(model)
-    sem.release()
+    def run(num):
+        model = live2d.LAppModel()
+        models.append(model)
+        sem.release()
 
-ls = []
+    ls = []
 
-for i in range(1000):
-    sem.acquire()
-    tx = t.Thread(None, run, str(i), (i,))
-    ls.append(tx)
-    tx.start()
-
-
-for i in ls:
-    i.join()
+    for i in range(1000):
+        sem.acquire()
+        tx = t.Thread(None, run, str(i), (i,))
+        ls.append(tx)
+        tx.start()
 
 
-for i in models:
-    models.remove(i)
-    del i
+    for i in ls:
+        i.join()
+        
+    live2d.dispose()
 
-glfw.terminate()
+    while len(models) > 0:
+        m = models.pop()
+        del m
+    
+    glfw.terminate()
+    print("success")
 
-live2d.dispose()
+
+if __name__ == "__main__":
+    main()

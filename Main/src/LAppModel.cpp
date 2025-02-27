@@ -54,13 +54,12 @@ protected:
 
 public:
     FakeMotion()
-    {
-    }
+    = default;
 };
 
 LAppModel::LAppModel()
-    : CubismUserModel(), _modelSetting(NULL), _userTimeSeconds(0.0f), _autoBlink(true), _autoBreath(true),
-      _matrixManager(), _tmpOrderedDrawIndices(NULL)
+    : CubismUserModel(), _modelSetting(nullptr), _userTimeSeconds(0.0f), _autoBlink(true), _autoBreath(true),
+      _matrixManager(), _tmpOrderedDrawIndices(nullptr)
 {
     _mocConsistency = MocConsistencyValidationEnable;
 
@@ -75,20 +74,15 @@ LAppModel::LAppModel()
 LAppModel::~LAppModel()
 {
     _renderBuffer.DestroyOffscreenSurface();
+    _textureManager.ReleaseTextures();
 
     ReleaseMotions();
     ReleaseExpressions();
 
     if (_modelSetting == nullptr)
         return;
-
-    for (csmInt32 i = 0; i < _modelSetting->GetMotionGroupCount(); i++)
-    {
-        const csmChar *group = _modelSetting->GetMotionGroupName(i);
-        ReleaseMotionGroup(group);
-    }
+    
     delete (_modelSetting);
-
     delete[] _tmpOrderedDrawIndices;
 }
 
@@ -112,7 +106,7 @@ void LAppModel::LoadAssets(const csmChar *fileName)
 
     SetupModel(setting);
 
-    if (_model == NULL)
+    if (_model == nullptr)
     {
         Info("Failed to LoadAssets().");
         return;
@@ -331,6 +325,7 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
 
 void LAppModel::ReleaseMotionGroup(const csmChar *group) const
 {
+    // 意义不明
     const csmInt32 count = _modelSetting->GetMotionCount(group);
     for (csmInt32 i = 0; i < count; i++)
     {

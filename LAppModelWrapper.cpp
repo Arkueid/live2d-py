@@ -38,12 +38,15 @@ static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* k
     self->lastExpression = nullptr;
     self->expStartedAt = -1;
     self->fadeout = -1;
-    Info("[M] allocate LAppModel(at=%p)", self->model);
+    Info("[M] allocate cpp LAppModel(at=%p)", self->model);
     return 0;
 }
 
 static void PyLAppModel_dealloc(PyLAppModelObject* self)
 {
+    Info("[M] deallocate: cpp LAppModel(at=%p)", self->model);
+    delete self->model;
+    delete self->lastExpression;
     Info("[M] deallocate: PyLAppModelObject(at=%p)", self);
     PyObject_Free(self);
 }
