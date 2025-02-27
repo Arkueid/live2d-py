@@ -42,6 +42,10 @@ class Win(QOpenGLWidget):
         self.model.Update()
 
         self.model.Draw()
+        
+    def mouseMoveEvent(self, event):
+        x, y = event.globalPosition().x(), event.globalPosition().y()
+        self.model.Drag(x, y)
 
     def timerEvent(self, a0: QTimerEvent | None) -> None:
         self.update()

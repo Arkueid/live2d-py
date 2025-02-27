@@ -34,8 +34,8 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
                 break
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                model.StartRandomMotion()
+            if event.type == pygame.MOUSEMOTION:
+                model.Drag(*pygame.mouse.get_pos())
         
         if not running:
             break

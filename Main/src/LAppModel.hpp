@@ -241,7 +241,6 @@ private:
 
     Csm::ICubismModelSetting* _modelSetting; ///< モデルセッティング情報
     Csm::csmString _modelHomeDir; ///< モデルセッティングが置かれたディレクトリ
-    Csm::csmFloat32 _userTimeSeconds; ///< デルタ時間の積算値[秒]
     Csm::csmVector<Csm::CubismIdHandle> _eyeBlinkIds; ///< モデルに設定されたまばたき機能用パラメータID
     Csm::csmVector<Csm::CubismIdHandle> _lipSyncIds; ///< モデルに設定されたリップシンク機能用パラメータID
     Csm::csmMap<Csm::csmString, Csm::ACubismMotion*> _motions; ///< 読み込まれているモーションのリスト
@@ -264,4 +263,8 @@ private:
     bool _autoBlink; ///< 自动眨眼开关
 
     int* _tmpOrderedDrawIndices;
+
+    double _currentFrame;
+    double _lastFrame;
+    double _deltaTimeSeconds;
 };

@@ -769,7 +769,7 @@ static PyObject* live2d_glew_init()
     {
         Info("Can't initilize glew.");
     }
-    LAppPal::UpdateTime();
+    // LAppPal::UpdateTime();
     Py_RETURN_NONE;
 }
 

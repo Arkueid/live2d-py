@@ -19,7 +19,7 @@ void MatrixManager::SetModelWH(float mw, float mh)
     _mh = mh;
 }
 
-// call when window is resized
+// called when window is resized
 void MatrixManager::UpdateScreenToScene(int width, int height)
 {
     _ww = width;

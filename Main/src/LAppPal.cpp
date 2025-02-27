@@ -7,29 +7,17 @@
 
 #include "LAppPal.hpp"
 #include <cstdio>
-#include <stdarg.h>
-#include <sys/stat.h>
 #include <iostream>
 #include <fstream>
 #include <Model/CubismMoc.hpp>
-#include "LAppDefine.hpp"
 
-#include <chrono>
 #include <Log.hpp>
 
 #include <filesystem>
 
-using std::endl;
 using namespace Csm;
-using namespace std;
-using namespace LAppDefine;
 
-double LAppPal::s_currentFrame = 0.0;
-double LAppPal::s_lastFrame = 0.0;
-double LAppPal::s_deltaTime = 0.0;
-
-
-csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
+csmByte* LAppPal::LoadFileAsBytes(const std::string filePath, csmSizeInt* outSize)
 {
     //filePath;//
     const char* pathStr = filePath.c_str();
@@ -63,10 +51,11 @@ csmByte* LAppPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
     file.read(buf, size);
     file.close();
 
-    if(outSize) {
+    if (outSize)
+    {
         *outSize = static_cast<unsigned int>(size);
     }
-    
+
     return reinterpret_cast<csmByte*>(buf);
 }
 
@@ -75,19 +64,12 @@ void LAppPal::ReleaseBytes(csmByte* byteData)
     delete[] byteData;
 }
 
-csmFloat32  LAppPal::GetDeltaTime()
-{
-    return static_cast<csmFloat32>(s_deltaTime);
-}
-
-void LAppPal::UpdateTime()
-{
-    s_currentFrame = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
-    s_deltaTime = s_currentFrame - s_lastFrame;
-    s_lastFrame = s_currentFrame;
-}
-
 void LAppPal::PrintLn(const Csm::csmChar *message)
 {
     Info(message);
+}
+
+double LAppPal::GetCurrentTimePoint()
+{
+    return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }

@@ -19,8 +19,12 @@ def main():
 
     model_v3 = l2d_v3.LAppModel()
     model_v2 = l2d_v2.LAppModel()
+    model_v3_2 = l2d_v3.LAppModel()
 
     model_v3.LoadModelJson(
+        os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
+    )
+    model_v3_2.LoadModelJson(
         os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
     )
     model_v2.LoadModelJson(
@@ -29,7 +33,8 @@ def main():
 
     model_v3.Resize(*display)
     model_v2.Resize(*display)
-    
+    model_v3_2.Resize(*display)
+
     model_v3.SetOffset(-0.5, 0.0)
     model_v2.SetOffset(0.5, 0.3)
     model_v2.SetScale(0.7)
@@ -42,13 +47,18 @@ def main():
                 break
             if event.type == pygame.MOUSEMOTION:
                 x, y = pygame.mouse.get_pos()
-                model_v2.Drag(x, y)
                 model_v3.Drag(x, y)
+                model_v2.Drag(x, y)
+                model_v3_2.Drag(x, y)
 
         if not running:
             break
 
         l2d_v3.clearBuffer()
+
+        model_v3_2.Update()
+        model_v3_2.Draw()
+
         model_v3.Update()
         model_v3.Draw()
         
@@ -61,6 +71,7 @@ def main():
     l2d_v2.dispose()
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()
