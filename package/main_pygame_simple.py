@@ -1,13 +1,7 @@
 import os
-
 import pygame
-from pygame.locals import *
-
 import live2d.v3 as live2d
 # import live2d.v2 as live2d
-from live2d.utils import log
-
-
 import resources
 
 
@@ -16,7 +10,7 @@ def main():
     live2d.init()
 
     display = (300, 400)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
     pygame.display.set_caption("pygame window")
 
     live2d.glewInit()
@@ -25,7 +19,7 @@ def main():
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
+            os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
         )
     else:
         model.LoadModelJson(
@@ -35,39 +29,26 @@ def main():
     model.Resize(*display)
 
     running = True
-
-    def on_start_motion_callback(group: str, no: int):
-        log.Info("start motion: [%s_%d]" % (group, no))
-
-    def on_finish_motion_callback():
-        log.Info("motion finished")
-
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
-                model.StartRandomMotion(
-                    onFinishMotionHandler=on_finish_motion_callback,
-                    onStartMotionHandler=on_start_motion_callback
-                )
+                model.StartRandomMotion()
         
         if not running:
             break
 
+        live2d.clearBuffer()
         model.Update()
-        live2d.clearBuffer(1.0, 0.0, 0.0, 0.0)
         model.Draw()
+
         pygame.display.flip()
-        pygame.time.wait(10)
 
     live2d.dispose()
 
     pygame.quit()
-    quit()
-
 
 if __name__ == "__main__":
     main()

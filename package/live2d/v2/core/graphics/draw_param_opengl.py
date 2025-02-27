@@ -6,8 +6,9 @@ from .draw_param import DrawParam
 
 class FrameBufferObject:
 
-    def __init__(self, fbo, tex):
+    def __init__(self, fbo, rbo, tex):
         self.framebuffer = fbo
+        self.renderbuffer = rbo
         self.texture = tex
 
 
@@ -48,6 +49,9 @@ class DrawParamOpenGL(DrawParam):
         if self.firstDraw:
             self.initShader()
             self.firstDraw = False
+            # self.anisotropyExt = aH.MAX_TEXTURE_MAX_ANISOTROPY
+            # if self.anisotropyExt:
+            #     self.maxAnisotropy = a_h.getParameter(self.anisotropyExt)
 
         a_h.disable(a_h.SCISSOR_TEST)
         a_h.disable(a_h.STENCIL_TEST)
@@ -161,6 +165,8 @@ class DrawParamOpenGL(DrawParam):
 
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
         gl.blendFuncSeparate(src_color, src_factor, dst_color, dst_factor)
+        # if self.anisotropyExt:
+        #     g0.texParameteri(g0.TEXTURE_2D, self.anisotropyExt.TEXTURE_MAX_ANISOTROPY_EXT, self.maxAnisotropy)
 
         count = len(indexArray)
         gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, None)
@@ -370,8 +376,11 @@ class DrawParamOpenGL(DrawParam):
         aL = self.gl
         aK = Live2D.clippingMaskBufferSize
         aJ = aL.createFramebuffer()
-        old_fbo = aL.getParameter(aL.FRAMEBUFFER_BINDING)
         aL.bindFramebuffer(aL.FRAMEBUFFER, aJ)
+        aH = aL.createRenderbuffer()
+        aL.bindRenderbuffer(aL.RENDERBUFFER, aH)
+        aL.renderbufferStorage(aL.RENDERBUFFER, aL.RGBA4, aK, aK)
+        aL.framebufferRenderbuffer(aL.FRAMEBUFFER, aL.COLOR_ATTACHMENT0, aL.RENDERBUFFER, aH)
         aI = aL.createTexture()
         aL.bindTexture(aL.TEXTURE_2D, aI)
         aL.texImage2D(aL.TEXTURE_2D, 0, aL.RGBA, aK, aK, 0, aL.RGBA, aL.UNSIGNED_BYTE, None)
@@ -381,9 +390,11 @@ class DrawParamOpenGL(DrawParam):
         aL.texParameteri(aL.TEXTURE_2D, aL.TEXTURE_WRAP_T, aL.CLAMP_TO_EDGE)
         aL.framebufferTexture2D(aL.FRAMEBUFFER, aL.COLOR_ATTACHMENT0, aL.TEXTURE_2D, aI, 0)
         aL.bindTexture(aL.TEXTURE_2D, 0)
-        aL.bindFramebuffer(aL.FRAMEBUFFER, old_fbo)
+        aL.bindRenderbuffer(aL.RENDERBUFFER, 0)
+        aL.bindFramebuffer(aL.FRAMEBUFFER, 0)
         self.framebufferObject = FrameBufferObject(
             fbo=aJ,
+            rbo=aH,
             tex=aI
         )
 

@@ -169,7 +169,7 @@ class BinaryReader:
                 aI[aJ] = self.readObject()
             return aI
         elif aN == 23:
-            raise Exception("type not implemented")
+            raise RuntimeError("type not implemented")
         elif aN == 16 or aN == 25:
             return self.readInt32Array()
         elif aN == 26:

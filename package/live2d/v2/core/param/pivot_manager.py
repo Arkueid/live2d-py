@@ -6,16 +6,12 @@ if TYPE_CHECKING:
 from ..DEF import GOSA, PIVOT_TABLE_SIZE
 from ..io.iserializable import ISerializable
 from ..param import ParamPivots
-from ..type import Array
 
 
 class PivotManager(ISerializable):
 
     def __init__(self):
         self.paramPivotTable = None
-
-    def initDirect(self):
-        self.paramPivotTable = Array()
 
     def read(self, aH):
         self.paramPivotTable = aH.readObject()
@@ -138,6 +134,3 @@ class PivotManager(ISerializable):
 
     def getParamCount(self):
         return len(self.paramPivotTable)
-
-    def zs_(self):
-        return self.paramPivotTable

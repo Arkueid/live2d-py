@@ -9,10 +9,10 @@ class IDrawContext:
         self.interpolatedDrawOrder: Optional[int] = None
         self.paramOutside: bool = False
         self.partsOpacity: float = 0
-        self.available = True
-        self.baseOpacity = 1
+        self.available: bool = True
+        self.baseOpacity: float = 1.0
         self.clipBufPre_clipContext = None
-        self.drawData = dd
+        self.drawData: 'Mesh' = dd
         self.partsIndex = -1
 
     def isParamOutside(self):

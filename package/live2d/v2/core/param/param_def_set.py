@@ -10,8 +10,5 @@ class ParamDefSet(ISerializable):
     def getParamDefFloatList(self):
         return self.paramDefList
 
-    def initDirect(self):
-        self.paramDefList = Array()
-
     def read(self, br):
         self.paramDefList = br.readObject()

@@ -53,10 +53,6 @@ class Mesh(IDrawData):
     def getType(self):
         return IDrawData.TYPE_MESH
 
-    def initDirect(self):
-        self.pivotMgr = PivotManager()
-        self.pivotMgr.initDirect()
-
     def read(self, br):
         super().read(br)
         self.textureNo = br.readInt32()

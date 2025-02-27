@@ -105,7 +105,7 @@ public:
      * @brief   ランダムに選ばれた表情モーションをセットする
      *
      */
-    void SetRandomExpression(void* callee = nullptr, void(*callback)(void*, const char*) = nullptr);
+    void SetRandomExpression(void* callee = nullptr, void (*callback)(void*, const char*) = nullptr);
 
     /**
      * @brief   イベントの発火を受け取る
@@ -152,7 +152,7 @@ public:
 
     void GetParameter(int i, const char*& id, int& type, float& value, float& maxValue, float& minValue,
                       float& defaultValue);
-    
+
     float GetParameterValue(int index);
 
     int GetPartCount();
@@ -185,12 +185,12 @@ public:
     void SetOffset(float dx, float dy);
 
     void SetScale(float scale);
-    
+
     void Rotate(float deg);
 
-    void StopAllMotions();          
+    void StopAllMotions();
 
-    void ResetPose();                    
+    void ResetPose();
 
     void ResetExpression();
 
@@ -226,14 +226,6 @@ private:
     void PreloadMotionGroup(const Csm::csmChar* group);
 
     /**
-     * @brief   モーションデータをグループ名から一括で解放する。<br>
-     *           モーションデータの名前は内部でModelSettingから取得する。
-     *
-     * @param[in]   group  モーションデータのグループ名
-     */
-    void ReleaseMotionGroup(const Csm::csmChar* group) const;
-
-    /**
      * @brief すべてのモーションデータの解放
      *
      * すべてのモーションデータを解放する。
@@ -254,8 +246,6 @@ private:
     Csm::csmVector<Csm::CubismIdHandle> _lipSyncIds; ///< モデルに設定されたリップシンク機能用パラメータID
     Csm::csmMap<Csm::csmString, Csm::ACubismMotion*> _motions; ///< 読み込まれているモーションのリスト
     Csm::csmMap<Csm::csmString, Csm::ACubismMotion*> _expressions; ///< 読み込まれている表情のリスト
-    Csm::csmVector<Csm::csmRectF> _hitArea;
-    Csm::csmVector<Csm::csmRectF> _userArea;
     const Csm::CubismId* _idParamAngleX; ///< パラメータID: ParamAngleX
     const Csm::CubismId* _idParamAngleY; ///< パラメータID: ParamAngleX
     const Csm::CubismId* _idParamAngleZ; ///< パラメータID: ParamAngleX
@@ -268,10 +258,10 @@ private:
 
     Csm::Rendering::CubismOffscreenSurface_OpenGLES2 _renderBuffer; ///< フレームバッファ以外の描画先
 
-    MatrixManager _matrixManager;
+    MatrixManager _matrixManager; ///< 绘制、点击、变换的矩阵管理器
 
-    bool _autoBreath;
-    bool _autoBlink;
+    bool _autoBreath; ///< 自动呼吸开关
+    bool _autoBlink; ///< 自动眨眼开关
 
     int* _tmpOrderedDrawIndices;
 };

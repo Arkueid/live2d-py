@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Optional, List
 from .deformer import Deformer
 from .rotation_context import RotationContext
 from ..DEF import LIVE2D_FORMAT_VERSION_V2_10_SDK2
-from ..live2d import Live2D
 from ..param import PivotManager
 from ..type import Float32Array, Array
 from ..util import UtMath

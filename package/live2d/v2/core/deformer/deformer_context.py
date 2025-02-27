@@ -13,9 +13,9 @@ class DeformerContext(ABC):
         self.outsideParam = False
         self.available = True
         self.deformer = deformer
-        self.totalScale = 1
-        self.interpolatedOpacity = 1
-        self.totalOpacity = 1
+        self.totalScale = 1.0
+        self.interpolatedOpacity = 1.0
+        self.totalOpacity = 1.0
 
     def isAvailable(self) -> bool:
         return self.available and not self.outsideParam
@@ -47,8 +47,8 @@ class DeformerContext(ABC):
     def getInterpolatedOpacity(self):
         return self.interpolatedOpacity
 
-    def setInterpolatedOpacity(self, aH):
-        self.interpolatedOpacity = aH
+    def setInterpolatedOpacity(self, value: float):
+        self.interpolatedOpacity = value
 
     def getTotalOpacity(self):
         return self.totalOpacity

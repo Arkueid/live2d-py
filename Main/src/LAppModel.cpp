@@ -323,21 +323,6 @@ void LAppModel::PreloadMotionGroup(const csmChar *group)
     }
 }
 
-void LAppModel::ReleaseMotionGroup(const csmChar *group) const
-{
-    // 意义不明
-    const csmInt32 count = _modelSetting->GetMotionCount(group);
-    for (csmInt32 i = 0; i < count; i++)
-    {
-        csmString voice = _modelSetting->GetMotionSoundFileName(group, i);
-        if (strcmp(voice.GetRawString(), "") != 0)
-        {
-            csmString path = voice;
-            path = _modelHomeDir + path;
-        }
-    }
-}
-
 /**
  * @brief すべてのモーションデータの解放
  *

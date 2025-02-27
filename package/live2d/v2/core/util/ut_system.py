@@ -10,6 +10,16 @@ class UtSystem:
         return True
 
     @staticmethod
+    def wait(duration):
+        try:
+            start_time = UtSystem.getTimeMSec()
+            while UtSystem.getTimeMSec() - start_time < duration:
+                pass
+
+        except Exception as e:
+            print(e)
+
+    @staticmethod
     def getUserTimeMSec():
         return UtSystem.getSystemTimeMSec() if (
                     UtSystem.userTimeMSec == UtSystem.USER_TIME_AUTO) else UtSystem.userTimeMSec

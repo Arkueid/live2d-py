@@ -3,8 +3,6 @@ from .util import log
 from .live2d_gl_wrapper import Live2DGLWrapper
 
 class Live2D:
-    VERSION_STRING = "2.1.00_1"
-    VERSION_NO = 201001000
     L2D_OUTSIDE_PARAM_AVAILABLE = False
     __firstInit = True
     clippingMaskBufferSize = 256
@@ -12,7 +10,6 @@ class Live2D:
     @staticmethod
     def init():
         if Live2D.__firstInit:
-            log.Info(f"[Core] Cubism Live2D Core Version {Live2D.VERSION_STRING}")
             Live2D.__firstInit = False
 
     @staticmethod

@@ -16,10 +16,6 @@ class WarpDeformer(Deformer):
         self.pivotMgr = None
         self.pivotPoints = None
 
-    def initDirect(self):
-        self.pivotMgr = PivotManager()
-        self.pivotMgr.initDirect()
-
     def read(self, br):
         super().read(br)
         self.col = br.readInt32()

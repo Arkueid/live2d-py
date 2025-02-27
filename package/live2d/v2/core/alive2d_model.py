@@ -18,7 +18,7 @@ class ALive2DModel(ABC):
         self.modelContext = None
         self.modelContext = ModelContext(self)
 
-    def setModelImpl(self, moc):
+    def setModelImpl(self, moc: 'ModelImpl'):
         self.modelImpl = moc
 
     def getModelImpl(self):
@@ -28,7 +28,7 @@ class ALive2DModel(ABC):
 
         return self.modelImpl
 
-    def getCanvasWidth(self):
+    def getCanvasWidth(self) -> int:
         if self.modelImpl is None:
             return 0
 

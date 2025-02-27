@@ -8,11 +8,8 @@ class Live2DModelOpenGL(ALive2DModel):
         super().__init__()
         self.drawParamGL: DrawParamOpenGL = DrawParamOpenGL()
 
-    def resize(self, ww, wh):
+    def resize(self, ww: int, wh: int):
         self.drawParamGL.resize(ww, wh)
-
-    def setTransform(self, aH):
-        self.drawParamGL.setTransform(aH)
 
     def update(self):
         self.modelContext.update()
@@ -26,18 +23,6 @@ class Live2DModelOpenGL(ALive2DModel):
 
     def setMatrix(self, aH):
         self.drawParamGL.setMatrix(aH)
-
-    def setPremultipliedAlpha(self, aH):
-        self.drawParamGL.setPreMultipliedAlpha(aH)
-
-    def isPremultipliedAlpha(self):
-        return self.drawParamGL.isPreMultipliedAlpha()
-
-    def setAnisotropy(self, aH):
-        self.drawParamGL.setAnisotropy(aH)
-
-    def getAnisotropy(self):
-        return self.drawParamGL.getAnisotropy()
 
     @staticmethod
     def loadModel(aI):

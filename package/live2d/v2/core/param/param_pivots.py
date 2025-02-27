@@ -1,4 +1,4 @@
-﻿from typing import TYPE_CHECKING
+﻿from typing import TYPE_CHECKING, Union
 
 from ..io.iserializable import ISerializable
 
@@ -10,13 +10,13 @@ class ParamPivots(ISerializable):
     PARAM_INDEX_NOT_INIT = -2
 
     def __init__(self):
-        self.pivotCount = 0
-        self.paramId = None
-        self.pivotValues = None
-        self.paramIndex = ParamPivots.PARAM_INDEX_NOT_INIT
-        self.initVersion = -1
-        self.tmpPivotIndex = 0
-        self.tmpT = 0
+        self.pivotCount: int = 0
+        self.paramId: 'Id' | None = None
+        self.pivotValues: list[float] | None = None
+        self.paramIndex: int = ParamPivots.PARAM_INDEX_NOT_INIT
+        self.initVersion: int = -1
+        self.tmpPivotIndex: int = 0
+        self.tmpT: float = 0
 
     def read(self, br):
         self.paramId = br.readObject()
