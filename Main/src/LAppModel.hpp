@@ -140,7 +140,7 @@ public:
 
     bool IsMotionFinished();
 
-    void SetParameterValue(const char* paramId, float value, float weight);
+    void SetParameterValue(const char* paramId, float value, float weight = 1.0f);
 
     void AddParameterValue(const char* paramId, float value);
 

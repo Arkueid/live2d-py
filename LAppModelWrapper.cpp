@@ -391,9 +391,9 @@ static PyObject* PyLAppModel_Rotate(PyLAppModelObject* self, PyObject* args)
 static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject* args)
 {
     const char* paramId;
-    float value, weight;
+    float value, weight = 1.0f;
 
-    if (PyArg_ParseTuple(args, "sff", &paramId, &value, &weight) < 0)
+    if (PyArg_ParseTuple(args, "sf|f", &paramId, &value, &weight) < 0)
     {
         PyErr_SetString(PyExc_TypeError, "Invalid params (str, float, float)");
         return NULL;

@@ -166,7 +166,7 @@ class LAppModel:
         counterclockwise when degrees > 0
         """
 
-    def SetParameterValue(self, paramId: str, value: float, weight: float) -> None:
+    def SetParameterValue(self, paramId: str, value: float, weight: float = 1.0) -> None:
         """
         为对应控制参数设置具体值  
         调用时机: 在 CalcParameters 后，在 Update 之前
