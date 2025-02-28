@@ -188,9 +188,7 @@ public:
 
     void Rotate(float deg);
 
-    void StopAllMotions();
-
-    void ResetPose();
+    void ClearMotions();
 
     void ResetExpression();
 
@@ -267,4 +265,10 @@ private:
     double _currentFrame;
     double _lastFrame;
     double _deltaTimeSeconds;
+
+    // used to clear motion effect
+    const float* _defaultParameterValues;
+    float* _parameterValues;
+    bool _clearMotionFlag;
+    int _parameterCount;
 };

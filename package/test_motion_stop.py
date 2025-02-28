@@ -36,22 +36,23 @@ def main():
 
     running = True
 
-    model.SetExpression("exp_03") # 默认表情设置为 exp_03
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 break
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # model.SetExpression("exp_04", fadeout=5000)
-                # model.SetRandomExpression(fadeout=5000)
-                model.ResetExpression()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                model.SetRandomExpression()
+                model.StartRandomMotion()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    model.ClearMotions()
         
         if not running:
             break
 
+        live2d.clearBuffer()
         model.Update()
-        live2d.clearBuffer(1.0, 0.0, 0.0, 0.0)
         model.Draw()
         pygame.display.flip()
         pygame.time.wait(10)
