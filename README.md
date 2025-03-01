@@ -95,24 +95,67 @@ pip install live2d-py
 
 4. 从源码构建，参考 [安装#源码构建](https://github.com/Arkueid/live2d-py/wiki/%E5%AE%89%E8%A3%85#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA)
 
-## 简易面部动捕示例
+## 示例
+
+### 简易面捕
 
 源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
-## 贡献
+### 多模型加载
 
-特别感谢 [@96bearli]，[@Ovizro], [@AnyaCoder], [@jahtim], [@Honghe], [@RobertMeow] 为本项目提供的帮助和支持。
+源码见 [main_pygame_three_model.py](./package/main_pygame_three_model.py)
 
-[@96bearli]: https://github.com/96bearli
+![three_model](./docs/three_model.png)
 
-[@Ovizro]: https://github.com/Ovizro
+### 添加背景
 
-[@AnyaCoder]: https://github.com/AnyaCoder
+源码见 [main_pygame_background.py](./package/main_pygame_background.py)
 
-[@jahtim]: https://github.com/jahtim
+![background](./docs/background.png)
 
-[@Honghe]: https://github.com/Honghe
+### 模型变换 & 口型同步音频 & 点击测试
 
-[@RobertMeow]: https://github.com/RobertMeow
+源码见 [main_pygame.py](./package/main_pygame.py)
+
+![完整用例](./docs/full%20demo.gif)
+
+### 模型整体透明度示例
+
+源码见 [main_pyqt5_canvas_opacity.py](./package/main_pyqt5_canvas_opacity.py)
+
+![opacity](./docs/opacity.gif)
+
+## 鸣谢
+
+特别感谢 [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow] 为本项目提供的帮助和支持。
+
+[96bearli]: https://github.com/96bearli
+
+[Ovizro]: https://github.com/Ovizro
+
+[AnyaCoder]: https://github.com/AnyaCoder
+
+[jahtim]: https://github.com/jahtim
+
+[Honghe]: https://github.com/Honghe
+
+[RobertMeow]: https://github.com/RobertMeow
+
+非常感谢以下项目及其贡献者们的帮助：
+
+[CubismNativeSamples](https://github.com/Live2D/CubismNativeSamples) (`live2d.v3`)
+
+[Cubism2 Web SDK](https://github.com/dylanNew/live2d) (`live2d.v2`)
+
+[JsConvert](https://github.com/JonBoynton/JSConvert) (`Javascript` 转 `Python` 工具)
+
+[D2Evil](https://github.com/UlyssesWu/D2Evil) (`moc` 文件分析)
+
+Live2D 模型:
+
+* [Cubism 官方样例数据](https://www.live2d.com/en/learn/sample/)
+* [雅萌工作室](https://yameng.remoon.cn/studio/live2d-f/1)
+* [live2d-models](https://github.com/Eikanya/Live2d-model)
+* [【虚拟主播模型】 宁宁vup化！](https://www.bilibili.com/video/BV1s7411d7y9)

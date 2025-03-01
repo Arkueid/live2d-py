@@ -88,22 +88,66 @@ pip install live2d-py
 
 4. Build from source. Refer to [安装#源码构建](https://github.com/Arkueid/live2d-py/wiki/%E5%AE%89%E8%A3%85#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA). 
 
-## Simple Facial Motion Capture Example
+## Demos
+
+### Simple Facerig
+
 Source code: [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
+### Multi-live2d model rendering
+
+Source code: [main_pygame_three_model.py](./package/main_pygame_three_model.py)
+
+![three_model](./docs/three_model.png)
+
+### Rendering with background image
+
+Source code: [main_pygame_background.py](./package/main_pygame_background.py)
+
+![background](./docs/background.png)
+
+### Model transforming & lipsync with `wav` file & Click test
+
+Source code: [main_pygame.py](./package/main_pygame.py)
+
+![完整用例](./docs/full%20demo.gif)
+
+### Model Opacity
+
+源码见 [main_pyqt5_canvas_opacity.py](./package/main_pyqt5_canvas_opacity.py)
+
+![opacity](./docs/opacity.gif)
+
 ## Contributions
-Special thanks to [@96bearli], [@Ovizro], [@AnyaCoder], [@jahtim], [@Honghe] and [@RobertMeow] for their support and contributions to this project.
+Special thanks to [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], and [RobertMeow] for their support and contributions to this project.
 
-[@96bearli]: https://github.com/96bearli
+[96bearli]: https://github.com/96bearli
 
-[@Ovizro]: https://github.com/Ovizro
+[Ovizro]: https://github.com/Ovizro
 
-[@AnyaCoder]: https://github.com/AnyaCoder
+[AnyaCoder]: https://github.com/AnyaCoder
 
-[@jahtim]: https://github.com/jahtim
+[jahtim]: https://github.com/jahtim
 
-[@Honghe]: https://github.com/Honghe
+[Honghe]: https://github.com/Honghe
 
-[@RobertMeow]: https://github.com/RobertMeow
+[RobertMeow]: https://github.com/RobertMeow
+
+Special thanks to the following repos and their contributors:
+
+[CubismNativeSamples](https://github.com/Live2D/CubismNativeSamples) (`live2d.v3`)
+
+[Cubism2 Web SDK](https://github.com/dylanNew/live2d) (`live2d.v2`)
+
+[JsConvert](https://github.com/JonBoynton/JSConvert) (Tool for converting `Javascript` to `Python`)
+
+[D2Evil](https://github.com/UlyssesWu/D2Evil) (`moc` file exploration)
+
+Live2D sources:
+
+* [Cubism Official Sample Data](https://www.live2d.com/en/learn/sample/)
+* [雅萌工作室](https://yameng.remoon.cn/studio/live2d-f/1)
+* [live2d-models](https://github.com/Eikanya/Live2d-model)
+* [【虚拟主播模型】 宁宁vup化！](https://www.bilibili.com/video/BV1s7411d7y9)
