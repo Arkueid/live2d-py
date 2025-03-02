@@ -7,6 +7,7 @@
 #include <Log.hpp>
 #include <unordered_map>
 #include <mutex>
+#include <chrono>
 
 #define Py_LIMITED_API
 #include <Python.h>
