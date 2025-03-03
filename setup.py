@@ -107,7 +107,7 @@ setup(
     ext_modules=[CMakeExtension("LAppModelWrapper", ".")],
     cmdclass={"build_ext": CMakeBuild},
     packages=find_packages("package"),
-    package_data={"": ["*.pyd", "*.so"]},
+    package_data={"": ["*.pyd", "*.so", "*.pyi"]},
     package_dir={"": "package"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"],
     python_requires=REQUIRES_PYTHON

@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
-    branches: [ windows-workflow ]
+    branches: [ windows-workflow, build-all ]
 
 
 jobs:
@@ -31,7 +31,9 @@ jobs:
         run: python -m pip install setuptools wheel
 
       - name: Build a binary wheel
-        run: python setup.py bdist_wheel
+        run: |
+          python setup.py build_ext
+          python setup.py bdist_wheel
 
       - name: Install twine
         run: python -m pip install twine
