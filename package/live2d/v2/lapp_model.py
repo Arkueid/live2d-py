@@ -28,6 +28,8 @@ class LAppModel(L2DBaseModel):
 
         self.finishCallback = None
 
+        self.__clearFlag = False
+
     def LoadModelJson(self, modelSettingPath: str):
         self.setUpdating(True)
         self.setInitialized(False)
@@ -107,13 +109,6 @@ class LAppModel(L2DBaseModel):
         self.matrixManager.onResize(ww, wh)
         self.live2DModel.resize(ww, wh)
 
-    def Touch(self, x: float, y: float, onStartMotionHandler=None, onFinishMotionHandler=None):
-        x, y = self.matrixManager.screenToScene(x, y)
-        area_id = self.HitTest(x, y)
-        if area_id is not None:
-            log.Info(f"Hit area: {area_id}")
-            self.StartRandomMotion(area_id, MotionPriority.NORMAL, onStartMotionHandler, onFinishMotionHandler)
-
     def Drag(self, x: float, y: float):
         scx, scy = self.matrixManager.screenToScene(x, y)
         self.dragMgr.setPoint(scx, scy)
@@ -167,9 +162,6 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.setPartsOpacity(index, opacity)
 
     def Update(self):
-        if self.live2DModel is None:
-            return
-
         self.dragMgr.update()
         self.setDrag(self.dragMgr.getX(), self.dragMgr.getY())
 
@@ -181,13 +173,22 @@ class LAppModel(L2DBaseModel):
                 self.finishCallback()
                 self.finishCallback = None
 
-        self.live2DModel.loadParam()
-        update = self.mainMotionManager.updateParam(self.live2DModel)
-        if not update:
+        updated = False
+        if self.__clearFlag:
+            self.mainMotionManager.stopAllMotions()
+            if self.pose:
+                self.pose.initParam(self.live2DModel)
+
+            self.__clearFlag = False
+        else:
+            self.live2DModel.loadParam()
+            updated = self.mainMotionManager.updateParam(self.live2DModel)
+        self.live2DModel.saveParam()
+
+        if not updated:
             if self.autoBlink and self.eyeBlink is not None:
                 self.eyeBlink.updateParam(self.live2DModel)
 
-        self.live2DModel.saveParam()
         if self.expressionManager is not None and self.expressions is not None and not self.expressionManager.isFinished():
             self.expressionManager.updateParam(self.live2DModel)
 
@@ -197,6 +198,7 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.addToParamFloat("PARAM_BODY_ANGLE_X", self.dragX * 10, 1)
         self.live2DModel.addToParamFloat("PARAM_EYE_BALL_X", self.dragX, 1)
         self.live2DModel.addToParamFloat("PARAM_EYE_BALL_Y", self.dragY, 1)
+
         if self.autoBreath:
             self.live2DModel.addToParamFloat("PARAM_ANGLE_X", float((15 * math.sin(t / 6.5345))), 0.5)
             self.live2DModel.addToParamFloat("PARAM_ANGLE_Y", float((8 * math.sin(t / 3.5345))), 0.5)
@@ -266,7 +268,7 @@ class LAppModel(L2DBaseModel):
         self.live2DModel.setMatrix(tmp_matrix)
         self.live2DModel.draw()
 
-    def HitTest(self, testX, testY) -> Union[str, None]:
+    def HitTest(self, hitAreaName: str, testX, testY) -> Union[str, None]:
         size = self.modelSetting.getHitAreaNum()
         for i in range(size):
             area_id = self.modelSetting.getHitAreaName(i)
@@ -378,15 +380,8 @@ class LAppModel(L2DBaseModel):
         """
         return self.live2DModel.modelContext.getPartMultiplyColor(part_index)
 
-    def StopAllMotions(self):
-        self.mainMotionManager.stopAllMotions()
-
-    def ResetPose(self):
-        if self.pose:
-            self.live2DModel.loadParam()
-            self.pose.initParam(self.live2DModel)
-            self.pose.updateParam(self.live2DModel)
-            self.live2DModel.saveParam()
+    def ClearMotions(self):
+        self.__clearFlag = True
     
     def ResetExpression(self):
         self.expressionManager.stopAllMotions()

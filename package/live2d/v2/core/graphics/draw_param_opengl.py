@@ -73,6 +73,7 @@ class DrawParamOpenGL(DrawParam):
         a5 = self.baseBlue * opacity
         a7 = self.baseAlpha * opacity
         if self.clipBufPre_clipContextMask is not None:
+            # 根据蒙版进行裁剪
             gl.frontFace(gl.CCW)
             gl.useProgram(self.shaderProgram)
             self.vbo = bindOrCreateVBO(gl, self.vbo, vertexArray)
@@ -96,6 +97,7 @@ class DrawParamOpenGL(DrawParam):
             gl.uniform4f(self.u_screenColor_Loc, *screenColor)
             gl.uniform4f(self.u_multiplyColor_Loc, *multiplyColor)
         elif self.clipBufPre_clipContextDraw is not None:
+            # 绘制蒙版
             gl.useProgram(self.shaderProgramOff)
             self.vbo = bindOrCreateVBO(gl, self.vbo, vertexArray)
             self.ebo = bindOrCreateEBO(gl, self.ebo, indexArray)

@@ -16,7 +16,7 @@ class L2DBaseModel:
         self.modelMatrix: Optional[L2DModelMatrix] = None
         self.eyeBlink = None
         self.physics = None
-        self.pose = None
+        self.pose: Union[None, L2DPose] = None
         self.debugMode = False
         self.initialized = False
         self.updating = False
@@ -131,7 +131,7 @@ class L2DBaseModel:
             buf = pm.loadBytes(path)
             self.expressions[name] = L2DExpressionMotion.loadJson(buf)
 
-    def loadPose(self, path):
+    def loadPose(self, path) -> L2DPose:
         pm = Live2DFramework.getPlatformManager()
         if self.debugMode:
             pm.log("Load Pose : " + path)
