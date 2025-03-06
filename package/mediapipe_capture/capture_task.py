@@ -102,7 +102,7 @@ def mediapipe_capture_task(params: Params):
             right_shoulder = landmarks[12]
 
             if results.multi_face_landmarks:
-                nose_x = landmarks[1].x
+                nose_x = landmarks[0].x # fix index for nose tip: 1 => 0 by LUORANCHENG@Github
                 bodyAngleX = calculate_body_angle_x(nose_x, left_shoulder, right_shoulder)
                 if params:
                     params.BodyAngleX = clipValue(bodyAngleX, -30, 30)

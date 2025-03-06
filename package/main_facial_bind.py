@@ -4,21 +4,15 @@ import os
 import threading as td
 
 import pygame
-from pygame.locals import *
-
 import live2d.v3 as live2d
 import resources
 from facial_params import Params
 from live2d.v3.params import StandardParams
-from mediapipe_capture.capture_task import mediapipe_capture_task
-from open_see_face.capture_task import open_see_face_task
 
-live2d.setLogEnable(True)
+# from open_see_face.capture_task import open_see_face_task
 
 
-def draw():
-    pygame.display.flip()
-    pygame.time.wait(10)
+live2d.setLogEnable(False)
 
 
 def s_call(group, no):
@@ -34,19 +28,23 @@ def main():
     live2d.init()
 
     display = (450, 700)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
 
     live2d.glewInit()
 
     model = live2d.LAppModel()
 
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/mianfeimox/llny.model3.json"))
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
 
     model.Resize(*display)
 
     running = True
+    
+    # 提前导入有概率绘制不出 live2d
+    from mediapipe_capture.capture_task import mediapipe_capture_task
 
-    params = None
+    params = Params()
+    td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
 
     while True:
         for event in pygame.event.get():
@@ -59,11 +57,6 @@ def main():
 
         if not running:
             break
-
-        if not params:
-            params = Params()
-            td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
-            # td.Thread(None, open_see_face_task, "Capture Task", (params,), daemon=True).start()
 
         model.Update()
         if params:
@@ -83,7 +76,8 @@ def main():
 
         live2d.clearBuffer()
         model.Draw()
-        draw()
+        pygame.display.flip()
+        pygame.time.wait(int(1000 / 60))
 
     live2d.dispose()
     pygame.quit()
