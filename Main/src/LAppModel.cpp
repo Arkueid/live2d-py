@@ -86,7 +86,7 @@ LAppModel::~LAppModel()
     delete[] _tmpOrderedDrawIndices;
 }
 
-void LAppModel::LoadAssets(const csmChar *fileName)
+void LAppModel::LoadModelJson(const csmChar *fileName)
 {
     // linux 下不支持对 "XXX/XXX.model.json/../" 的解析
     // 因此改用 cpp17 的标准库

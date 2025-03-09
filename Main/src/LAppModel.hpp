@@ -40,7 +40,7 @@ public:
      * @brief model3.jsonが置かれたディレクトリとファイルパスからモデルを生成する
      *
      */
-    void LoadAssets(const Csm::csmChar* fileName);
+    void LoadModelJson(const Csm::csmChar* fileName);
 
     /**
      * @brief レンダラを再構築する

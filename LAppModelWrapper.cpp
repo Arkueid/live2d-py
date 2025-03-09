@@ -61,7 +61,7 @@ static PyObject* PyLAppModel_LoadModelJson(PyLAppModelObject* self, PyObject* ar
         return NULL;
     }
 
-    self->model->LoadAssets(fileName);
+    self->model->LoadModelJson(fileName);
 
     Py_RETURN_NONE;
 }
