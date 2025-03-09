@@ -6,7 +6,6 @@ set_property(TARGET Main PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(Main PUBLIC src)
 
-
 find_package(OpenGL REQUIRED)
 
 if(APPLE)

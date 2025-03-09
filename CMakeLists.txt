@@ -51,7 +51,7 @@ endif()
 find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
 
 include(cmake/Core.cmake)
-include(cmake/Glew.cmake)
+include(cmake/Glad.cmake)
 include(cmake/Framework.cmake)
 include(cmake/Main.cmake)
 
