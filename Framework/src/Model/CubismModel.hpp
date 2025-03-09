@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -12,6 +12,7 @@
 #include "Type/csmVector.hpp"
 #include "Rendering/CubismRenderer.hpp"
 #include "Id/CubismId.hpp"
+#include <HackProperties.h>
 
 namespace Live2D { namespace Cubism { namespace Framework {
 
@@ -24,14 +25,10 @@ class CubismModel
 {
     friend class CubismMoc;
 public:
+    __ADDITIONAL_METHODS__
     /**
      * Structure for color information of drawing object
      */
-    csmVector<float>& GetSavedParameters()
-    {
-        return _savedParameters;
-    }
-
     struct DrawableColorData
     {
         /**

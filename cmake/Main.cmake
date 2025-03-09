@@ -1,5 +1,5 @@
 
-add_subdirectory(Main/src)
+add_subdirectory(Main)
 
 set_property(TARGET Main PROPERTY CXX_STANDARD 17)
 set_property(TARGET Main PROPERTY CXX_STANDARD_REQUIRED ON)

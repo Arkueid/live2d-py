@@ -732,13 +732,13 @@ bool LAppModel::IsMotionFinished()
 void LAppModel::SetParameterValue(const char *paramId, float value, float weight)
 {
     const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
-    _model->SetParameterValue(paramHanle, value, weight);
+    _model->SetAndSaveParameterValue(paramHanle, value, weight);
 }
 
 void LAppModel::AddParameterValue(const char *paramId, float value)
 {
     const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
-    _model->AddParameterValue(paramHanle, value);
+    _model->AddAndSaveParameterValue(paramHanle, value);
 }
 
 void LAppModel::SetAutoBreathEnable(bool enable)
@@ -968,6 +968,7 @@ void LAppModel::ResetParameters()
     {
         _parameterValues[i] = _defaultParameterValues[i];
     }
+    _model->SaveParameters();
 }
 
 void LAppModel::ResetPose()

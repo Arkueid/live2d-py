@@ -67,7 +67,7 @@ def main():
     model.SetAutoBreathEnable(False)
 
     wavHandler = WavHandler()
-    lipSyncN = 2.5
+    lipSyncN = 3
 
     audioPlayed = False
 
@@ -192,7 +192,7 @@ def main():
 
         if wavHandler.Update():
             # 利用 wav 响度更新 嘴部张合
-            model.AddParameterValue(
+            model.SetParameterValue(
                 StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN
             )
 
