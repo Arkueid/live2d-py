@@ -1,4 +1,4 @@
-add_library(${MAIN_NAME}
+add_library(Main
   STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppAllocator.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppAllocator.hpp

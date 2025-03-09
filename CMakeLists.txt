@@ -6,19 +6,12 @@ if(APPLE)
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  
+
   set(CMAKE_OSX_ARCHITECTURES "arm64")
-  
-  find_package(OpenGL REQUIRED)
-  find_library(COCOA_LIBRARY Cocoa REQUIRED)
-  find_library(IOKIT_LIBRARY IOKit REQUIRED)
-  find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  execute_process(
-      COMMAND chcp 65001
-  )
+  execute_process(COMMAND chcp 65001)
 endif()
 
 message("${CMAKE_BUILD_TYPE}")
@@ -57,22 +50,15 @@ endif()
 
 find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
 
-add_subdirectory(Main)
+include(cmake/Core.cmake)
+include(cmake/Glew.cmake)
+include(cmake/Framework.cmake)
+include(cmake/Main.cmake)
 
-# 创建Python扩展模块
+# Create Wrapper 
 add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
 target_link_libraries(LAppModelWrapper PRIVATE Main Python3::SABIModule)
 
-if(APPLE)
-  target_link_libraries(LAppModelWrapper PRIVATE
-    ${OPENGL_LIBRARIES}
-    ${COCOA_LIBRARY}
-    ${IOKIT_LIBRARY}
-    ${COREVIDEO_LIBRARY}
-  )
-endif()
-
-# Configure for Linux / Windows
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(MODULE_NAME lib${OUTPUT_LIB_NAME}.so)
   set(OUTPUT_NAME live2d.so)
