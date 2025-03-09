@@ -121,7 +121,7 @@ Source code: [main_pygame.py](./package/main_pygame.py)
 ![opacity](./docs/opacity.gif)
 
 ## Contributions
-Special thanks to [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], and [RobertMeow] for their support and contributions to this project.
+Special thanks to [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo] for their support and contributions to this project.
 
 [96bearli]: https://github.com/96bearli
 
@@ -135,15 +135,23 @@ Special thanks to [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], and [R
 
 [RobertMeow]: https://github.com/RobertMeow
 
+[LUORANCHENG]: https://github.com/LUORANCHENG
+
+[TinyKiecoo]: https://github.com/TinyKiecoo
+
 Special thanks to the following repos and their contributors:
 
 [CubismNativeSamples](https://github.com/Live2D/CubismNativeSamples) (`live2d.v3`)
 
 [Cubism2 Web SDK](https://github.com/dylanNew/live2d) (`live2d.v2`)
 
+[de4js](https://github.com/lelinhtinh/de4js)（`JavaScript` deobfuscation）
+
 [JsConvert](https://github.com/JonBoynton/JSConvert) (Tool for converting `Javascript` to `Python`)
 
 [D2Evil](https://github.com/UlyssesWu/D2Evil) (`moc` file exploration)
+
+[facial-landmarks-for-cubism](https://github.com/adrianiainlam/facial-landmarks-for-cubism) （facerig）
 
 Live2D sources:
 

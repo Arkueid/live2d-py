@@ -129,7 +129,7 @@ pip install live2d-py
 
 ## 鸣谢
 
-特别感谢 [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow] 为本项目提供的帮助和支持。
+特别感谢 [96bearli]，[Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo] 为本项目提供的帮助和支持。
 
 [96bearli]: https://github.com/96bearli
 
@@ -143,15 +143,23 @@ pip install live2d-py
 
 [RobertMeow]: https://github.com/RobertMeow
 
+[LUORANCHENG]: https://github.com/LUORANCHENG
+
+[TinyKiecoo]: https://github.com/TinyKiecoo
+
 非常感谢以下项目及其贡献者们的帮助：
 
 [CubismNativeSamples](https://github.com/Live2D/CubismNativeSamples) (`live2d.v3`)
 
 [Cubism2 Web SDK](https://github.com/dylanNew/live2d) (`live2d.v2`)
 
+[de4js](https://github.com/lelinhtinh/de4js)（`JavaScript` 反混淆工具）
+
 [JsConvert](https://github.com/JonBoynton/JSConvert) (`Javascript` 转 `Python` 工具)
 
 [D2Evil](https://github.com/UlyssesWu/D2Evil) (`moc` 文件分析)
+
+[facial-landmarks-for-cubism](https://github.com/adrianiainlam/facial-landmarks-for-cubism) （面捕参考）
 
 Live2D 模型:
 
