@@ -29,7 +29,7 @@ def main():
     pygame.mixer.init()
     live2d.init()
 
-    display = (500, 700)
+    display = (500, 600)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("pygame window")
 
@@ -135,7 +135,7 @@ def main():
                 # log.Info(f"Clicked Part: {currentTopClickedPartId}")
                 # model.Touch(x, y, onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
                 # model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
-                model.SetRandomExpression()
+                # model.SetRandomExpression()
                 model.StartRandomMotion(priority=3)
 
             if event.type == pygame.KEYDOWN:

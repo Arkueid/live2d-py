@@ -188,7 +188,11 @@ public:
 
     void Rotate(float deg);
 
-    void ClearMotions();
+    void StopAllMotions();
+
+    void ResetParameters();
+
+    void ResetPose();
 
     void ResetExpression();
 

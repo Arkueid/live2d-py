@@ -3,8 +3,8 @@ import os
 import pygame
 from pygame.locals import *
 
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 from live2d.utils import log
 
 
@@ -46,7 +46,11 @@ def main():
                 model.StartRandomMotion()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    model.ClearMotions()
+                    model.ResetParameters() # 对于没有 pose 的模型，可以通过 ResetParameters 恢复初始动作
+                elif event.key == pygame.K_s:
+                    model.StopAllMotions()
+                elif event.key == pygame.K_p:
+                    model.ResetPose()
         
         if not running:
             break

@@ -192,12 +192,6 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject* PyLAppModel_ClearMotions(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
-{
-    self->model->ClearMotions();
-    Py_RETURN_NONE;
-}
-
 static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* expressionID;
@@ -673,6 +667,24 @@ static PyObject* PyLAppModel_GetPartScreenColor(PyLAppModelObject* self, PyObjec
     return Py_BuildValue("ffff", r, g, b, a);
 }
 
+static PyObject* PyLAppModel_StopAllMotions(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    self->model->StopAllMotions();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_ResetParameters(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    self->model->ResetParameters();
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    self->model->ResetPose();
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -680,7 +692,6 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"Draw", (PyCFunction)PyLAppModel_Draw, METH_VARARGS, ""},
     {"StartMotion", (PyCFunction)PyLAppModel_StartMotion, METH_VARARGS | METH_KEYWORDS, ""},
     {"StartRandomMotion", (PyCFunction)PyLAppModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, ""},
-    {"ClearMotions", (PyCFunction)PyLAppModel_ClearMotions, METH_VARARGS | METH_KEYWORDS, ""},
 
     {"SetExpression", (PyCFunction)PyLAppModel_SetExpression, METH_VARARGS | METH_KEYWORDS, ""},
     {"SetRandomExpression", (PyCFunction)PyLAppModel_SetRandomExpression, METH_VARARGS | METH_KEYWORDS, ""},
@@ -715,6 +726,12 @@ static PyMethodDef PyLAppModel_methods[] = {
 
     {"SetPartScreenColor", (PyCFunction)PyLAppModel_SetPartScreenColor, METH_VARARGS, ""},
     {"GetPartScreenColor", (PyCFunction)PyLAppModel_GetPartScreenColor, METH_VARARGS, ""},
+
+    // 复位
+    {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, ""},
+    {"ResetParameters", (PyCFunction)PyLAppModel_ResetParameters, METH_VARARGS | METH_KEYWORDS, ""},
+    {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_VARARGS | METH_KEYWORDS, ""},
+
     {NULL} // 方法列表结束的标志
 };
 

@@ -27,6 +27,11 @@ public:
     /**
      * Structure for color information of drawing object
      */
+    csmVector<float>& GetSavedParameters()
+    {
+        return _savedParameters;
+    }
+
     struct DrawableColorData
     {
         /**

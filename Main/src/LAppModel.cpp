@@ -372,27 +372,10 @@ void LAppModel::Update()
     csmBool motionUpdated = false;
 
     //-----------------------------------------------------------------
-    if (_clearMotionFlag) 
+    _model->LoadParameters(); // 前回セーブされた状態を
+    if (!_motionManager->IsFinished())
     {
-        _clearMotionFlag = false;
-        _motionManager->StopAllMotions();
-        for (int i = 0; i < _parameterCount; i++)
-        {
-            _parameterValues[i] = _defaultParameterValues[i];
-        }
-        if (_pose)
-        {
-            _pose->Reset(_model);
-        }
-        Info("motion: cleared");
-    }
-    else
-    {
-        _model->LoadParameters(); // 前回セーブされた状態を
-        if (!_motionManager->IsFinished())
-        {
-            motionUpdated = _motionManager->UpdateMotion(_model, _deltaTimeSeconds); // モーションを更新
-        }
+        motionUpdated = _motionManager->UpdateMotion(_model, _deltaTimeSeconds); // モーションを更新
     }
     _model->SaveParameters(); // 状態を保存
     //-----------------------------------------------------------------
@@ -974,9 +957,25 @@ void LAppModel::Rotate(float deg)
     _matrixManager.Rotate(deg);
 }
 
-void LAppModel::ClearMotions()
+void LAppModel::StopAllMotions()
 {
-    _clearMotionFlag = true;
+    _motionManager->StopAllMotions();
+}
+
+void LAppModel::ResetParameters()
+{
+    for (int i = 0; i < _parameterCount; i++)
+    {
+        _parameterValues[i] = _defaultParameterValues[i];
+    }
+}
+
+void LAppModel::ResetPose()
+{
+    if (_pose)
+    {
+        _pose->Reset(_model);
+    }
 }
 
 void LAppModel::ResetExpression()

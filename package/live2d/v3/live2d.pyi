@@ -243,11 +243,17 @@ class LAppModel:
     def GetPartMultiplyColor(self, partIndex: int) -> tuple[float]:
         ...
 
-    def ClearMotions(self) -> None:
-        ...
-
     def ResetExpression(self) -> None:
         """
         重置为默认表情
         """
+        ...
+
+    def StopAllMotions(self) -> None:
+        ...
+
+    def ResetParameters(self) -> None:
+        ...
+
+    def ResetPose(self) -> None:
         ...
