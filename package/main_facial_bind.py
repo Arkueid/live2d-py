@@ -5,9 +5,13 @@ import threading as td
 
 import pygame
 import live2d.v3 as live2d
+# import live2d.v2 as live2d
 import resources
 from facial_params import Params
-from live2d.v3.params import StandardParams
+if live2d.LIVE2D_VERSION == 3:
+    from live2d.v3.params import StandardParams
+elif live2d.LIVE2D_VERSION == 2:
+    from live2d.v2.params import StandardParams
 
 # from open_see_face.capture_task import open_see_face_task
 
@@ -34,15 +38,16 @@ def main():
 
     model = live2d.LAppModel()
 
-    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-
+    if live2d.LIVE2D_VERSION == 3:
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+    elif live2d.LIVE2D_VERSION == 2:
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
     model.Resize(*display)
 
     running = True
-    
+
     # 提前导入有概率绘制不出 live2d
     from mediapipe_capture.capture_task import mediapipe_capture_task
-
     params = Params()
     td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
 
