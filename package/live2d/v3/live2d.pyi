@@ -176,10 +176,16 @@ class LAppModel:
         """
         ...
 
+    def SetIndexParamValue(self, index: int, value: float, weight: float = 1.0) -> None:
+        ...
+
     def AddParameterValue(self, paramId: str, value: float) -> None:
         """
         最终值=原值+value
         """
+        ...
+
+    def AddIndexParamValue(self, index: int, value: float) -> None:
         ...
 
     def Update(self) -> None:

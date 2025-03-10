@@ -142,7 +142,11 @@ public:
 
     void SetParameterValue(const char* paramId, float value, float weight = 1.0f);
 
+    void SetIndexParamValue(int index, float value, float weight = 1.0f);
+
     void AddParameterValue(const char* paramId, float value);
+
+    void AddIndexParamValue(int index, float value);
 
     void SetAutoBreathEnable(bool enable);
 

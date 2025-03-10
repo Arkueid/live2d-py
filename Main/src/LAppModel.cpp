@@ -735,10 +735,20 @@ void LAppModel::SetParameterValue(const char *paramId, float value, float weight
     _model->SetAndSaveParameterValue(paramHanle, value, weight);
 }
 
+void LAppModel::SetIndexParamValue(int index, float value, float weight)
+{
+    _model->SetAndSaveParameterValue(index, value, weight);
+}
+
 void LAppModel::AddParameterValue(const char *paramId, float value)
 {
     const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->AddAndSaveParameterValue(paramHanle, value);
+}
+
+void LAppModel::AddIndexParamValue(int index, float value)
+{
+    _model->AddAndSaveParameterValue(index, value);
 }
 
 void LAppModel::SetAutoBreathEnable(bool enable)

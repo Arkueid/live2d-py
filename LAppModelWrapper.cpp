@@ -399,6 +399,22 @@ static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_SetIndexParamValue(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float value, weight = 1.0f;
+
+    if (PyArg_ParseTuple(args, "if|f", &index, &value, &weight) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params (int, float, float)");
+        return NULL;
+    }
+
+    self->model->SetIndexParamValue(index, value, weight);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
 {
     const char* paramId;
@@ -411,6 +427,22 @@ static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject
     }
 
     self->model->AddParameterValue(paramId, value);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_AddIndexParamValue(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float value;
+
+    if (PyArg_ParseTuple(args, "sf", &index, &value) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params (str, float)");
+        return NULL;
+    }
+
+    self->model->AddIndexParamValue(index, value);
 
     Py_RETURN_NONE;
 }
@@ -710,7 +742,9 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
 
     {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
+    {"SetIndexParamValue", (PyCFunction)PyLAppModel_SetIndexParamValue, METH_VARARGS, ""},
     {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
+    {"AddIndexParamValue", (PyCFunction)PyLAppModel_AddIndexParamValue, METH_VARARGS, ""},
     {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
     {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
     {"GetParameterValue", (PyCFunction)PyLAppModel_GetParameterValue, METH_VARARGS, ""},

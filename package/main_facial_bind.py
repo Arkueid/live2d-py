@@ -44,6 +44,21 @@ def main():
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
     model.Resize(*display)
 
+    param_list = []
+    for i in range(model.GetParameterCount()):
+        param_list.append(model.GetParameter(i).id)
+
+    index_to_param = [
+        param_list.index(StandardParams.ParamEyeLOpen),
+        param_list.index(StandardParams.ParamEyeLOpen),
+        param_list.index(StandardParams.ParamMouthOpenY),
+        param_list.index(StandardParams.ParamAngleX),
+        param_list.index(StandardParams.ParamAngleY),
+        param_list.index(StandardParams.ParamAngleZ),
+        param_list.index(StandardParams.ParamBodyAngleX),
+        param_list.index("Param14")
+    ]
+
     running = True
 
     # 提前导入有概率绘制不出 live2d
@@ -68,16 +83,16 @@ def main():
             # 较大程度的解決抖动问题，Params类中的smooth_factor控制平滑度
             params.update_params(params)
             # 面捕贴合程度取决于面部特征识别和参数计算算法
-            model.SetParameterValue(StandardParams.ParamEyeLOpen, params.EyeLOpen, 1)
-            model.SetParameterValue(StandardParams.ParamEyeROpen, params.EyeROpen, 1)
-            model.SetParameterValue(StandardParams.ParamMouthOpenY, params.MouthOpenY, 1)
-            model.SetParameterValue(StandardParams.ParamAngleX, params.AngleX, 1)
-            model.SetParameterValue(StandardParams.ParamAngleY, params.AngleY, 1)
-            model.SetParameterValue(StandardParams.ParamAngleZ, params.AngleZ, 1)
-            model.SetParameterValue(StandardParams.ParamBodyAngleX, params.BodyAngleX, 1)
+            model.SetIndexParamValue(index_to_param[0], params.EyeLOpen, 1)
+            model.SetIndexParamValue(index_to_param[1], params.EyeROpen, 1)
+            model.SetIndexParamValue(index_to_param[2], params.MouthOpenY, 1)
+            model.SetIndexParamValue(index_to_param[3], params.AngleX, 1)
+            model.SetIndexParamValue(index_to_param[4], params.AngleY, 1)
+            model.SetIndexParamValue(index_to_param[5], params.AngleZ, 1)
+            model.SetIndexParamValue(index_to_param[6], params.BodyAngleX, 1)
 
         # 去除水印
-        model.SetParameterValue("Param14", 1, 1)
+        model.SetIndexParamValue(index_to_param[7], 1, 1)
 
         live2d.clearBuffer()
         model.Draw()
