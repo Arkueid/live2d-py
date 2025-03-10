@@ -44,9 +44,7 @@ def main():
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
     model.Resize(*display)
 
-    param_list = []
-    for i in range(model.GetParameterCount()):
-        param_list.append(model.GetParameter(i).id)
+    param_list = model.GetParamIds()
 
     index_to_param = [
         param_list.index(StandardParams.ParamEyeLOpen),
@@ -78,7 +76,6 @@ def main():
         if not running:
             break
 
-        model.Update()
         if params:
             # 较大程度的解決抖动问题，Params类中的smooth_factor控制平滑度
             params.update_params(params)
@@ -95,6 +92,7 @@ def main():
         model.SetIndexParamValue(index_to_param[7], 1, 1)
 
         live2d.clearBuffer()
+        model.Update()
         model.Draw()
         pygame.display.flip()
         pygame.time.wait(int(1000 / 60))

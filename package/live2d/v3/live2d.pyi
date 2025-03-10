@@ -212,6 +212,9 @@ class LAppModel:
     def GetParameter(self, index: int) -> Parameter:
         ...
     
+    def GetParamIds(self) -> list[str]:
+        ...
+    
     def GetParameterValue(self, index: int) -> float:
         ...
 

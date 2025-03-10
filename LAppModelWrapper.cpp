@@ -562,6 +562,22 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
     return CreatePyParameter(id, type, value, maxValue, minValue, defaultValue);
 }
 
+static PyObject* PyLAppModel_GetParamIds(PyLAppModelObject* self, PyObject* args)
+{
+    const int size = self->model->GetParameterCount();
+    PyObject* list = PyList_New(size);
+    const char* id;
+    int type;
+    float value, maxValue, minValue, defaultValue;
+    for (int i = 0; i < size; i++)
+    {
+        self->model->GetParameter(i, id, type, value, maxValue, minValue, defaultValue);
+        PyObject* str = Py_BuildValue("s", id);
+        PyList_SetItem(list, i, str);
+    }
+    return list;
+}
+
 static PyObject* PyLAppModel_GetParameterValue(PyLAppModelObject* self, PyObject* args)
 {
     int index;
@@ -747,6 +763,7 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"AddIndexParamValue", (PyCFunction)PyLAppModel_AddIndexParamValue, METH_VARARGS, ""},
     {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
     {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
+    {"GetParamIds", (PyCFunction)PyLAppModel_GetParamIds, METH_VARARGS, ""},
     {"GetParameterValue", (PyCFunction)PyLAppModel_GetParameterValue, METH_VARARGS, ""},
 
     {"GetPartCount", (PyCFunction)PyLAppModel_GetPartCount, METH_VARARGS, ""},
