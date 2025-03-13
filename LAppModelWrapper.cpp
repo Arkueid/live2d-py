@@ -784,11 +784,21 @@ static PyObject* live2d_dispose()
 
 static PyObject* live2d_glew_init()
 {
+    Warn("`glewInit` might be a misleading name as `glew` has been replaced with `glad` in live2d-py. Please use `glInit()` instead.");
     if (!gladLoadGL())
     {
         Info("Can't initilize glad.");
     }
     // LAppPal::UpdateTime();
+    Py_RETURN_NONE;
+}
+
+static PyObject* live2d_glInit()
+{
+    if (!gladLoadGL())
+    {
+        Info("Can't initilize glad.");
+    }
     Py_RETURN_NONE;
 }
 
@@ -837,6 +847,7 @@ static PyMethodDef live2d_methods[] = {
     {"init", (PyCFunction)live2d_init, METH_VARARGS, ""},
     {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, ""},
     {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
+    {"glInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
     {"logEnable", (PyCFunction)live2d_log_enable, METH_VARARGS, ""},

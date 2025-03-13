@@ -22,6 +22,11 @@ def glewInit() -> None:
     """
     ...
 
+def glInit() -> None:
+    """
+    initialize inner opengl functions
+    """
+    ...
 
 def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     """
