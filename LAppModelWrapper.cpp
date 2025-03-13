@@ -670,6 +670,26 @@ static PyObject* PyLAppModel_ResetPose(PyLAppModelObject* self, PyObject* args, 
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_GetExpressionIds(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    PyObject* list = PyList_New(0);
+    self->model->GetExpressionIds(list, [](void* collector, const char* expId){
+        PyObject* list = (PyObject*) collector;
+        PyList_Append(list, Py_BuildValue("s", expId));
+    });
+    return list;
+}
+
+static PyObject* PyLAppModel_GetMotionGroups(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    PyObject* dict = PyDict_New();
+    self->model->GetMotionGroups(dict, [](void* collector, const char* group, int count){
+        PyObject* dict = (PyObject*) collector;
+        PyDict_SetItem(dict, Py_BuildValue("s", group), Py_BuildValue("i", count));
+    });
+    return dict;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -716,6 +736,9 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"StopAllMotions", (PyCFunction)PyLAppModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, ""},
     {"ResetParameters", (PyCFunction)PyLAppModel_ResetParameters, METH_VARARGS | METH_KEYWORDS, ""},
     {"ResetPose", (PyCFunction)PyLAppModel_ResetPose, METH_VARARGS | METH_KEYWORDS, ""},
+
+    {"GetExpressionIds", (PyCFunction)PyLAppModel_GetExpressionIds, METH_VARARGS | METH_KEYWORDS, ""},
+    {"GetMotionGroups", (PyCFunction)PyLAppModel_GetMotionGroups, METH_VARARGS | METH_KEYWORDS, ""},
 
     {NULL} // 方法列表结束的标志
 };

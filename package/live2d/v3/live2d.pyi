@@ -257,3 +257,9 @@ class LAppModel:
 
     def ResetPose(self) -> None:
         ...
+
+    def GetExpressionIds(self) -> list[str]:
+        ...
+
+    def GetMotionGroups(self) -> dict[str, int]:
+        ...

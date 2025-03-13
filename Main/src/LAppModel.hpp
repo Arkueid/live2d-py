@@ -196,6 +196,10 @@ public:
 
     void ResetExpression();
 
+    void GetExpressionIds(void* collector, void(*callback)(void* collector, const char* expId));
+
+    void GetMotionGroups(void* collector, void(*callback)(void* collector, const char* groupName, int count));
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。

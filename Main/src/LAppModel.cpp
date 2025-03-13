@@ -980,3 +980,22 @@ void LAppModel::ResetExpression()
 {
     _expressionManager->StopAllMotions();
 }
+
+void LAppModel::GetExpressionIds(void *collector, void (*callback)(void *collector, const char *expId))
+{
+    const int count = _modelSetting->GetExpressionCount();
+    for (int i = 0; i < count; i++)
+    {
+        callback(collector, _modelSetting->GetExpressionName(i));
+    }
+}
+
+void LAppModel::GetMotionGroups(void *collector, void (*callback)(void *collector, const char *groupName, int count))
+{
+    const int count = _modelSetting->GetMotionGroupCount();
+    for (int i = 0; i < count; i++)
+    {
+        const char* group = _modelSetting->GetMotionGroupName(i);
+        callback(collector, group, _modelSetting->GetMotionCount(group));
+    }
+}
