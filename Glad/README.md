@@ -7,3 +7,5 @@
 `GL_EXT_framebuffer_object`
 
 `GL_EXT_texture_filter_anisotropic`
+
+`GL_ARB_framebuffer_object`
