@@ -27,7 +27,7 @@ struct PyLAppModelObject
 {
     PyObject_HEAD
     LAppModel* model;
-    char* lastExpression;
+    std::string lastExpression;
     time_t expStartedAt;
     time_t fadeout;
 };
@@ -36,7 +36,7 @@ struct PyLAppModelObject
 static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* kwds)
 {
     self->model = new LAppModel();
-    self->lastExpression = nullptr;
+    self->lastExpression = "";
     self->expStartedAt = -1;
     self->fadeout = -1;
     Info("[M] allocate cpp LAppModel(at=%p)", self->model);
@@ -47,7 +47,6 @@ static void PyLAppModel_dealloc(PyLAppModelObject* self)
 {
     Info("[M] deallocate: cpp LAppModel(at=%p)", self->model);
     delete self->model;
-    delete self->lastExpression;
     Info("[M] deallocate: PyLAppModelObject(at=%p)", self);
     PyObject_Free(self);
 }
@@ -191,7 +190,7 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
 
     Py_RETURN_NONE;
 }
-
+#include <iostream>
 static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* expressionID;
@@ -213,15 +212,8 @@ static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* ar
     }
     else
     {
-        int len = strlen(expressionID);
-        if (self->lastExpression != nullptr)
-        {
-            delete[] self->lastExpression;
-            self->lastExpression = nullptr;
-        }
-        self->lastExpression = new char[len + 1];
-        strcpy(self->lastExpression, expressionID);
-        self->lastExpression[len] = '\0';
+        self->lastExpression = std::string(expressionID);
+        Info("set default expression: %s", expressionID);
     }
 
     self->fadeout = fadeout;
@@ -234,10 +226,9 @@ static PyObject* PyLAppModel_ResetExpression(PyLAppModelObject* self, PyObject* 
 {
     self->fadeout = -1;
     self->expStartedAt = -1;
-    if (self->lastExpression != nullptr)
+    if (self->lastExpression != "")
     {
-        delete[] self->lastExpression;
-        self->lastExpression = nullptr;
+        self->lastExpression = "";
     }
 
     self->model->ResetExpression();
@@ -256,28 +247,22 @@ static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObje
 
     self->fadeout = fadeout;
 
-    self->model->SetRandomExpression(self, [](void* callee, const char* exp_id)
+    std::string& expId = self->model->SetRandomExpression();
+    
+    PyObject* pyExpIdStr = Py_BuildValue("s", expId.c_str());
+
+    if (self->fadeout >= 0)
     {
-        PyLAppModelObject* obj = (PyLAppModelObject*)callee;
-        if (obj->fadeout >= 0)
-        {
-            auto now = std::chrono::system_clock::now();
-            obj->expStartedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
-        }
-        else
-        {
-            int len = strlen(exp_id);
-            if (obj->lastExpression != nullptr)
-            {
-                delete[] obj->lastExpression;
-                obj->lastExpression = nullptr;
-            }
-            obj->lastExpression = new char[len + 1];
-            strcpy(obj->lastExpression, exp_id);
-            obj->lastExpression[len] = '\0';
-        }
-    });
-    Py_RETURN_NONE;
+        auto now = std::chrono::system_clock::now();
+        self->expStartedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
+    }
+    else
+    {
+        self->lastExpression = std::string(expId);
+        Info("set default expression: %s", expId);
+    }
+   
+    return pyExpIdStr;
 }
 
 typedef Live2D::Cubism::Framework::csmString csmString;
@@ -424,10 +409,10 @@ static PyObject* PyLAppModel_Update(PyLAppModelObject* self, PyObject* args)
         time_t elapsed = value - self->expStartedAt;
         if (elapsed >= self->fadeout)
         {
-            if (self->lastExpression != nullptr)
+            if (self->lastExpression != "")
             {
-                self->model->SetExpression(self->lastExpression);
-                Info("reset expression %s", self->lastExpression);
+                self->model->SetExpression(self->lastExpression.c_str());
+                Info("reset expression %s", self->lastExpression.c_str());
             }
             else
             {

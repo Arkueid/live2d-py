@@ -12,7 +12,7 @@ if live2d.LIVE2D_VERSION == 3:
     from live2d.v3.params import StandardParams
 elif live2d.LIVE2D_VERSION == 2:
     from live2d.v2.params import StandardParams
-
+from mediapipe_capture.capture_task import mediapipe_capture_task
 # from open_see_face.capture_task import open_see_face_task
 
 
@@ -46,8 +46,6 @@ def main():
 
     running = True
 
-    # 提前导入有概率绘制不出 live2d
-    from mediapipe_capture.capture_task import mediapipe_capture_task
     params = Params()
     td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
 

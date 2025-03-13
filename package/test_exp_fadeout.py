@@ -36,7 +36,7 @@ def main():
 
     running = True
 
-    model.SetExpression("exp_03") # 默认表情设置为 exp_03
+    model.SetRandomExpression() # 默认表情设置为 exp_03
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -44,8 +44,12 @@ def main():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # model.SetExpression("exp_04", fadeout=5000)
-                # model.SetRandomExpression(fadeout=5000)
-                model.ResetExpression()
+                # expId = model.SetRandomExpression(fadeout=5000)
+                expId = model.SetRandomExpression(fadeout=5000)
+                print("random exp:", expId)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    model.ResetExpression()
         
         if not running:
             break

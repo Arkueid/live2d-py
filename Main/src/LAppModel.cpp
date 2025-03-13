@@ -624,12 +624,12 @@ void LAppModel::SetExpression(const csmChar *expressionID)
     }
 }
 
-void LAppModel::SetRandomExpression(void *callee, void (*callback)(void *, const char *))
+std::string LAppModel::SetRandomExpression()
 {
     const int size = _expressions.GetSize();
     if (size == 0)
     {
-        return;
+        return "";
     }
     csmInt32 no = rand() % size;
     csmMap<csmString, ACubismMotion *>::const_iterator map_ite;
@@ -640,14 +640,11 @@ void LAppModel::SetRandomExpression(void *callee, void (*callback)(void *, const
         {
             csmString name = (*map_ite).First;
             SetExpression(name.GetRawString());
-            if (callee && callback)
-            {
-                callback(callee, name.GetRawString());
-            }
-            return;
+            return name.GetRawString();
         }
         i++;
     }
+    return "";
 }
 
 void LAppModel::ReloadRenderer()

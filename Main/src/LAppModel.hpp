@@ -105,7 +105,7 @@ public:
      * @brief   ランダムに選ばれた表情モーションをセットする
      *
      */
-    void SetRandomExpression(void* callee = nullptr, void (*callback)(void*, const char*) = nullptr);
+    std::string SetRandomExpression();
 
     /**
      * @brief   イベントの発火を受け取る
