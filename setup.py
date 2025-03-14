@@ -8,7 +8,7 @@ from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
 NAME = "live2d-py"
-VERSION = "0.4.3"  # TODO: edit before push
+VERSION = "0.4.4"  # TODO: edit before push
 DESCRIPTION = "Live2D Python SDK"
 LONG_DESCRIPTION = open("README.md", "r", encoding="utf-8").read()
 AUTHOR = "Arkueid"
