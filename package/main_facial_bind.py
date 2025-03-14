@@ -39,7 +39,10 @@ def main():
     model = live2d.LAppModel()
 
     if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, 
+                                         "v3/llny/llny.model3.json"
+                                        # "v3/whitecat/SDwhite cat free.model3.json"
+                                         ))
     elif live2d.LIVE2D_VERSION == 2:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
     model.Resize(*display)

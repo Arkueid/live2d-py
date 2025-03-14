@@ -33,26 +33,20 @@ void Info(const char *fmt, ...)
 
 void Warn(const char *fmt, ...)
 {
-    if (live2dLogEnable)
-    {
-        printf("\033[33m[WARN]  ");
-        va_list args;
-        va_start(args, fmt);
-        vfprintf(stdout, fmt, args);
-        va_end(args);
-        printf("\033[0m\n");
-    }
+    printf("\033[33m[WARN]  ");
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stdout, fmt, args);
+    va_end(args);
+    printf("\033[0m\n");
 }
 
 void Error(const char *fmt, ...)
 {
-    if (live2dLogEnable)
-    {
-        printf("\033[31m[ERROR] ");
-        va_list args;
-        va_start(args, fmt);
-        vfprintf(stdout, fmt, args);
-        va_end(args);
-        printf("\033[0m\n");
-    }
+    printf("\033[31m[ERROR] ");
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stdout, fmt, args);
+    va_end(args);
+    printf("\033[0m\n");
 }

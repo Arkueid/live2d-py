@@ -838,7 +838,7 @@ static PyObject* live2d_glew_init()
     Warn("`glewInit` might be a misleading name as `glew` has been replaced with `glad` in live2d-py. Please use `glInit()` instead.");
     if (!gladLoadGL())
     {
-        Info("Can't initilize glad.");
+        Error("Can't initilize glad.");
     }
     // LAppPal::UpdateTime();
     Py_RETURN_NONE;
@@ -848,7 +848,7 @@ static PyObject* live2d_glInit()
 {
     if (!gladLoadGL())
     {
-        Info("Can't initilize glad.");
+        Error("Can't initilize glad.");
     }
     Py_RETURN_NONE;
 }
