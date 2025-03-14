@@ -250,7 +250,7 @@ static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObje
 
     self->fadeout = fadeout;
 
-    std::string& expId = self->model->SetRandomExpression();
+    const std::string expId = self->model->SetRandomExpression();
     
     PyObject* pyExpIdStr = Py_BuildValue("s", expId.c_str());
 
@@ -261,8 +261,8 @@ static PyObject* PyLAppModel_SetRandomExpression(PyLAppModelObject* self, PyObje
     }
     else
     {
-        self->lastExpression = std::string(expId);
-        Info("set default expression: %s", expId);
+        self->lastExpression = expId;
+        Info("set default expression: %s", expId.c_str());
     }
    
     return pyExpIdStr;

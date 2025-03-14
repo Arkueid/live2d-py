@@ -38,12 +38,17 @@ def main():
 
     expIds = model.GetExpressionIds()
     motionGroups = model.GetMotionGroups()
+    paramIds = model.GetParamIds()
 
     print(expIds)
 
     print("===")
 
     print(motionGroups)
+
+    print("===")
+
+    print(paramIds)
 
     while True:
         for event in pygame.event.get():
@@ -55,6 +60,7 @@ def main():
             break
 
         model.Update()
+        paramIds = model.GetParamIds()
         expIds = model.GetExpressionIds()
         motionGroups = model.GetMotionGroups()
 
