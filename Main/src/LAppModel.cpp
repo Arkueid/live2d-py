@@ -59,7 +59,7 @@ public:
 LAppModel::LAppModel()
     : CubismUserModel(), _modelSetting(nullptr), _autoBlink(true), _autoBreath(true),
       _matrixManager(), _tmpOrderedDrawIndices(nullptr), _defaultParameterValues(nullptr),
-      _parameterValues(nullptr), _parameterCount(0), _clearMotionFlag(false)
+      _parameterValues(nullptr), _parameterCount(0), _clearMotionFlag(false), _lastFrame(0.0), _currentFrame(0.0)
 {
     _mocConsistency = MocConsistencyValidationEnable;
 
@@ -368,7 +368,7 @@ void LAppModel::ReleaseExpressions()
 void LAppModel::Update()
 {
     _currentFrame = LAppPal::GetCurrentTimePoint();
-    _deltaTimeSeconds = std::min(0.1f, _currentFrame - _lastFrame); // 防止间隔过大导致后续状态异常
+    _deltaTimeSeconds = static_cast<float>(std::min(0.1, _currentFrame - _lastFrame)); // 防止间隔过大导致后续状态异常
     _lastFrame = _currentFrame;
 
     _dragManager->Update(_deltaTimeSeconds);

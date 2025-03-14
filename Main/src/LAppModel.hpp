@@ -281,8 +281,8 @@ private:
 
     int* _tmpOrderedDrawIndices;
 
-    float _currentFrame;
-    float _lastFrame;
+    double _currentFrame;
+    double _lastFrame;
     float _deltaTimeSeconds;
 
     // used to clear motion effect

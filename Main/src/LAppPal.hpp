@@ -42,5 +42,5 @@ public:
 
     static void PrintLn(const Csm::csmChar* message);
 
-    static float GetCurrentTimePoint();
+    static double GetCurrentTimePoint();
 };
