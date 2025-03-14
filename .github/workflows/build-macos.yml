@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ '3.11.0', '3.12.0' ] # versions under 3.11 are not supported on arm64
+        python-version: [ '3.11.0', '3.12.0', '3.13' ] # versions under 3.11 are not supported on arm64
       fail-fast: false
     
     steps:
