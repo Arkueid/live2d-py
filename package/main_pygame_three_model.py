@@ -4,6 +4,8 @@ import live2d.v3 as l2d_v3
 import live2d.v2 as l2d_v2
 import resources
 
+import faulthandler
+faulthandler.enable()
 
 def main():
     pygame.init()

@@ -36,7 +36,9 @@ struct PyLAppModelObject
 static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* kwds)
 {
     self->model = new LAppModel();
-    self->lastExpression = "";
+    // 结构体绕过了构造函数，
+    // 其底层char数组指针可能未指向可用空间，导致访问出错
+    new (&self->lastExpression) std::string(""); 
     self->expStartedAt = -1;
     self->fadeout = -1;
     Info("[M] allocate cpp LAppModel(at=%p)", self->model);
@@ -46,6 +48,7 @@ static int PyLAppModel_init(PyLAppModelObject* self, PyObject* args, PyObject* k
 static void PyLAppModel_dealloc(PyLAppModelObject* self)
 {
     Info("[M] deallocate: cpp LAppModel(at=%p)", self->model);
+    self->lastExpression.~basic_string();
     delete self->model;
     Info("[M] deallocate: PyLAppModelObject(at=%p)", self);
     PyObject_Free(self);
