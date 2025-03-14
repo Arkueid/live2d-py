@@ -41,7 +41,7 @@ def main():
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, 
                                          "v3/llny/llny.model3.json"
-                                        # "v3/whitecat/SDwhite cat free.model3.json"
+                                        # "v3/whitecat/sdwhite cat free.model3.json"
                                          ))
     elif live2d.LIVE2D_VERSION == 2:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
@@ -51,6 +51,8 @@ def main():
 
     params = Params()
     td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
+
+    # model.SetAutoBreathEnable(False)
 
     while True:
         for event in pygame.event.get():

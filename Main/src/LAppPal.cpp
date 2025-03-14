@@ -69,7 +69,7 @@ void LAppPal::PrintLn(const Csm::csmChar *message)
     Info(message);
 }
 
-double LAppPal::GetCurrentTimePoint()
+float LAppPal::GetCurrentTimePoint()
 {
-    return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    return std::chrono::duration<float>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }

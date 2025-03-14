@@ -368,7 +368,7 @@ void LAppModel::ReleaseExpressions()
 void LAppModel::Update()
 {
     _currentFrame = LAppPal::GetCurrentTimePoint();
-    _deltaTimeSeconds = std::min(0.1f, static_cast<float>(_currentFrame - _lastFrame)); // 防止间隔过大导致后续状态异常
+    _deltaTimeSeconds = std::min(0.1f, _currentFrame - _lastFrame); // 防止间隔过大导致后续状态异常
     _lastFrame = _currentFrame;
 
     _dragManager->Update(_deltaTimeSeconds);

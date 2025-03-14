@@ -17,8 +17,8 @@ def main():
     l2d_v3.glewInit()
     l2d_v2.glewInit()
 
-    model_v3 = l2d_v3.LAppModel()
     model_v2 = l2d_v2.LAppModel()
+    model_v3 = l2d_v3.LAppModel()
     model_v3_2 = l2d_v3.LAppModel()
 
     model_v3.LoadModelJson(
