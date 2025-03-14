@@ -61,7 +61,6 @@ def main():
         if not running:
             break
 
-        model.Update()
         if params:
             # 较大程度的解決抖动问题，Params类中的smooth_factor控制平滑度
             params.update_params(params)
@@ -78,6 +77,7 @@ def main():
         model.SetParameterValue("Param14", 1, 1)
 
         live2d.clearBuffer()
+        model.Update()
         model.Draw()
         pygame.display.flip()
         pygame.time.wait(int(1000 / 60))

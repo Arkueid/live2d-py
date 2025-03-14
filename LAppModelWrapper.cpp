@@ -384,6 +384,22 @@ static PyObject* PyLAppModel_SetParameterValue(PyLAppModelObject* self, PyObject
     Py_RETURN_NONE;
 }
 
+static PyObject* PyLAppModel_SetIndexParamValue(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float value, weight = 1.0f;
+
+    if (PyArg_ParseTuple(args, "if|f", &index, &value, &weight) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params (int, float, float)");
+        return NULL;
+    }
+
+    self->model->SetIndexParamValue(index, value, weight);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject* args)
 {
     const char* paramId;
@@ -396,6 +412,22 @@ static PyObject* PyLAppModel_AddParameterValue(PyLAppModelObject* self, PyObject
     }
 
     self->model->AddParameterValue(paramId, value);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* PyLAppModel_AddIndexParamValue(PyLAppModelObject* self, PyObject* args)
+{
+    int index;
+    float value;
+
+    if (PyArg_ParseTuple(args, "sf", &index, &value) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid params (str, float)");
+        return NULL;
+    }
+
+    self->model->AddIndexParamValue(index, value);
 
     Py_RETURN_NONE;
 }
@@ -513,6 +545,22 @@ static PyObject* PyLAppModel_GetParameter(PyLAppModelObject* self, PyObject* arg
     self->model->GetParameter(index, id, type, value, maxValue, minValue, defaultValue);
 
     return CreatePyParameter(id, type, value, maxValue, minValue, defaultValue);
+}
+
+static PyObject* PyLAppModel_GetParamIds(PyLAppModelObject* self, PyObject* args)
+{
+    const int size = self->model->GetParameterCount();
+    PyObject* list = PyList_New(size);
+    const char* id;
+    int type;
+    float value, maxValue, minValue, defaultValue;
+    for (int i = 0; i < size; i++)
+    {
+        self->model->GetParameter(i, id, type, value, maxValue, minValue, defaultValue);
+        PyObject* str = Py_BuildValue("s", id);
+        PyList_SetItem(list, i, str);
+    }
+    return list;
 }
 
 static PyObject* PyLAppModel_GetParameterValue(PyLAppModelObject* self, PyObject* args)
@@ -715,9 +763,12 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"SetAutoBlinkEnable", (PyCFunction)PyLAppModel_SetAutoBlinkEnable, METH_VARARGS, ""},
 
     {"SetParameterValue", (PyCFunction)PyLAppModel_SetParameterValue, METH_VARARGS, ""},
+    {"SetIndexParamValue", (PyCFunction)PyLAppModel_SetIndexParamValue, METH_VARARGS, ""},
     {"AddParameterValue", (PyCFunction)PyLAppModel_AddParameterValue, METH_VARARGS, ""},
+    {"AddIndexParamValue", (PyCFunction)PyLAppModel_AddIndexParamValue, METH_VARARGS, ""},
     {"GetParameterCount", (PyCFunction)PyLAppModel_GetParameterCount, METH_VARARGS, ""},
     {"GetParameter", (PyCFunction)PyLAppModel_GetParameter, METH_VARARGS, ""},
+    {"GetParamIds", (PyCFunction)PyLAppModel_GetParamIds, METH_VARARGS, ""},
     {"GetParameterValue", (PyCFunction)PyLAppModel_GetParameterValue, METH_VARARGS, ""},
 
     {"GetPartCount", (PyCFunction)PyLAppModel_GetPartCount, METH_VARARGS, ""},

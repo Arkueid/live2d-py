@@ -142,7 +142,11 @@ public:
 
     void SetParameterValue(const char* paramId, float value, float weight = 1.0f);
 
+    void SetIndexParamValue(int index, float value, float weight = 1.0f);
+
     void AddParameterValue(const char* paramId, float value);
+
+    void AddIndexParamValue(int index, float value);
 
     void SetAutoBreathEnable(bool enable);
 
@@ -258,6 +262,13 @@ private:
     const Csm::CubismId* _idParamEyeBallX; ///< パラメータID: ParamEyeBallX
     const Csm::CubismId* _idParamEyeBallY; ///< パラメータID: ParamEyeBallXY
     // 附加id，详见 https://docs.live2d.com/en/cubism-editor-manual/standard-parameter-list/
+
+    int _iParamAngleX;
+    int _iParamAngleY;
+    int _iParamAngleZ;
+    int _iParamBodyAngleX;
+    int _iParamEyeBallX;
+    int _iParamEyeBallY;
 
     LAppTextureManager _textureManager; ///< 纹理管理器
 

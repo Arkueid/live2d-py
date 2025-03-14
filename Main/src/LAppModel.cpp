@@ -272,6 +272,13 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     _defaultParameterValues = Live2D::Cubism::Core::csmGetParameterDefaultValues(model);
     _parameterValues = Live2D::Cubism::Core::csmGetParameterValues(model);
     _parameterCount = Live2D::Cubism::Core::csmGetParameterCount(model);
+
+    _iParamAngleX = _model->GetParameterIndex(_idParamAngleX);
+    _iParamAngleY = _model->GetParameterIndex(_idParamAngleY);
+    _iParamAngleZ = _model->GetParameterIndex(_idParamAngleZ);
+    _iParamBodyAngleX = _model->GetParameterIndex(_idParamBodyAngleX);
+    _iParamEyeBallX = _model->GetParameterIndex(_idParamEyeBallX);
+    _iParamEyeBallY = _model->GetParameterIndex(_idParamEyeBallY);
 }
 
 void LAppModel::PreloadMotionGroup(const csmChar *group)
@@ -400,16 +407,16 @@ void LAppModel::Update()
 
     // ドラッグによる変化
     // ドラッグによる顔の向きの調整
-    _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
-    _model->AddParameterValue(_idParamAngleY, _dragY * 30);
-    _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
+    _model->AddParameterValue(_iParamAngleX, _dragX * 30); // -30から30の値を加える
+    _model->AddParameterValue(_iParamAngleY, _dragY * 30);
+    _model->AddParameterValue(_iParamAngleZ, _dragX * _dragY * -30);
 
     // ドラッグによる体の向きの調整
-    _model->AddParameterValue(_idParamBodyAngleX, _dragX * 10); // -10から10の値を加える
+    _model->AddParameterValue(_iParamBodyAngleX, _dragX * 10); // -10から10の値を加える
 
     // ドラッグによる目の向きの調整
-    _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
-    _model->AddParameterValue(_idParamEyeBallY, _dragY);
+    _model->AddParameterValue(_iParamEyeBallX, _dragX); // -1から1の値を加える
+    _model->AddParameterValue(_iParamEyeBallY, _dragY);
 
     // 呼吸など
     if (_autoBreath && _breath != NULL)
@@ -732,10 +739,20 @@ void LAppModel::SetParameterValue(const char *paramId, float value, float weight
     _model->SetAndSaveParameterValue(paramHanle, value, weight);
 }
 
+void LAppModel::SetIndexParamValue(int index, float value, float weight)
+{
+    _model->SetAndSaveParameterValue(index, value, weight);
+}
+
 void LAppModel::AddParameterValue(const char *paramId, float value)
 {
     const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
     _model->AddAndSaveParameterValue(paramHanle, value);
+}
+
+void LAppModel::AddIndexParamValue(int index, float value)
+{
+    _model->AddAndSaveParameterValue(index, value);
 }
 
 void LAppModel::SetAutoBreathEnable(bool enable)
