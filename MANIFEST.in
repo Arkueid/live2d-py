@@ -1,8 +1,7 @@
 recursive-include Core *
-recursive-include stb_image *
-recursive-include Main *
-recursive-include glew *
+recursive-include Glad *
 recursive-include Framework *
-recursive-include package *
+recursive-include Main *
+include package.live2d
 include CMakeLists.txt
 include LAppModelWrapper.cpp
