@@ -62,6 +62,7 @@ jobs:
       #   run: python -m auditwheel repair dist/*.whl --plat manylinux2014_x86_64 -w fix-dist/
 
       - name: Publish distribution to PyPI
+        if: ${{ matrix.python-version == '3.13' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
