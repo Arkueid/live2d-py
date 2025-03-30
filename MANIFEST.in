@@ -2,6 +2,7 @@ recursive-include Core *
 recursive-include Glad *
 recursive-include Framework *
 recursive-include Main *
+recursive-include cmake *
 include package.live2d
 include CMakeLists.txt
 include LAppModelWrapper.cpp
