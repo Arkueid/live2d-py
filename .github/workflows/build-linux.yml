@@ -46,7 +46,6 @@ jobs:
 
       - name: Build a binary wheel
         run: |
-          python setup.py build_ext
           python setup.py bdist_wheel
 
       - name: Upload Wheel to Release
