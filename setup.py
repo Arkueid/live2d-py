@@ -4,7 +4,7 @@ import re
 import subprocess
 import sys
 
-from setuptools import setup
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.bdist_wheel import bdist_wheel
@@ -27,7 +27,12 @@ def is_virtualenv():
 def get_base_python_path(venv_path):
     return re.search("home = (.*)\n", open(os.path.join(venv_path, "pyvenv.cfg"), 'r').read()).group(1)
 
+
+cmake_built = False
 def run_cmake():
+    global cmake_built
+    if cmake_built: return
+
     cmake_args = []
     build_args = ["--config", "Release"]
 
@@ -68,6 +73,15 @@ def run_cmake():
     sys.stdout.flush()
     subprocess.check_call(cmake_build, cwd=build_folder)
 
+    cmake_built = True
+
+
+class FakeExtension(Extension):
+
+    def __init__(self, name, sourcedir=""):
+        Extension.__init__(self, name, sources=[], py_limited_api=True)
+        self.sourcedir = os.path.abspath(sourcedir)
+
 
 class CMakeBuild(build_ext):
 
@@ -98,13 +112,15 @@ setup(
     license="LICENSE",
     url=URL,
     install_requires=INSTALL_REQUIRES,
+    ext_modules=[FakeExtension("LAppModelWrapper", ".")],
     cmdclass={
         "build_ext": CMakeBuild,
         "bdist_wheel": BuildWheel,
         "install": Install
     },
-    packages=["package.live2d"],
-    package_data={"package.live2d": ["*", "**/*.pyd", "**/*.so", "**/*.pyi", "**/*.py"]},
+    packages=["live2d"],
+    package_data={"live2d": ["**/*.pyd", "**/*.so", "**/*.pyi", "**/*.py"]},
+    package_dir={"live2d": "package/live2d"},
     keywords=["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"],
     python_requires=REQUIRES_PYTHON
 )

@@ -36,7 +36,9 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Install build deps
-        run: python -m pip install setuptools wheel
+        run: |
+          python -m pip install --upgrade setuptools 
+          python -m pip install wheel
       
       - name: Build a source tarball
         if: ${{ matrix.python-version == '3.13'}}
