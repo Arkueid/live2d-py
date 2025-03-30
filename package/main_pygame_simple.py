@@ -24,8 +24,8 @@ def main():
     else:
         model.LoadModelJson(
             os.path.join(resources.RESOURCES_DIRECTORY, 
-                        #  "v2/kasumi2/kasumi2.model.json"
-                        "v2/haru/haru.model.json"
+                         "v2/kasumi2/kasumi2.model.json"
+                        # "v2/haru/haru.model.json"
                          )
         )
 

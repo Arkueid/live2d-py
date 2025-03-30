@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 requires-python = ">=3.2"
-dynamic = ["version"]
+dynamic = ["version", "license"]
 name = "live2d-py"
 dependencies = [
     "pyopengl",
@@ -16,7 +16,6 @@ authors = [
 ]
 description = "A non-web Live2D library for Python."
 readme = "README.md"
-license = {file = "LICENSE"}
 keywords = ["Live2D", "Cubism Live2D", "Cubism SDK", "Cubism SDK for Python"]
 
 [project.urls]
