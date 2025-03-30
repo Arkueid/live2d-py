@@ -75,19 +75,18 @@ Starting from live2d-py 0.3.2, the Python C Limited API is used, theoretically s
 * **Cubism 3.0+ models**: File formats typically include `XXX.moc3`, `XXX.model3.json`, `XXX.motion3.json`.  
 
 # Installation
-1. Integrate the `package/live2d` module directly into your project.  
 
-2. Download the corresponding `.whl` file from [Releases](https://github.com/Arkueid/live2d-py/releases/latest) and install it (recommended):  
+1. Download the corresponding `.whl` file from [Releases](https://github.com/Arkueid/live2d-py/releases/latest) and install it (recommended):  
 ```shell
 pip install live2d_py-0.X.X-cpXXX-cpXXX-win32.whl  
 ```
 
-3. Install via [PyPI](https://pypi.org/project/live2d-py/)
+2. Install via [PyPI](https://pypi.org/project/live2d-py/)
 ```
 pip install live2d-py  
 ```
 
-4. Build from source. Refer to [安装#源码构建](https://github.com/Arkueid/live2d-py/wiki/%E5%AE%89%E8%A3%85#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA). 
+3. Build from source. Refer to [安装#源码构建](https://github.com/Arkueid/live2d-py/wiki/%E5%AE%89%E8%A3%85#%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA). 
 
 ## Demos
 
