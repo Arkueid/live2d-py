@@ -11,11 +11,10 @@ import time
 import pygame
 from pygame.locals import *
 
+# roation is only for v3
 import live2d.v3 as live2d
 from live2d.v3 import StandardParams
 from live2d.utils import log
-# import live2d.v2 as live2d
-# from live2d.v2 import StandardParams
 
 
 import resources
@@ -38,20 +37,19 @@ def main():
 
     model = live2d.LAppModel()
 
-    if live2d.LIVE2D_VERSION == 3:
-        model.LoadModelJson(
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/liveroiD_A-Y01/liveroiD_A-Y01.model3.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")
-            os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/magic/magic.model3.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
-            # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Hiyori/Hiyori.model3.json")
-        )
-    else:
-        model.LoadModelJson(
-            os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json")
-        )
+
+    model.LoadModelJson(
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/liveroid/liveroiD_A-Y01/liveroiD_A-Y01.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Mao/Mao.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/magic/magic.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/Hiyori/Hiyori.model3.json")
+        os.path.join(resources.RESOURCES_DIRECTORY, "v3/小九/小九皮套（红）/小九.model3.json")
+        # os.path.join(resources.RESOURCES_DIRECTORY, "v3/金发大小姐/金发大小姐.model3.json")
+    )
+
 
     model.Resize(*display)
 

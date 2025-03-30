@@ -7,7 +7,7 @@ from ..util import UtInterpolate
 
 
 class WarpDeformer(Deformer):
-    gT_ = [False]
+    paramOutSide = [False]
 
     def __init__(self):
         super().__init__()
@@ -47,7 +47,7 @@ class WarpDeformer(Deformer):
             return
 
         aL = self.VT_()
-        aH = WarpDeformer.gT_
+        aH = WarpDeformer.paramOutSide
         aH[0] = False
         UtInterpolate.interpolatePoints(modelContext, self.pivotMgr, aH, aL, self.pivotPoints, aK.interpolatedPoints, 0,
                                         2)
