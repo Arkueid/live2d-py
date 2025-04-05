@@ -1,12 +1,12 @@
-﻿from typing import List
+﻿from typing import List, Any
 from typing import TYPE_CHECKING
 
 from .ut_system import UtSystem
 from ..type import Float32Array
 
 if TYPE_CHECKING:
-    from live2d.core.model_context import ModelContext
-    from live2d.core.param import PivotManager
+    from ..model_context import ModelContext
+    from ..param import PivotManager
 
 
 class UtInterpolate:
@@ -120,6 +120,7 @@ class UtInterpolate:
         pivotMgr.calcPivotIndices(a2, a9, a1)
         if a1 <= 0:
             return pivotValue[a2[0]]
+
         if a1 == 1:
             bj = pivotValue[a2[0]]
             bi = pivotValue[a2[1]]
@@ -350,7 +351,7 @@ class UtInterpolate:
 
                 bJ[bj] = aM
 
-            bg = Float32Array(b4)
+            bg: List[List[float]] | List[Any] = Float32Array(b4)
             for aX in range(0, b4, 1):
                 bg[aX] = pivotPoints[bw[aX]]
 

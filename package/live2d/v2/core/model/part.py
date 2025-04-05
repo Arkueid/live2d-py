@@ -1,5 +1,4 @@
-﻿from typing import TYPE_CHECKING, Optional
-
+﻿from typing import TYPE_CHECKING, Optional, List
 
 from .parts_context import PartsDataContext
 from ..io.iserializable import ISerializable
@@ -17,7 +16,7 @@ class PartsData(ISerializable):
         self.locked = False
         self.id: Optional['Id'] = None
         self.deformerList = None
-        self.drawDataList: list[Mesh] | None = None
+        self.drawDataList: List[Mesh] | None = None
 
     def initDirect(self):
         self.deformerList = Array()

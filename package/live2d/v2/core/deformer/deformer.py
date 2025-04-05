@@ -44,8 +44,10 @@ class Deformer(ISerializable):
     def interpolateOpacity(self, mdc, pivotMgr: 'PivotManager', bctx: 'DeformerContext', ret: List[bool]):
         if self.pivotOpacities is None:
             bctx.setInterpolatedOpacity(1)
+            # raise RuntimeError
         else:
             bctx.setInterpolatedOpacity(UtInterpolate.interpolateFloat(mdc, pivotMgr, ret, self.pivotOpacities))
+            # print(bctx.getInterpolatedOpacity())
 
     @abstractmethod
     def setupTransform(self, mc, dc) -> bool:

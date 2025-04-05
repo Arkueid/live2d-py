@@ -245,6 +245,7 @@ class ModelContext:
                     aJ = aI.partsIndex
                     aL = self.partsContextList[aJ]
                     aI.partsOpacity = aL.getPartsOpacity()
+                    # print(aL.partsData.id.id, aH.id.id, aH.clipID)
                     aH.draw(aM, self, aI)
 
                 aO = self.nextList_drawIndex[aN]

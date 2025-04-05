@@ -6,7 +6,6 @@ from PIL import Image
 
 from .core import Live2DModelOpenGL
 
-
 class PlatformManager:
 
     def loadBytes(self, path) -> bytes:

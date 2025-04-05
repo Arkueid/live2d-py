@@ -64,7 +64,7 @@ class IDrawData(ISerializable):
         return ls
 
     def setupInterpolate(self, aI, aH: 'MeshContext'):
-        aH.paramOutside = [False] # TODO: 這裡有問題
+        aH.paramOutside = [False]
         aH.interpolatedDrawOrder = UtInterpolate.interpolateInt(aI, self.pivotMgr, aH.paramOutside,
                                                                 self.pivotDrawOrders)
         if not Live2D.L2D_OUTSIDE_PARAM_AVAILABLE and aH.paramOutside[0]:

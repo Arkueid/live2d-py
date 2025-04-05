@@ -60,20 +60,12 @@ class PivotManager(ISerializable):
                         aT = 0
                     else:
                         aP = 0
-                        if isinstance(ret, list):
-                            ret[0] = True
-                        else:
-                            ret = [True]
+                        ret[0] = True
                 else:
                     aS = aM[0]
                     if aU < aS - GOSA:
                         aP = 0
-                        # TODO: 不清楚原因，需要找其他模型测试
-                        # 其他分支对ret的赋值有可能导致问题
-                        if isinstance(ret, list): # by heurry@Github
-                            ret[0] = True
-                        else:
-                            ret = [True]
+                        ret[0] = True
                     else:
                         if aU < aS + GOSA:
                             aP = 0

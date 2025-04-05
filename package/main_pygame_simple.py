@@ -24,9 +24,10 @@ def main():
     else:
         model.LoadModelJson(
             os.path.join(resources.RESOURCES_DIRECTORY, 
-                        #  "v2/kasumi2/kasumi2.model.json"
+                         "v2/kasumi2/kasumi2.model.json"
                         # "v2/haru/haru.model.json"
-                        "v2/托尔/model0.json"
+                        # "v2/托尔/model0.json"
+                         # "v2/shizuku/shizuku.model.json"
                          )
         )
 
@@ -42,6 +43,7 @@ def main():
                 model.Drag(*pygame.mouse.get_pos())
             elif event.type == pygame.MOUSEBUTTONUP:
                 model.SetRandomExpression()
+                model.StartRandomMotion()
         
         if not running:
             break

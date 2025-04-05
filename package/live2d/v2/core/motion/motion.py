@@ -11,4 +11,4 @@
     def __init__(self):
         self.paramIdStr = None
         self.values = None
-        self.mtnType = None
+        self.mtnType = -1

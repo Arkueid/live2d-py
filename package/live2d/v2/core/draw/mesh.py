@@ -174,7 +174,10 @@ class Mesh(IDrawData):
         if texNr < 0:
             texNr = 1
 
-        opacity = self.getOpacity(dctx) * dctx.partsOpacity * dctx.baseOpacity
+        opacity = (self.getOpacity(dctx) *
+                    dctx.partsOpacity *
+                    dctx.baseOpacity)
+        # print("op1: ", opacity)
         vertices = dctx.transformedPoints if (dctx.transformedPoints is not None) else dctx.interpolatedPoints
         dp.setClipBufPre_clipContextForDraw(dctx.clipBufPre_clipContext)
         dp.setCulling(self.culling)

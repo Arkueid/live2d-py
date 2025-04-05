@@ -72,6 +72,7 @@ class DrawParamOpenGL(DrawParam):
         a2 = self.baseGreen * opacity
         a5 = self.baseBlue * opacity
         a7 = self.baseAlpha * opacity
+        # print("baseColor", a_w, a2, a5, a7)
         if self.clipBufPre_clipContextMask is not None:
             # 根据蒙版进行裁剪
             gl.frontFace(gl.CCW)
@@ -149,21 +150,29 @@ class DrawParamOpenGL(DrawParam):
         dst_color = None
         dst_factor = None
 
-        if comp == Mesh.COLOR_COMPOSITION_NORMAL:
+        if self.clipBufPre_clipContextMask is not None:
             src_color = gl.ONE
             src_factor = gl.ONE_MINUS_SRC_ALPHA
             dst_color = gl.ONE
             dst_factor = gl.ONE_MINUS_SRC_ALPHA
-        elif comp == Mesh.COLOR_COMPOSITION_SCREEN:
-            src_color = gl.ONE
-            src_factor = gl.ONE
-            dst_color = gl.ZERO
-            dst_factor = gl.ONE
-        elif comp == Mesh.COLOR_COMPOSITION_MULTIPLY:
-            src_color = gl.DST_COLOR
-            src_factor = gl.ONE_MINUS_SRC_ALPHA
-            dst_color = gl.ZERO
-            dst_factor = gl.ONE
+        else:
+            if comp == Mesh.COLOR_COMPOSITION_NORMAL:
+                src_color = gl.ONE
+                src_factor = gl.ONE_MINUS_SRC_ALPHA
+                dst_color = gl.ONE
+                dst_factor = gl.ONE_MINUS_SRC_ALPHA
+            elif comp == Mesh.COLOR_COMPOSITION_SCREEN:
+                src_color = gl.ONE
+                src_factor = gl.ONE
+                dst_color = gl.ZERO
+                dst_factor = gl.ONE
+            elif comp == Mesh.COLOR_COMPOSITION_MULTIPLY:
+                src_color = gl.DST_COLOR
+                src_factor = gl.ONE_MINUS_SRC_ALPHA
+                dst_color = gl.ZERO
+                dst_factor = gl.ONE
+            else:
+                raise RuntimeError("unknown comp")
 
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
         gl.blendFuncSeparate(src_color, src_factor, dst_color, dst_factor)
@@ -253,8 +262,10 @@ class DrawParamOpenGL(DrawParam):
               "    gl_Position = u_mvpMatrix * vec4(a_position, 0.0, 1.0);"
               "    v_clipPos = gl_Position;"
               "    v_texCoord = a_texCoord;"
-              "    v_texCoord.y = 1.0 - v_texCoord.y;}")
+              "    v_texCoord.y = 1.0 - v_texCoord.y;"
+              "}")
         aM = ("#version 120\n"
+              "precision mediump float;"
               "varying vec2       v_texCoord;"
               "varying vec4       v_clipPos;"
               "uniform sampler2D  s_texture0;"
@@ -274,10 +285,10 @@ class DrawParamOpenGL(DrawParam):
               "        smpColor = u_channelFlag * texture2D(s_texture0, v_texCoord).a * isInside;"
               "    }else{"
               "        smpColor = texture2D(s_texture0 , v_texCoord);"
+              "        smpColor.rgb = smpColor.rgb * smpColor.a;"
               "        smpColor.rgb = smpColor.rgb * u_multiplyColor.rgb;"
               "        smpColor.rgb = smpColor.rgb + u_screenColor.rgb - (smpColor.rgb * u_screenColor.rgb);"
               "        smpColor = smpColor * u_baseColor;"
-              "        smpColor = vec4(smpColor.rgb * smpColor.a, smpColor.a);"
               "    }"
               "    gl_FragColor = smpColor;}")
         aL = ("#version 120\n"
@@ -292,8 +303,11 @@ class DrawParamOpenGL(DrawParam):
               "    gl_Position = u_mvpMatrix * pos;"
               "    v_clipPos = u_clipMatrix * pos;"
               "    v_texCoord = a_texCoord;"
-              "    v_texCoord.y = 1.0 - v_texCoord.y;}")
+              "    v_texCoord.y = 1.0 - v_texCoord.y;"
+              "}"
+              )
         aJ = ("#version 120\n"
+              "precision mediump float;"
               "varying   vec2   v_texCoord;"
               "varying   vec4   v_clipPos;"
               "uniform sampler2D  s_texture0;"
