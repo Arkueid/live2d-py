@@ -1016,3 +1016,8 @@ void LAppModel::GetMotionGroups(void *collector, void (*callback)(void *collecto
         callback(collector, group, _modelSetting->GetMotionCount(group));
     }
 }
+
+const char* LAppModel::GetSoundPath(const char *group, int index)
+{
+    return _modelSetting->GetMotionSoundFileName(group, index);
+}

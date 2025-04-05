@@ -204,6 +204,8 @@ public:
 
     void GetMotionGroups(void* collector, void(*callback)(void* collector, const char* groupName, int count));
 
+    const char* GetSoundPath(const char* group, int index);
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。

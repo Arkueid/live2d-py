@@ -277,3 +277,6 @@ class LAppModel:
 
     def GetMotionGroups(self) -> dict[str, int]:
         ...
+
+    def GetSoundPath(self, group: str, index: int) -> str:
+        ...

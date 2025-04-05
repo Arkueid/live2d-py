@@ -741,6 +741,18 @@ static PyObject* PyLAppModel_GetMotionGroups(PyLAppModelObject* self, PyObject* 
     return dict;
 }
 
+static PyObject* PyLAppModel_GetSoundPath(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    const char* group;
+    int index;
+    if (PyArg_ParseTuple(args, "si", &group, &index) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Invalid param");
+        return NULL;
+    }
+    return Py_BuildValue("s", self->model->GetSoundPath(group, index));
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -793,6 +805,8 @@ static PyMethodDef PyLAppModel_methods[] = {
 
     {"GetExpressionIds", (PyCFunction)PyLAppModel_GetExpressionIds, METH_VARARGS | METH_KEYWORDS, ""},
     {"GetMotionGroups", (PyCFunction)PyLAppModel_GetMotionGroups, METH_VARARGS | METH_KEYWORDS, ""},
+
+    {"GetSoundPath", (PyCFunction)PyLAppModel_GetSoundPath, METH_VARARGS | METH_KEYWORDS, ""},
 
     {NULL} // 方法列表结束的标志
 };

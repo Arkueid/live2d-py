@@ -1,7 +1,7 @@
 import os
 import pygame
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 import resources
 
 
@@ -24,9 +24,9 @@ def main():
     else:
         model.LoadModelJson(
             os.path.join(resources.RESOURCES_DIRECTORY, 
-                         "v2/kasumi2/kasumi2.model.json"
+                         # "v2/kasumi2/kasumi2.model.json"
                         # "v2/haru/haru.model.json"
-                        # "v2/托尔/model0.json"
+                        "v2/托尔/model0.json"
                          # "v2/shizuku/shizuku.model.json"
                          )
         )
