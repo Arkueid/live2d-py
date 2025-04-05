@@ -1,16 +1,16 @@
 ﻿from abc import ABC
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from live2d.core.deformer import Deformer
+    from .deformer import Deformer
 
 
 class DeformerContext(ABC):
 
     def __init__(self, deformer: 'Deformer'):
         self.partsIndex = None
-        self.outsideParam = False
+        self.outsideParam: List[bool] = [False]
         self.available = True
         self.deformer = deformer
         self.totalScale = 1.0
@@ -18,7 +18,7 @@ class DeformerContext(ABC):
         self.totalOpacity = 1.0
 
     def isAvailable(self) -> bool:
-        return self.available and not self.outsideParam
+        return self.available and not self.outsideParam[0]
 
     def setAvailable(self, value: bool):
         self.available = value
@@ -33,10 +33,10 @@ class DeformerContext(ABC):
         return self.partsIndex
 
     def isOutsideParam(self):
-        return self.outsideParam
+        return self.outsideParam[0]
 
-    def setOutsideParam(self, value):
-        self.outsideParam = value
+    def setOutsideParam(self, value: bool):
+        self.outsideParam[0] = value
 
     def getTotalScale(self):
         return self.totalScale

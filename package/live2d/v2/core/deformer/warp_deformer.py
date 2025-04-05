@@ -46,7 +46,7 @@ class WarpDeformer(Deformer):
         if not self.pivotMgr.checkParamUpdated(modelContext):
             return
 
-        aL = self.VT_()
+        aL = self.getPointCount()
         aH = WarpDeformer.paramOutSide
         aH[0] = False
         UtInterpolate.interpolatePoints(modelContext, self.pivotMgr, aH, aL, self.pivotPoints, aK.interpolatedPoints, 0,
@@ -76,7 +76,7 @@ class WarpDeformer(Deformer):
                     aL.setTotalScale_notForClient(aM)
                     aO = aI.getTotalOpacity()
                     aL.setTotalOpacity(aO * aL.getInterpolatedOpacity())
-                    aN.transformPoints(modelContext, aI, aL.interpolatedPoints, aL.transformedPoints, self.VT_(), 0, 2)
+                    aN.transformPoints(modelContext, aI, aL.interpolatedPoints, aL.transformedPoints, self.getPointCount(), 0, 2)
                     aL.setAvailable(True)
                 else:
                     aL.setAvailable(False)
@@ -86,7 +86,7 @@ class WarpDeformer(Deformer):
         WarpDeformer.transformPoints_sdk2(srcPoints, dstPoints, numPoint, ptOffset, ptStep, pivot_points, self.row,
                                           self.col)
 
-    def VT_(self):
+    def getPointCount(self):
         return (self.row + 1) * (self.col + 1)
 
     def getType(self):

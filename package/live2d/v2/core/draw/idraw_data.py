@@ -5,6 +5,10 @@ from ..id import Id
 from ..io.iserializable import ISerializable
 from ..live2d import Live2D
 from ..util import UtInterpolate
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from  .mesh_context import MeshContext
 
 
 class IDrawData(ISerializable):
@@ -59,11 +63,11 @@ class IDrawData(ISerializable):
         ls = s.id.split(",")
         return ls
 
-    def setupInterpolate(self, aI, aH):
-        aH.paramOutside = False
+    def setupInterpolate(self, aI, aH: 'MeshContext'):
+        aH.paramOutside = [False] # TODO: 這裡有問題
         aH.interpolatedDrawOrder = UtInterpolate.interpolateInt(aI, self.pivotMgr, aH.paramOutside,
                                                                 self.pivotDrawOrders)
-        if not Live2D.L2D_OUTSIDE_PARAM_AVAILABLE and aH.paramOutside:
+        if not Live2D.L2D_OUTSIDE_PARAM_AVAILABLE and aH.paramOutside[0]:
             return
 
         aH.interpolatedOpacity = UtInterpolate.interpolateFloat(aI, self.pivotMgr, aH.paramOutside, self.pivotOpacities)

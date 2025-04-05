@@ -60,7 +60,10 @@ class PivotManager(ISerializable):
                         aT = 0
                     else:
                         aP = 0
-                        ret[0] = True
+                        if isinstance(ret, list):
+                            ret[0] = True
+                        else:
+                            ret = [True]
                 else:
                     aS = aM[0]
                     if aU < aS - GOSA:
