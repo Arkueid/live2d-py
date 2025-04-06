@@ -16,7 +16,7 @@
     <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
     <img title="CsmSDK" src="https://img.shields.io/badge/CsmSDK-5_r3-orange" alt="CsmSDK" style="margin: 0 10px;">
     <br>
-    <a href="./README.en.md">English README</a>
+    <a href="https://github.com/Arkueid/live2d-py/blob/main/README.en.md">English README</a>
 </p>
 
 使用 Python 直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染。

@@ -217,6 +217,8 @@ class LAppModel(L2DBaseModel):
         for name in self.expressions:
             tmp.append(name)
 
+        if len(tmp) == 0:
+            return
         no = int(random() * len(tmp))
         self.SetExpression(tmp[no])
 

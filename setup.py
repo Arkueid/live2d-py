@@ -10,9 +10,9 @@ from setuptools.command.install import install
 from setuptools.command.bdist_wheel import bdist_wheel
 
 NAME = "live2d-py"
-VERSION = "0.4.5"  # TODO: edit before push
+VERSION = "0.4.6"  # TODO: edit before push
 DESCRIPTION = "Live2D Python SDK"
-LONG_DESCRIPTION = open("README.md", "r", encoding="utf-8").read()
+LONG_DESCRIPTION = open("README.md", "r", encoding="utf-8").read().replace("./", "https://raw.githubusercontent.com/Arkueid/live2d-py/refs/heads/main/")
 AUTHOR = "Arkueid"
 AUTHOR_EMAIL = "thetardis@qq.com"
 URL = "https://github.com/Arkueid/live2d-py"
