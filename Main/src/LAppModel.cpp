@@ -42,19 +42,19 @@ namespace
         Info("delete buffer: %s", path);
         LAppPal::ReleaseBytes(buffer);
     }
-}
 
-class FakeMotion : public ACubismMotion
-{
-protected:
-    void DoUpdateParameters(CubismModel *model, csmFloat32 userTimeSeconds, csmFloat32 weight,
-                            CubismMotionQueueEntry *motionQueueEntry) override
+    class FakeMotion : public ACubismMotion
     {
-    }
+    protected:
+        void DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 weight,
+            CubismMotionQueueEntry* motionQueueEntry) override
+        {
+        }
 
-public:
-    FakeMotion() = default;
-};
+    public:
+        FakeMotion() = default;
+    };
+}
 
 LAppModel::LAppModel()
     : CubismUserModel(), _modelSetting(nullptr), _autoBlink(true), _autoBreath(true),

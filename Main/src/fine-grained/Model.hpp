@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @brief Model.hpp
  * @author Arkueid
  * @date 2025/04/06
@@ -13,6 +13,9 @@
 #include <Model/CubismUserModel.hpp>
 #include <Motion/ACubismMotion.hpp>
 
+#include <LAppTextureManager.hpp>
+#include <MatrixManager.hpp>
+
 using namespace Csm;
 
 class Model : public Csm::CubismUserModel
@@ -23,54 +26,54 @@ public:
 
     /**
      * @brief
-     * @param path model3.json path
+     * @param filePath model3.json path
      */
-    void LoadModelJson(const char *path);
-
-    /**
-     * @brief load motion, expression and pose data
-     * @note must be called after LoadModelJson
-     */
-    void SetupModel();
+    void LoadModelJson(const char *filePath);
 
     // update
 
     /**
      * @brief
-     * @param deltaTime time elapsed since last frame
+     * @param deltaSecs time elapsed since last frame
      * @return true if motion is not finished and motion is updated
      */
-    bool UpdateMotion(float deltaTime);
+    bool UpdateMotion(float deltaSecs);
 
-    void UpdateDrag(float deltaTime);
+    void UpdateDrag(float deltaSecs);
 
-    void UpdateBreath(float deltaTime);
+    void UpdateBreath(float deltaSecs);
 
-    void UpdateBlink(float deltaTime);
+    void UpdateBlink(float deltaSecs);
 
-    void UpdateExpression(float deltaTime);
+    void UpdateExpression(float deltaSecs);
 
-    void UpdatePhysics(float deltaTime);
+    void UpdatePhysics(float deltaSecs);
+
+    void UpdatePose(float deltaSecs);
 
     // param
     void GetParameterIds(std::vector<std::string> &ids);
 
-    float GetParameterValue(const char *id);
+    float GetParameterValue(int index);
 
-    float GetParameterMaximumValue(const char *id);
+    float GetParameterMaximumValue(int index);
 
-    float GetParameterMinimumValue(const char *id);
+    float GetParameterMinimumValue(int index);
 
-    float GetParameterDefaultValue(const char *id);
+    float GetParameterDefaultValue(int index);
 
     void SetParameterValue(const char *id, float value, float weight = 1.0f);
 
     void AddParameterValue(const char *id, float value);
 
-    // transform
-    void SetOffsetX(float x);
+    void LoadParameters();
 
-    void SetOffsetY(float y);
+    void SaveParameters();
+
+    // transform
+    void Resize(int width, int height);
+
+    void SetOffset(float x, float y);
 
     void Rotate(float angle);
 
@@ -78,20 +81,20 @@ public:
 
     // motion
     // TODO
-    void StartMotion(const char *group, int no, int priority,
+    void StartMotion(const char *group, int no, int priority = 3,
                      void *startCallee = nullptr, ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
                      void *finishCallee = nullptr, ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
 
-    void StartRandomMotion(const char *group, int priority,
+    void StartRandomMotion(const char *group = nullptr, int priority = 3,
                            void *startCallee = nullptr, ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
                            void *finishCallee = nullptr, ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
 
     bool IsMotionFinished();
 
-    void LoadExtraMotion(const char* group, const char* motionJsonPath);
+    void LoadExtraMotion(const char* group, int no, const char* motionJsonPath);
 
     // touch
-    void HitPart(float x, float y, std::vector<const char *> partIds, bool topOnly = false);
+    void HitPart(float x, float y, std::vector<const char *>& partIds, bool topOnly = false);
 
     bool IsAreaHit(const char *areaName, float x, float y);
 
@@ -102,37 +105,32 @@ public:
     /**
      * @brief draw model
      */
-    void SetupRenderer();
+    void CreateRenderer(int maskBufferCount = 1);
+    void ReloadRenderer(int maskBufferCount = 1);
 
-    void ReleaseRenderer();
-    
     void Draw();
 
     // part
     void GetPartIds(std::vector<std::string> &ids);
 
-    void SetPartOpacity(const char *partId, float opacity);
+    void SetPartOpacity(int index, float opacity);
 
-    void SetPartScreenColor(const char *partId, float r, float g, float b, float a);
+    void SetPartScreenColor(int index, float r, float g, float b, float a);
 
-    void SetPartMultiplyColor(const char *partId, float r, float g, float b, float a);
+    void SetPartMultiplyColor(int index, float r, float g, float b, float a);
 
     // expression
     void SetExpression(const char *expressionId);
 
     void GetExpressionIds(std::vector<std::string> &ids);
     
-    /**
-     * @brief
-     * @return expression id being set
-     */
-    const char *SetRandomExpression();
+    std::string SetRandomExpression();
 
     void ResetExpression();
 
     void SetDefaultExpression(const char *expressionId);
 
-    void SetFadeOutExpression(const char *expressionId, float fadeOutTime);
+    void SetFadeOutExpression(const char *expressionId, double fadeOutTime);
 
     // reset
     void StopAllMotions();
@@ -142,4 +140,49 @@ public:
     void ResetPose();
 
 private:
+    void ReleaseMotions();
+    void ReleaseExpressions();
+    void SetupTextures();
+    void PreloadMotionGroup(const csmChar* group);
+    void SetupModel();
+private:
+    ICubismModelSetting* _modelSetting;
+    csmVector<CubismIdHandle> _eyeBlinkIds;
+    csmVector<CubismIdHandle> _lipSyncIds;
+
+    csmString _modelHomeDir;
+    csmMap<Csm::csmString, ACubismMotion*> _motions;
+    csmMap<Csm::csmString, ACubismMotion*> _expressions;
+
+    const Csm::CubismId* _idParamAngleX;
+    const Csm::CubismId* _idParamAngleY;
+    const Csm::CubismId* _idParamAngleZ;
+    const Csm::CubismId* _idParamBodyAngleX;
+    const Csm::CubismId* _idParamEyeBallX;
+    const Csm::CubismId* _idParamEyeBallY;
+
+    int _ParamAngleXi;
+    int _ParamAngleYi;
+    int _ParamAngleZi;
+    int _ParamBodyAngleXi;
+    int _ParamEyeBallXi;
+    int _ParamEyeBallYi;
+
+    LAppTextureManager _textureManager;
+
+    MatrixManager _matrixManager;
+
+    csmFloat32 _dragX;
+    csmFloat32 _dragY;
+
+    int* _tmpOrderedDrawIndice;
+    const float* _parameterDefaultValues;
+    float* _parameterValues;
+    int _parameterCount;
+
+    std::vector<csmString> _motionGroupNames;
+    std::vector<int> _motionCounts;
+
+    std::string _defaultExpressionId;
+    double _expFadeOutTimeMillis;
 };

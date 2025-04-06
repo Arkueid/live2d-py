@@ -12,7 +12,7 @@ target_link_libraries(GLFW
     Main
 )
 
-target_link_options(GLFW PUBLIC /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:MSVCRTD)
+target_link_options(GLFW PUBLIC /NODEFAULTLIB:LIBCMTD)
 
 set_target_properties(GLFW PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_ROOT}/x64/Debug
