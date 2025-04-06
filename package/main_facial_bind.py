@@ -34,14 +34,15 @@ def main():
     display = (450, 700)
     pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
 
-    live2d.glewInit()
+    live2d.glInit()
 
     model = live2d.LAppModel()
 
     if live2d.LIVE2D_VERSION == 3:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, 
-                                         "v3/llny/llny.model3.json"
+                                        #  "v3/llny/llny.model3.json"
                                         # "v3/whitecat/sdwhite cat free.model3.json"
+                                        "v3/小九/小九皮套（紫）/小九.model3.json"
                                          ))
     elif live2d.LIVE2D_VERSION == 2:
         model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
