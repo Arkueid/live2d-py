@@ -30,6 +30,8 @@ public:
      */
     void LoadModelJson(const char *filePath);
 
+    const char* GetModelHomeDir();
+
     // update
 
     /**
@@ -52,7 +54,7 @@ public:
     void UpdatePose(float deltaSecs);
 
     // param
-    void GetParameterIds(std::vector<std::string> &ids);
+    void GetParameterIds(void* collector, void(*collect)(void* collector, const char* id));
 
     float GetParameterValue(int index);
 
@@ -64,7 +66,11 @@ public:
 
     void SetParameterValue(const char *id, float value, float weight = 1.0f);
 
+    void SetParameterValue(int index, float value, float weight = 1.0f);
+
     void AddParameterValue(const char *id, float value);
+
+    void AddParameterValue(int index, float value);
 
     void LoadParameters();
 
@@ -93,12 +99,20 @@ public:
 
     void LoadExtraMotion(const char* group, int no, const char* motionJsonPath);
 
-    // touch
-    void HitPart(float x, float y, std::vector<const char *>& partIds, bool topOnly = false);
+    void GetMotions(void* collector, void(*collect)(void* collector, const char* group, int no, const char* file));
+
+    // mouse interaction
+    void HitPart(float x, float y, void* collector, void(*collect)(void* collector, const char* id), bool topOnly = false);
+
+    void HitDrawable(float x, float y, void* collector, void(*collect)(void* collector, const char* id));
+
+    void Drag(float x, float y);
 
     bool IsAreaHit(const char *areaName, float x, float y);
 
-    void Drag(float x, float y);
+    bool IsPartHit(int index, float x, float y);
+
+    bool IsDrawableHit(int index, float x, float y);
 
     // render
 
@@ -111,20 +125,22 @@ public:
     void Draw();
 
     // part
-    void GetPartIds(std::vector<std::string> &ids);
-
+    void GetPartIds(void* collector, void(*collect)(void* collector, const char* id));
     void SetPartOpacity(int index, float opacity);
-
     void SetPartScreenColor(int index, float r, float g, float b, float a);
-
     void SetPartMultiplyColor(int index, float r, float g, float b, float a);
+
+    // drawable
+    void GetDrawableIds(void* collector, void(*collect)(void* collector, const char* id));
+
+    const float* GetDrawableVertices(int index);
 
     // expression
     void SetExpression(const char *expressionId);
 
-    void GetExpressionIds(std::vector<std::string> &ids);
+    void GetExpressions(void *collector, void(*collect)(void* collector, const char* id, const char* file));
     
-    std::string SetRandomExpression();
+    const char* SetRandomExpression();
 
     void ResetExpression();
 

@@ -21,7 +21,6 @@ using namespace LAppDefine;
 using namespace Live2D::Cubism::Framework::DefaultParameterId;
 using namespace Live2D::Cubism::Core;
 
-
 namespace
 {
     class FakeMotion : public ACubismMotion
@@ -94,6 +93,11 @@ void Model::LoadModelJson(const char *filePath)
                { _modelSetting = new CubismModelSettingJson(buffer, size); });
 
     SetupModel();
+}
+
+const char* Model::GetModelHomeDir()
+{
+    return _modelHomeDir.GetRawString();
 }
 
 void Model::SetupModel()
@@ -253,10 +257,10 @@ void Model::SetupModel()
     _ParamEyeBallYi = _model->GetParameterIndex(_idParamEyeBallY);
 
     _tmpOrderedDrawIndice = new int[_model->GetDrawableCount()];
-    Live2D::Cubism::Core::csmModel *model = _model->GetModel();
-    _parameterDefaultValues = Live2D::Cubism::Core::csmGetParameterDefaultValues(model);
-    _parameterValues = Live2D::Cubism::Core::csmGetParameterValues(model);
-    _parameterCount = Live2D::Cubism::Core::csmGetParameterCount(model);
+    csmModel *model = _model->GetModel();
+    _parameterDefaultValues = csmGetParameterDefaultValues(model);
+    _parameterValues = csmGetParameterValues(model);
+    _parameterCount = csmGetParameterCount(model);
 }
 
 bool Model::UpdateMotion(float deltaSecs)
@@ -311,7 +315,7 @@ void Model::UpdateExpression(float deltaSecs)
                 _expressionManager->StopAllMotions();
                 Info("reset expression");
             }
-            else 
+            else
             {
                 SetExpression(_defaultExpressionId.c_str());
                 Info("reset expression: %s", _defaultExpressionId.c_str());
@@ -343,11 +347,11 @@ void Model::UpdatePose(float deltaSecs)
     _pose->UpdateParameters(_model, deltaSecs);
 }
 
-void Model::GetParameterIds(std::vector<std::string> &ids)
+void Model::GetParameterIds(void *collector, void (*collect)(void *collector, const char *id))
 {
     for (csmInt32 i = 0; i < _parameterCount; ++i)
     {
-        ids.push_back(_model->GetParameterId(i)->GetString().GetRawString());
+        collect(collector, _model->GetParameterId(i)->GetString().GetRawString());
     }
 }
 
@@ -373,14 +377,24 @@ float Model::GetParameterDefaultValue(int index)
 
 void Model::SetParameterValue(const char *id, float value, float weight)
 {
-    const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
+    const CubismId *handle = CubismFramework::GetIdManager()->GetId(id);
     _model->SetParameterValue(handle, value, weight);
+}
+
+void Model::SetParameterValue(int index, float value, float weight)
+{
+    _model->SetParameterValue(index, value, weight);
 }
 
 void Model::AddParameterValue(const char *id, float value)
 {
-    const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
+    const CubismId *handle = CubismFramework::GetIdManager()->GetId(id);
     _model->AddParameterValue(handle, value);
+}
+
+void Model::AddParameterValue(int index, float value)
+{
+    _model->AddParameterValue(index, value);
 }
 
 void Model::LoadParameters()
@@ -596,6 +610,21 @@ void Model::LoadExtraMotion(const char *group, int no, const char *motionJsonPat
                });
 }
 
+void Model::GetMotions(void *collector, void (*collect)(void *collector, const char *group, int no, const char *file))
+{
+    const int count = _modelSetting->GetMotionGroupCount();
+    for (int i = 0; i < count; i++)
+    {
+        const char *group = _modelSetting->GetMotionGroupName(i);
+        const int motionCount = _modelSetting->GetMotionCount(group);
+        for (int j = 0; j < motionCount; j++)
+        {
+            const char* file = _modelSetting->GetMotionFileName(group, j);
+            collect(collector, group, j, file);
+        }
+    }
+}
+
 static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVector2 p2, const csmVector2 p)
 {
     // https://github.com/Arkueid/live2d-py/issues/18
@@ -639,8 +668,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
     return s >= 0 && t >= 0 && s + t <= D;
 }
 
-
-void Model::HitPart(float x, float y, std::vector<const char *>& partIds, bool topOnly)
+void Model::HitPart(float x, float y, void *collector, void (*collect)(void *collector, const char *id), bool topOnly)
 {
     _matrixManager.ScreenToScene(&x, &y);
     _matrixManager.InvertTransform(&x, &y);
@@ -693,7 +721,7 @@ void Model::HitPart(float x, float y, std::vector<const char *>& partIds, bool t
             {
                 continue;
             }
-            partIds.push_back(partId);
+            collect(collector, partId);
             hitParts.insert(partId);
             topClicked = true;
             break;
@@ -706,10 +734,18 @@ void Model::HitPart(float x, float y, std::vector<const char *>& partIds, bool t
     }
 }
 
+// TODO
+void Model::HitDrawable(float x, float y, void *collector, void (*collect)(void *collector, const char *id))
+{
+    _matrixManager.ScreenToScene(&x, &y);
+    _matrixManager.InvertTransform(&x, &y);
+}
+
+// TODO
 bool Model::IsAreaHit(const char *areaName, float x, float y)
 {
     _matrixManager.ScreenToScene(&x, &y);
-    // 透明時は当たり判定なし。
+
     if (_opacity < 1)
     {
         return false;
@@ -723,7 +759,35 @@ bool Model::IsAreaHit(const char *areaName, float x, float y)
             return IsHit(drawID, x, y);
         }
     }
-    return false; // 存在しない場合はfalse
+    return false;
+}
+
+// TODO
+bool Model::IsPartHit(int index, float x, float y)
+{
+    _matrixManager.ScreenToScene(&x, &y);
+    _matrixManager.InvertTransform(&x, &y);
+
+    const int count = _model->GetDrawableCount();
+
+    return false;
+}
+
+bool Model::IsDrawableHit(int index, float x, float y)
+{
+    _matrixManager.ScreenToScene(&x, &y);
+    _matrixManager.InvertTransform(&x, &y);
+
+    const csmVector2* vertices = _model->GetDrawableVertexPositions(index);
+    const int triangleCount = _model->GetDrawableVertexCount(index) / 3;
+    for (int i = 0; i < triangleCount; i++)
+    {
+        if (isInTriangle(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2], {x, y}))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Model::Drag(float x, float y)
@@ -762,11 +826,11 @@ void Model::Draw()
     renderer->DrawModel();
 }
 
-void Model::GetPartIds(std::vector<std::string> &ids)
+void Model::GetPartIds(void *collector, void (*collect)(void *collector, const char *id))
 {
     for (csmInt32 i = 0; i < _model->GetPartCount(); i++)
     {
-        ids.push_back(_model->GetPartId(i)->GetString().GetRawString());
+        collect(collector, _model->GetPartId(i)->GetString().GetRawString());
     }
 }
 
@@ -795,6 +859,20 @@ void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
     _model->SetOverwriteColorForPartMultiplyColors(index, true);
 }
 
+void Model::GetDrawableIds(void *collector, void (*collect)(void *collector, const char *id))
+{
+    const int count = _model->GetDrawableCount();
+    for (int i = 0; i < count; i++)
+    {
+        collect(collector, _model->GetDrawableId(i)->GetString().GetRawString());
+    }
+}
+
+const float *Model::GetDrawableVertices(int index)
+{
+    return _model->GetDrawableVertices(index);
+}
+
 void Model::SetExpression(const char *expressionId)
 {
     ACubismMotion *motion = _expressions[expressionId];
@@ -811,21 +889,23 @@ void Model::SetExpression(const char *expressionId)
     }
 }
 
-void Model::GetExpressionIds(std::vector<std::string> &ids)
+void Model::GetExpressions(void *collector, void (*collect)(void *collector, const char *id, const char *file))
 {
     const int count = _modelSetting->GetExpressionCount();
     for (int i = 0; i < count; i++)
     {
-        ids.push_back(_modelSetting->GetExpressionName(i));
+        const char *file = _modelSetting->GetExpressionFileName(i);
+        const char *id = _modelSetting->GetExpressionName(i);
+        collect(collector, id, file);
     }
 }
 
-std::string Model::SetRandomExpression()
+const char *Model::SetRandomExpression()
 {
     const int size = _expressions.GetSize();
     if (size == 0)
     {
-        return "";
+        return nullptr;
     }
     csmInt32 no = rand() % size;
     csmMap<csmString, ACubismMotion *>::const_iterator map_ite;
@@ -840,7 +920,7 @@ std::string Model::SetRandomExpression()
         }
         i++;
     }
-    return "";
+    return nullptr;
 }
 
 void Model::ResetExpression()
@@ -871,7 +951,6 @@ void Model::SetFadeOutExpression(const char *expressionId, double fadeOutTime)
 
     SetExpression(expressionId);
     _expFadeOutTimeMillis = fadeOutTime;
-
 }
 
 void Model::StopAllMotions()

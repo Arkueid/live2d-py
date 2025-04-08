@@ -77,6 +77,8 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "*.tpp": "cpp",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "qfiledialog": "cpp",
+        "qtreewidgetitem": "cpp"
     }
 }
