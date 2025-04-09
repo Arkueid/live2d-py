@@ -34,7 +34,7 @@ def run_cmake():
     if cmake_built: return
 
     cmake_args = []
-    build_args = ["--config", "Release"]
+    build_args = ["--config", "Release", "--target", "Live2DWrapper"]
 
     if platform.system() == "Windows":
         if platform.python_compiler().find("64 bit") > 0:
@@ -61,6 +61,7 @@ def run_cmake():
     sys.stdout.flush()
 
     cmake_args += ["-DPYTHON_INSTALLATION_PATH=" + python_installation_path]
+    cmake_args += ["-UVIEWER"]
 
     cmake_setup = ["cmake", ".."] + cmake_args
     cmake_build = ["cmake", "--build", "."] + build_args
