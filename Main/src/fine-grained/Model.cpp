@@ -263,6 +263,52 @@ void Model::SetupModel()
     _parameterCount = csmGetParameterCount(model);
 }
 
+bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)
+{
+    const csmInt32 drawIndex = _model->GetDrawableIndex(drawableId);
+
+    if (drawIndex < 0)
+    {
+        return false; // 存在しない場合はfalse
+    }
+
+    const csmInt32    count = _model->GetDrawableVertexCount(drawIndex);
+    const csmFloat32* vertices = _model->GetDrawableVertices(drawIndex);
+
+    csmFloat32 left = vertices[0];
+    csmFloat32 right = vertices[0];
+    csmFloat32 top = vertices[1];
+    csmFloat32 bottom = vertices[1];
+
+    for (csmInt32 j = 1; j < count; ++j)
+    {
+        csmFloat32 x = vertices[Constant::VertexOffset + j * Constant::VertexStep];
+        csmFloat32 y = vertices[Constant::VertexOffset + j * Constant::VertexStep + 1];
+
+        if (x < left)
+        {
+            left = x; // Min x
+        }
+
+        if (x > right)
+        {
+            right = x; // Max x
+        }
+
+        if (y < top)
+        {
+            top = y; // Min y
+        }
+
+        if (y > bottom)
+        {
+            bottom = y; // Max y
+        }
+    }
+
+    return ((left <= pointX) && (pointX <= right) && (top <= pointY) && (pointY <= bottom));
+}
+
 bool Model::UpdateMotion(float deltaSecs)
 {
     _opacity = _model->GetModelOpacity();
@@ -345,6 +391,11 @@ void Model::UpdatePose(float deltaSecs)
     }
 
     _pose->UpdateParameters(_model, deltaSecs);
+}
+
+int Model::GetParameterCount()
+{
+    return _model->GetParameterCount();
 }
 
 void Model::GetParameterIds(void *collector, void (*collect)(void *collector, const char *id))
@@ -615,6 +666,16 @@ void Model::LoadExtraMotion(const char *group, int no, const char *motionJsonPat
                });
 }
 
+int Model::GetMotionGroupCount()
+{
+    return _modelSetting->GetMotionGroupCount();
+}
+
+int Model::GetMotionCount(const char *group)
+{
+    return _modelSetting->GetMotionCount(group);
+}
+
 void Model::GetMotions(void *collector, void (*collect)(void *collector, const char *group, int no, const char *file, const char* sound))
 {
     const int count = _modelSetting->GetMotionGroupCount();
@@ -793,6 +854,7 @@ void Model::HitDrawable(float x, float y, void *collector, void (*collect)(void 
 bool Model::IsAreaHit(const char *areaName, float x, float y)
 {
     _matrixManager.ScreenToScene(&x, &y);
+    _matrixManager.InvertTransform(&x, &y);
 
     if (_opacity < 1)
     {
@@ -919,6 +981,11 @@ void Model::Draw()
     renderer->DrawModel();
 }
 
+int Model::GetPartCount()
+{
+    return _model->GetPartCount();
+}
+
 void Model::GetPartIds(void *collector, void (*collect)(void *collector, const char *id))
 {
     for (csmInt32 i = 0; i < _model->GetPartCount(); i++)
@@ -950,6 +1017,11 @@ void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a)
         return;
     }
     _model->SetOverwriteColorForPartMultiplyColors(index, true);
+}
+
+int Model::GetDrawableCount()
+{
+    return _model->GetDrawableCount();
 }
 
 void Model::GetDrawableIds(void *collector, void (*collect)(void *collector, const char *id))
@@ -995,6 +1067,11 @@ void Model::SetExpression(const char *expressionId)
     {
         Info("expression[%s] is null ", expressionId);
     }
+}
+
+int Model::GetExpressionCount()
+{
+    return _modelSetting->GetExpressionCount();
 }
 
 void Model::GetExpressions(void *collector, void (*collect)(void *collector, const char *id, const char *file))

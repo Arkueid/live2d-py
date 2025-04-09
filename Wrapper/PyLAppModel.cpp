@@ -167,7 +167,7 @@ static PyObject* PyLAppModel_StartRandomMotion(PyLAppModelObject* self, PyObject
 
     Py_RETURN_NONE;
 }
-#include <iostream>
+
 static PyObject* PyLAppModel_SetExpression(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
 {
     const char* expressionID;

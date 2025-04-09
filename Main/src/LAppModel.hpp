@@ -251,6 +251,8 @@ private:
      */
     void ReleaseExpressions();
 
+    bool IsHit(Csm::CubismIdHandle drawableId, float pointX, float pointY) override;
+
     Csm::ICubismModelSetting* _modelSetting; ///< モデルセッティング情報
     Csm::csmString _modelHomeDir; ///< モデルセッティングが置かれたディレクトリ
     Csm::csmVector<Csm::CubismIdHandle> _eyeBlinkIds; ///< モデルに設定されたまばたき機能用パラメータID

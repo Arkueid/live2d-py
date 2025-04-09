@@ -81,7 +81,7 @@ void Live2DView::initMotions(Model *model)
                       [](void *collector, const char *group, int no, const char *file, const char*)
                       {
                           QTreeWidgetItem *topLevel = (QTreeWidgetItem *)collector;
-                          QTreeWidgetItem *item = new QTreeWidgetItem(topLevel);
+                          QTreeWidgetItem *item = new QTreeWidgetItem(topLevel);                        
                           QFileInfo info(file);
                           item->setText(0, info.fileName());
                           item->setData(0, Qt::UserRole, QVariant(group));

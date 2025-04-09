@@ -54,6 +54,8 @@ public:
     void UpdatePose(float deltaSecs);
 
     // param
+    int GetParameterCount();
+
     void GetParameterIds(void* collector, void(*collect)(void* collector, const char* id));
 
     float GetParameterValue(int index);
@@ -100,6 +102,10 @@ public:
 
     void LoadExtraMotion(const char* group, int no, const char* motionJsonPath);
 
+    int GetMotionGroupCount();
+
+    int GetMotionCount(const char *group);
+
     void GetMotions(void* collector, void(*collect)(void* collector, const char* group, int no, const char* file, const char* sound));
 
     // mouse interaction
@@ -125,12 +131,14 @@ public:
     void Draw();
 
     // part
+    int GetPartCount();
     void GetPartIds(void* collector, void(*collect)(void* collector, const char* id));
     void SetPartOpacity(int index, float opacity);
     void SetPartScreenColor(int index, float r, float g, float b, float a);
     void SetPartMultiplyColor(int index, float r, float g, float b, float a);
 
     // drawable
+    int GetDrawableCount();
     void GetDrawableIds(void* collector, void(*collect)(void* collector, const char* id));
 
     const float* GetDrawableVertices(int index);
@@ -141,6 +149,7 @@ public:
     // expression
     void SetExpression(const char *expressionId);
 
+    int GetExpressionCount();
     void GetExpressions(void *collector, void(*collect)(void* collector, const char* id, const char* file));
     
     const char* SetRandomExpression();
@@ -164,6 +173,7 @@ private:
     void SetupTextures();
     void PreloadMotionGroup(const csmChar* group);
     void SetupModel();
+    bool IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY) override;
 private:
     ICubismModelSetting* _modelSetting;
     csmVector<CubismIdHandle> _eyeBlinkIds;

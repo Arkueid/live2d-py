@@ -365,6 +365,51 @@ void LAppModel::ReleaseExpressions()
     _expressions.Clear();
 }
 
+bool LAppModel::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)
+{
+    const csmInt32 drawIndex = _model->GetDrawableIndex(drawableId);
+
+    if (drawIndex < 0)
+    {
+        return false; // 存在しない場合はfalse
+    }
+
+    const csmInt32    count = _model->GetDrawableVertexCount(drawIndex);
+    const csmFloat32* vertices = _model->GetDrawableVertices(drawIndex);
+
+    csmFloat32 left = vertices[0];
+    csmFloat32 right = vertices[0];
+    csmFloat32 top = vertices[1];
+    csmFloat32 bottom = vertices[1];
+
+    for (csmInt32 j = 1; j < count; ++j)
+    {
+        csmFloat32 x = vertices[Constant::VertexOffset + j * Constant::VertexStep];
+        csmFloat32 y = vertices[Constant::VertexOffset + j * Constant::VertexStep + 1];
+
+        if (x < left)
+        {
+            left = x; // Min x
+        }
+
+        if (x > right)
+        {
+            right = x; // Max x
+        }
+
+        if (y < top)
+        {
+            top = y; // Min y
+        }
+
+        if (y > bottom)
+        {
+            bottom = y; // Max y
+        }
+    }
+
+    return ((left <= pointX) && (pointX <= right) && (top <= pointY) && (pointY <= bottom));
+}
 void LAppModel::Update()
 {
     _currentFrame = LAppPal::GetCurrentTimePoint();

@@ -10,6 +10,7 @@
 #endif
 
 #include "PyLAppModel.hpp"
+#include "PyModel.hpp"
 
 #ifndef Py_IsNone
 #define Py_IsNone(o) (o == Py_None)
@@ -100,7 +101,7 @@ static PyMethodDef live2d_methods[] = {
     {"init", (PyCFunction)live2d_init, METH_VARARGS, ""},
     {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, ""},
     {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
-    {"glInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
+    {"glInit", (PyCFunction)live2d_glInit, METH_VARARGS, ""},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
     {"logEnable", (PyCFunction)live2d_log_enable, METH_VARARGS, ""},
@@ -123,6 +124,7 @@ PyObject* typeobject_live2d_v3_parameter = nullptr;
 PyMODINIT_FUNC PyInit_live2d(void)
 {
     PyObject* lappmodel_type;
+    PyObject* model_type;
 
     PyObject* m = PyModule_Create(&liv2d_module);
     if (!m)
@@ -137,6 +139,13 @@ PyMODINIT_FUNC PyInit_live2d(void)
     }
 
     if (PyModule_AddObject(m, "LAppModel", lappmodel_type) < 0)
+    {
+        Py_DECREF(&lappmodel_type);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    if (PyModule_AddObject(m, "Model", PyType_FromSpec(&PyModel_Spec)) < 0)
     {
         Py_DECREF(&lappmodel_type);
         Py_DECREF(m);
