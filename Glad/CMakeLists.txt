@@ -3,6 +3,6 @@ add_library(glad
 )
 
 target_include_directories(glad
-    PRIVATE
+    PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/
 )

@@ -1,0 +1,61 @@
+# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
+name: Windows
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+    branches: [ live2d-viewer ]
+
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Qt
+      # You may pin to the exact commit or the version.
+      # uses: jurplel/install-qt-action@c6c7281365daef91a238e1c2ddce4eaa94a2991d
+      uses: jurplel/install-qt-action@v4.1.1
+      with:
+        # Version of Qt to install
+        version: 6.8.2 # optional, default is 5.15.2
+        # Host platform
+        host: windows # optional
+        # Target platform for build
+        target: desktop # optional, default is desktop
+        # Architecture for Windows/Android
+        arch: win64_msvc2022_64 # optional
+
+    - name: Configure Debug
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DVIEWER=1
+
+    - name: Build Debug
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config Debug 
+
+    - name: Configure Release
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DVIEWER=1
+
+    - name: Build Release
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config Release
+
+    - name: Zip the folder
+      shell: powershell
+      run: |
+        Compress-Archive -Path ${{github.workspace}}/x64 -DestinationPath ${{github.workspace}}/Live2DViewer-win64.zip
+
+    - name: Upload Wheel to Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          ${{github.workspace}}/Live2DViewer-win64.zip
