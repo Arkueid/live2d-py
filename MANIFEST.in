@@ -3,6 +3,6 @@ recursive-include Glad *
 recursive-include Framework *
 recursive-include Main *
 recursive-include cmake *
-recursive-include Wrapper
+recursive-include Wrapper *
 include package.live2d
 include CMakeLists.txt
