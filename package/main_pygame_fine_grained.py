@@ -22,6 +22,23 @@ model.LoadModelJson(
     os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json")
 )
 
+# load extra motion file which is not defined in model3.json
+model.LoadExtraMotion(
+    "extra",
+    0,
+    os.path.join(
+        resources.RESOURCES_DIRECTORY, "v3/public_motions/drag_down.motion3.json"
+    ),
+)
+
+model.LoadExtraMotion(
+    "extra",
+    1,
+    os.path.join(
+        resources.RESOURCES_DIRECTORY, "v3/public_motions/touch_head.motion3.json"
+    ),
+)
+
 # Get Basic Model Info
 modelDir = model.GetModelHomeDir()
 print(modelDir)
@@ -123,6 +140,12 @@ while True:
             elif event.key == pygame.K_LEFTBRACKET:
                 degrees += 5
                 model.Rotate(degrees)
+            elif event.key == pygame.K_e:
+                model.StartRandomMotion(
+                    "extra",
+                    onStart=lambda group, no: print(f"{group} {no} started"),
+                    onFinish=lambda group, no: print(f"{group} {no} finished"),
+                )
 
     if not running:
         break

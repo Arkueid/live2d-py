@@ -651,11 +651,11 @@ void Model::LoadExtraMotion(const char *group, int no, const char *motionJsonPat
                        {
                            if (s == group)
                            {
-                               _motionGroupNames[i] = group;
                                _motionCounts[i] = _motionCounts[i] + 1;
                                found = true;
                                break;
                            }
+                           i++;
                        }
                        if (!found)
                        {
