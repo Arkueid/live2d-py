@@ -427,6 +427,11 @@ void Model::SetScale(float scale)
     _matrixManager.SetScale(scale);
 }
 
+const float *Model::GetMvp()
+{
+    return _matrixManager.GetMvp().GetArray();
+}
+
 void Model::StartMotion(const char *group, int no, int priority, void *startCallee, ACubismMotion::BeganMotionCallback onStartMotionHandler, void *finishCallee, ACubismMotion::FinishedMotionCallback onFinishMotionHandler)
 {
     if (priority == PriorityForce)
@@ -871,6 +876,21 @@ void Model::GetDrawableIds(void *collector, void (*collect)(void *collector, con
 const float *Model::GetDrawableVertices(int index)
 {
     return _model->GetDrawableVertices(index);
+}
+
+const int Model::GetDrawableVertexCount(int index)
+{
+    return _model->GetDrawableVertexCount(index);
+}
+
+const int Model::GetDrawableVertexIndexCount(int index)
+{
+    return _model->GetDrawableVertexIndexCount(index);
+}
+
+const unsigned short* Model::GetDrawableIndices(int index)
+{
+    return _model->GetDrawableVertexIndices(index);
 }
 
 void Model::SetExpression(const char *expressionId)

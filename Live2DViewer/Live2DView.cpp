@@ -8,7 +8,9 @@
 #include <QSlider>
 #include <QTreeWidgetItem>
 
-Live2DView::Live2DView(const QString &filePath, QWidget *parent) : QWidget(parent), hasCdi(false), syncTimer(this)
+
+
+Live2DView::Live2DView(const QString &filePath, QWidget *parent) : QWidget(parent), hasCdi(false), syncTimer(this), selectedPartIndex(-1)
 {
     ui.setupUi(this);
 
@@ -38,11 +40,15 @@ Live2DView::Live2DView(const QString &filePath, QWidget *parent) : QWidget(paren
     connect(ui.autoPhysics, &QCheckBox::checkStateChanged, [&](Qt::CheckState state)
             { ui.scene->setAutoPhysics(state == Qt::Checked); });
 
-    syncTimer.setInterval(1000 / 40);
-    syncTimer.setSingleShot(false);
-    connect(&syncTimer, &QTimer::timeout, this, &Live2DView::onParamValuesUpdated);
+    connect(ui.partTable, &QTableWidget::itemClicked, this, &Live2DView::onPartTableItemClicked);
 
-    syncTimer.start();
+    connect(ui.drawableList, &QListWidget::itemClicked, this, &Live2DView::onDrawableListItemClicked);
+
+    connect(ui.scene, &Live2DScene::clearSelection, this, &Live2DView::onClearSelection);
+
+    connect(ui.scene, &Live2DScene::paramValuesUpdated, this, &Live2DView::onParamValuesUpdated);
+
+    ui.pages->setCurrentIndex(0);
 }
 
 Live2DView::~Live2DView()
@@ -85,19 +91,19 @@ void Live2DView::initMotions(Model *model)
 
 void Live2DView::onTreeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
+    Model *model = ui.scene->GetModel();
     if (item->parent() == nullptr)
     {
+        model->ResetExpression();
         return;
     }
 
     if (item->parent()->text(0) == "Expressions")
     {
-        Model *model = ui.scene->GetModel();
         model->SetExpression(item->data(0, Qt::UserRole).toString().toStdString().c_str());
     }
     else if (item->parent()->text(0) == "Motions")
     {
-        Model *model = ui.scene->GetModel();
         model->StartMotion(item->data(0, Qt::UserRole).toString().toStdString().c_str(), item->data(0, Qt::UserRole + 1).toInt());
     }
 }
@@ -147,22 +153,26 @@ void Live2DView::initParameters(Model *model)
                                float minValue = model->GetParameterMinimumValue(index);
                                float defaultValue = model->GetParameterDefaultValue(index);
 
-                               QLabel *label = new QLabel(name, table);
                                table->insertRow(index);
                                QTableWidgetItem *idItem = new QTableWidgetItem(id);
+                               idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
                                QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+                               nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
                                QTableWidgetItem *valueItem = new QTableWidgetItem(QString::number(defaultValue));
+                               valueItem->setFlags(valueItem->flags() & ~Qt::ItemIsEditable);
                                QSlider *slider = new QSlider(Qt::Horizontal, table);
                                slider->setRange(0, 100);
                                slider->setValue((defaultValue - minValue) * 100 / (maxValue - minValue));
-                               QObject::connect(slider, &QSlider::valueChanged, [=](int value)
+                               QObject::connect(slider, &QSlider::valueChanged,
+                                                [=](int value)
                                                 {
-                                   const float v = minValue + (maxValue - minValue) * value / 100;
-                                   valueItem->setText(QString::number(v, 'f', 2));
-                                   if (slider->isSliderDown())
-                                   {
-                                        paramValues->push_back({index, v});
-                                   } });
+                                                    const float v = minValue + (maxValue - minValue) * value / 100;
+                                                    valueItem->setText(QString::number(v, 'f', 2));
+                                                    if (slider->isSliderDown())
+                                                    {
+                                                        paramValues->push_back({index, v});
+                                                    }
+                                                });
                                table->setItem(index, 0, idItem);
                                table->setItem(index, 1, nameItem);
                                table->setCellWidget(index, 2, slider);
@@ -172,7 +182,7 @@ void Live2DView::initParameters(Model *model)
 
 void Live2DView::initParts(Model *model)
 {
-    void *ptrs[2] = {ui.partList, nullptr};
+    void *ptrs[2] = {ui.partTable, nullptr};
     QJsonArray parts;
     if (hasCdi)
     {
@@ -182,17 +192,21 @@ void Live2DView::initParts(Model *model)
     model->GetPartIds(ptrs,
                       [](void *collector, const char *id)
                       {
-                          QListWidget *list = (QListWidget *)(((void **)collector)[0]);
+                          QTableWidget *table = (QTableWidget *)(((void **)collector)[0]);
                           QJsonArray *cdiParts = (QJsonArray *)(((void **)collector)[1]);
+                          QString name = id;
+                          const int index = table->rowCount();
                           if (cdiParts)
                           {
-                              QString idStr = cdiParts->at(list->count()).toObject()["Name"].toString();
-                              list->addItem(idStr);
+                              name = cdiParts->at(index).toObject()["Name"].toString();
                           }
-                          else
-                          {
-                              list->addItem(id);
-                          }
+                          table->insertRow(index);
+                          QTableWidgetItem *idItem = new QTableWidgetItem(id);
+                          idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+                          QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+                          nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+                          table->setItem(index, 0, idItem);
+                          table->setItem(index, 1, nameItem);
                       });
 }
 
@@ -218,4 +232,37 @@ void Live2DView::onParamValuesUpdated()
         }
         slider->setValue(100 * (model->GetParameterValue(i) - model->GetParameterMinimumValue(i)) / (model->GetParameterMaximumValue(i) - model->GetParameterMinimumValue(i)));
     }
+}
+
+void Live2DView::onPartTableItemClicked(QTableWidgetItem *item)
+{
+    Model *model = ui.scene->GetModel();
+    if (selectedPartIndex != -1)
+    {
+        model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    const int row = item->row();
+    selectedPartIndex = row;
+    model->SetPartMultiplyColor(row, 0.2f, 0.2f, 1.0f, 0.8f);
+}
+
+void Live2DView::onDrawableListItemClicked(QListWidgetItem *item)
+{
+    Model *model = ui.scene->GetModel();
+    const int index = ui.drawableList->row(item);
+
+    ui.scene->selectDrawable(index);
+}
+
+void Live2DView::onClearSelection()
+{
+    if (selectedPartIndex != -1)
+    {
+        Model *model = ui.scene->GetModel();
+        model->SetPartMultiplyColor(selectedPartIndex, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    selectedPartIndex = -1;
+    ui.partTable->clearSelection();
+    ui.drawableList->clearSelection();
 }

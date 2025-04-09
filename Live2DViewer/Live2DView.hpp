@@ -22,6 +22,9 @@ class Live2DView : public QWidget
 private slots:
     void onTreeItemDoubleClicked(QTreeWidgetItem *item, int column);
     void onParamValuesUpdated();
+    void onPartTableItemClicked(QTableWidgetItem *item);
+    void onDrawableListItemClicked(QListWidgetItem* item);
+    void onClearSelection();
 
 public:
     Live2DView(const QString& filePath, QWidget *parent = nullptr);
@@ -34,6 +37,7 @@ private:
     QJsonObject cdi;
 
     QVector<ParamValue>* paramValues;
+    int selectedPartIndex;
 
     QTimer syncTimer;
 };

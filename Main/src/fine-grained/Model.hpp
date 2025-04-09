@@ -85,6 +85,8 @@ public:
 
     void SetScale(float scale);
 
+    const float* GetMvp();
+
     // motion
     // TODO
     void StartMotion(const char *group, int no, int priority = 3,
@@ -134,6 +136,9 @@ public:
     void GetDrawableIds(void* collector, void(*collect)(void* collector, const char* id));
 
     const float* GetDrawableVertices(int index);
+    const int GetDrawableVertexCount(int index);
+    const int GetDrawableVertexIndexCount(int index);
+    const unsigned short* GetDrawableIndices(int index);
 
     // expression
     void SetExpression(const char *expressionId);

@@ -2,6 +2,8 @@
 #include <fine-grained/Model.hpp>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include <QOpenGLShaderProgram>
+#include <QMenu>
 
 
 struct ParamValue
@@ -17,6 +19,7 @@ class Live2DScene : public QOpenGLWidget, protected QOpenGLFunctions
 
 signals:
     void paramValuesUpdated();
+    void clearSelection();
 
 public slots:
     void setAutoBlink(bool value);
@@ -32,6 +35,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
 public:
     Live2DScene(QWidget *parent = nullptr);
     ~Live2DScene();
@@ -41,6 +46,8 @@ public:
     Model *GetModel();
 
     QVector<ParamValue>* GetParamValues();
+
+    void selectDrawable(int index);
 
 private:
     Model *model;
@@ -52,4 +59,14 @@ private:
     bool autoBlink;
     bool autoBreath;
     bool autoPhysics;
+
+    QOpenGLShaderProgram *program;
+    GLuint vbo;
+    int selectedDrawableIndex;
+
+    float modelScale;
+    float modelOffsetX;
+    float modelOffsetY;
+
+    QMenu* menu;
 };

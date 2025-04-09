@@ -12,6 +12,10 @@ private slots:
     void onTabCloseRequested(int index);
 
     void onOpenModel();
+
+    void showHelp();
+
+    void showAbout();
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
