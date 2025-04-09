@@ -36,9 +36,6 @@ target_include_directories(Live2DViewer
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${QTINC}
-    ${PROJECT_ROOT}/Framework/src
-    ${PROJECT_ROOT}/Core/include
-    ${PROJECT_ROOT}/Glad/include
     ${PROJECT_ROOT}/Main/src
 )
 
