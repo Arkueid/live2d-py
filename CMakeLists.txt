@@ -31,7 +31,7 @@ include(cmake/Glad.cmake)
 include(cmake/Framework.cmake)
 include(cmake/Main.cmake)
 
-set(VIEWER 1)
+# set(VIEWER 1)
 
 if(DEFINED VIEWER)
   message("Build for Viewer")
