@@ -78,7 +78,7 @@ void Live2DView::initMotions(Model *model)
     ui.treeWidget->addTopLevelItem(item);
 
     model->GetMotions(item,
-                      [](void *collector, const char *group, int no, const char *file)
+                      [](void *collector, const char *group, int no, const char *file, const char*)
                       {
                           QTreeWidgetItem *topLevel = (QTreeWidgetItem *)collector;
                           QTreeWidgetItem *item = new QTreeWidgetItem(topLevel);

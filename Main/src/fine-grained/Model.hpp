@@ -88,7 +88,6 @@ public:
     const float* GetMvp();
 
     // motion
-    // TODO
     void StartMotion(const char *group, int no, int priority = 3,
                      void *startCallee = nullptr, ACubismMotion::BeganMotionCallback startCalleeHandler = nullptr,
                      void *finishCallee = nullptr, ACubismMotion::FinishedMotionCallback finishCalleeHandler = nullptr);
@@ -101,12 +100,12 @@ public:
 
     void LoadExtraMotion(const char* group, int no, const char* motionJsonPath);
 
-    void GetMotions(void* collector, void(*collect)(void* collector, const char* group, int no, const char* file));
+    void GetMotions(void* collector, void(*collect)(void* collector, const char* group, int no, const char* file, const char* sound));
 
     // mouse interaction
     void HitPart(float x, float y, void* collector, void(*collect)(void* collector, const char* id), bool topOnly = false);
 
-    void HitDrawable(float x, float y, void* collector, void(*collect)(void* collector, const char* id));
+    void HitDrawable(float x, float y, void* collector, void(*collect)(void* collector, const char* id), bool topOnly = false);
 
     void Drag(float x, float y);
 
@@ -122,7 +121,6 @@ public:
      * @brief draw model
      */
     void CreateRenderer(int maskBufferCount = 1);
-    void ReloadRenderer(int maskBufferCount = 1);
 
     void Draw();
 

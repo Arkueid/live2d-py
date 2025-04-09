@@ -80,4 +80,4 @@ set(ts_files
     Translations/moe_ja_JP.ts
 )
 
-qt6_add_translations(${PROJECT_NAME} TS_FILES ${ts_files})
+qt6_add_translations(Live2DViewer TS_FILES ${ts_files})

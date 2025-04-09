@@ -95,7 +95,7 @@ void Model::LoadModelJson(const char *filePath)
     SetupModel();
 }
 
-const char* Model::GetModelHomeDir()
+const char *Model::GetModelHomeDir()
 {
     return _modelHomeDir.GetRawString();
 }
@@ -615,7 +615,7 @@ void Model::LoadExtraMotion(const char *group, int no, const char *motionJsonPat
                });
 }
 
-void Model::GetMotions(void *collector, void (*collect)(void *collector, const char *group, int no, const char *file))
+void Model::GetMotions(void *collector, void (*collect)(void *collector, const char *group, int no, const char *file, const char* sound))
 {
     const int count = _modelSetting->GetMotionGroupCount();
     for (int i = 0; i < count; i++)
@@ -624,8 +624,9 @@ void Model::GetMotions(void *collector, void (*collect)(void *collector, const c
         const int motionCount = _modelSetting->GetMotionCount(group);
         for (int j = 0; j < motionCount; j++)
         {
-            const char* file = _modelSetting->GetMotionFileName(group, j);
-            collect(collector, group, j, file);
+            const char *file = _modelSetting->GetMotionFileName(group, j);
+            const char *sound = _modelSetting->GetMotionSoundFileName(group, j);
+            collect(collector, group, j, file, sound);
         }
     }
 }
@@ -739,14 +740,56 @@ void Model::HitPart(float x, float y, void *collector, void (*collect)(void *col
     }
 }
 
-// TODO
-void Model::HitDrawable(float x, float y, void *collector, void (*collect)(void *collector, const char *id))
+void Model::HitDrawable(float x, float y, void *collector, void (*collect)(void *collector, const char *id), bool topOnly)
 {
     _matrixManager.ScreenToScene(&x, &y);
     _matrixManager.InvertTransform(&x, &y);
+
+    const csmInt32 drawableCount = _model->GetDrawableCount();
+    const csmInt32 *renderOrders = _model->GetDrawableRenderOrders();
+    for (csmInt32 i = 0; i < drawableCount; i++)
+    {
+        // 绘制顺序，先绘制的被后绘制的覆盖
+        _tmpOrderedDrawIndice[drawableCount - 1 - renderOrders[i]] = i;
+    }
+    bool topClicked = false;
+
+    for (int i = 0; i < drawableCount; i++)
+    {
+        int drawableIndex = _tmpOrderedDrawIndice[i];
+        if (_model->GetDrawableOpacity(drawableIndex) == 0.0f)
+        {
+            continue;
+        }
+        const char *drawableId = _model->GetDrawableId(drawableIndex)->GetString().GetRawString();
+
+        // 顶点连线个数，3个顶点一个三角形，一定是3的整数倍
+        const int indexCount = _model->GetDrawableVertexIndexCount(drawableIndex);
+        // 顶点坐标
+        const csmVector2 *vertices = _model->GetDrawableVertexPositions(drawableIndex);
+        // 三角形顶点索引
+        const csmUint16 *indices = _model->GetDrawableVertexIndices(drawableIndex);
+        const int triangleCount = indexCount / 3;
+
+        for (int j = 0; j < triangleCount; j++)
+        {
+            if (!isInTriangle(vertices[indices[j * 3]], vertices[indices[j * 3 + 1]], vertices[indices[j * 3 + 2]],
+                              {x, y}))
+            {
+                continue;
+            }
+            collect(collector, drawableId);
+            topClicked = true;
+            break;
+        }
+
+        if (topOnly && topClicked)
+        {
+            break;
+        }
+    }
 }
 
-// TODO
 bool Model::IsAreaHit(const char *areaName, float x, float y)
 {
     _matrixManager.ScreenToScene(&x, &y);
@@ -767,30 +810,81 @@ bool Model::IsAreaHit(const char *areaName, float x, float y)
     return false;
 }
 
-// TODO
 bool Model::IsPartHit(int index, float x, float y)
 {
     _matrixManager.ScreenToScene(&x, &y);
     _matrixManager.InvertTransform(&x, &y);
 
-    const int count = _model->GetDrawableCount();
+    if (_model->GetPartOpacity(index) == 0.0f)
+    {
+        return false;
+    }
 
+    const csmInt32 drawableCount = _model->GetDrawableCount();
+    const csmInt32 *renderOrders = _model->GetDrawableRenderOrders();
+    for (csmInt32 i = 0; i < drawableCount; i++)
+    {
+        // 绘制顺序，先绘制的被后绘制的覆盖
+        _tmpOrderedDrawIndice[drawableCount - 1 - renderOrders[i]] = i;
+    }
+
+    for (int i = 0; i < drawableCount; i++)
+    {
+        int drawableIndex = _tmpOrderedDrawIndice[i];
+        if (_model->GetDrawableOpacity(drawableIndex) == 0.0f)
+        {
+            continue;
+        }
+        int partIndex = _model->GetDrawableParentPartIndex(drawableIndex);
+        if (partIndex != index) // 不是该 part 的 drawable
+        {
+            continue;
+        }
+        const char *partId = _model->GetPartId(partIndex)->GetString().GetRawString();
+
+        // 顶点连线个数，3个顶点一个三角形，一定是3的整数倍
+        const int indexCount = _model->GetDrawableVertexIndexCount(drawableIndex);
+        // 顶点坐标
+        const csmVector2 *vertices = _model->GetDrawableVertexPositions(drawableIndex);
+        // 三角形顶点索引
+        const csmUint16 *indices = _model->GetDrawableVertexIndices(drawableIndex);
+        const int triangleCount = indexCount / 3;
+
+        for (int j = 0; j < triangleCount; j++)
+        {
+            if (!isInTriangle(vertices[indices[j * 3]], vertices[indices[j * 3 + 1]], vertices[indices[j * 3 + 2]],
+                              {x, y}))
+            {
+                continue;
+            }
+            return true;
+        }
+    }
     return false;
 }
 
 bool Model::IsDrawableHit(int index, float x, float y)
 {
-    _matrixManager.ScreenToScene(&x, &y);
-    _matrixManager.InvertTransform(&x, &y);
+    _matrixManager.ScreenToScene(&x, &y);   // 屏幕到OpenGL坐标系
+    _matrixManager.InvertTransform(&x, &y); // OpenGL坐标系到模型坐标系
 
-    const csmVector2* vertices = _model->GetDrawableVertexPositions(index);
-    const int triangleCount = _model->GetDrawableVertexCount(index) / 3;
-    for (int i = 0; i < triangleCount; i++)
+    // 顶点连线个数，3个顶点一个三角形，一定是3的整数倍
+    const int indexCount = _model->GetDrawableVertexIndexCount(index);
+    // 顶点坐标
+    const csmVector2 *vertices = _model->GetDrawableVertexPositions(index);
+    // 三角形顶点索引
+    const csmUint16 *indices = _model->GetDrawableVertexIndices(index);
+    const int triangleCount = indexCount / 3;
+
+    for (int j = 0; j < triangleCount; j++)
     {
-        if (isInTriangle(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2], {x, y}))
+        if (!isInTriangle(vertices[indices[j * 3]], vertices[indices[j * 3 + 1]], vertices[indices[j * 3 + 2]],
+                          {x, y}))
         {
-            return true;
+            continue;
         }
+        return true;
+        break;
     }
     return false;
 }
@@ -803,15 +897,9 @@ void Model::Drag(float x, float y)
 
 void Model::CreateRenderer(int maskBufferCount)
 {
+    CubismUserModel::DeleteRenderer();
     CubismUserModel::CreateRenderer(maskBufferCount);
     SetupTextures();
-}
-
-void Model::ReloadRenderer(int maskBufferCount)
-{
-    CubismUserModel::DeleteRenderer();
-
-    CreateRenderer(maskBufferCount);
 }
 
 void Model::Draw()
@@ -888,7 +976,7 @@ const int Model::GetDrawableVertexIndexCount(int index)
     return _model->GetDrawableVertexIndexCount(index);
 }
 
-const unsigned short* Model::GetDrawableIndices(int index)
+const unsigned short *Model::GetDrawableIndices(int index)
 {
     return _model->GetDrawableVertexIndices(index);
 }

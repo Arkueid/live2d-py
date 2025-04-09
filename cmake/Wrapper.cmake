@@ -1,6 +1,12 @@
 # Create Wrapper 
-set(Wrapper LAppModelWrapper)
-add_library(LAppModelWrapper SHARED LAppModelWrapper.cpp)
+set(Wrapper Live2DWrapper)
+add_library(${Wrapper} SHARED 
+  ${PROJECT_ROOT}/Wrapper/Live2D.cpp
+  ${PROJECT_ROOT}/Wrapper/PyLAppModel.hpp
+  ${PROJECT_ROOT}/Wrapper/PyLAppModel.cpp
+  ${PROJECT_ROOT}/Wrapper/PyModel.hpp
+  ${PROJECT_ROOT}/Wrapper/PyModel.cpp
+)
 
 set(Python3_FIND_REGISTRY "NEVER")
 
@@ -14,7 +20,7 @@ endif()
 
 find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
 
-target_link_libraries(LAppModelWrapper PRIVATE Main Python3::SABIModule)
+target_link_libraries(${Wrapper} PRIVATE Main Python3::SABIModule)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(MODULE_NAME lib${Wrapper}.so)
@@ -23,7 +29,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
   set(MODULE_NAME ${Wrapper}.dll)
   set(OUTPUT_NAME live2d.pyd)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  set(MODULE_NAME libLAppModelWrapper.dylib)
+  set(MODULE_NAME lib${Wrapper}.dylib)
   set(OUTPUT_NAME live2d.so)
 endif()
 
