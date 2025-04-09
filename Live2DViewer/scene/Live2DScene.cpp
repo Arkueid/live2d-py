@@ -189,7 +189,10 @@ void Live2DScene::resizeGL(int w, int h)
 
 void Live2DScene::mouseMoveEvent(QMouseEvent *event)
 {
-    model->Drag((float)event->x(), (float)event->y());
+    if (event->buttons() & Qt::LeftButton)
+    {
+        model->Drag((float)event->x(), (float)event->y());
+    }
 }
 
 void Live2DScene::mousePressEvent(QMouseEvent *event)
