@@ -12,10 +12,6 @@
 #include "PyLAppModel.hpp"
 #include "PyModel.hpp"
 
-#ifndef Py_IsNone
-#define Py_IsNone(o) (o == Py_None)
-#endif
-
 static LAppAllocator _cubismAllocator;
 static Csm::CubismFramework::Option _cubismOption;
 

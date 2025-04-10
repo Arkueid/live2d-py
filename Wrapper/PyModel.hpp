@@ -2,8 +2,7 @@
 
 #include <fine-grained/Model.hpp>
 
-#define Py_LIMITED_API
-#include <Python.h>
+#include "Python.hpp"
 
 struct PyModelObject {
     PyObject_HEAD

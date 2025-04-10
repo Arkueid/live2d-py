@@ -1,8 +1,7 @@
 #pragma once
 #include <LAppModel.hpp>
 
-#define Py_LIMITED_API
-#include <Python.h>
+#include "Python.hpp"
 
 struct PyLAppModelObject
 {

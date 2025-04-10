@@ -1,6 +1,7 @@
 # Create Wrapper 
 set(Wrapper Live2DWrapper)
 add_library(${Wrapper} SHARED 
+  ${PROJECT_ROOT}/Wrapper/Python.hpp
   ${PROJECT_ROOT}/Wrapper/Live2D.cpp
   ${PROJECT_ROOT}/Wrapper/PyLAppModel.hpp
   ${PROJECT_ROOT}/Wrapper/PyLAppModel.cpp

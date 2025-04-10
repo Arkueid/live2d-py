@@ -736,10 +736,10 @@ static PyObject *PyModel_New(PyTypeObject *type, PyObject *args, PyObject *kwarg
 }
 
 static PyType_Slot PyModel_slots[] = {
-	{Py_tp_new, PyModel_New},
-	{Py_tp_init, PyModel_Init},
-	{Py_tp_dealloc, PyModel_Dealloc},
-	{Py_tp_methods, PyModel_Methods},
+	{Py_tp_new, (void*)PyModel_New},
+	{Py_tp_init, (void*)PyModel_Init},
+	{Py_tp_dealloc, (void*)PyModel_Dealloc},
+	{Py_tp_methods, (void*)PyModel_Methods},
 	{0, 0},
 };
 
