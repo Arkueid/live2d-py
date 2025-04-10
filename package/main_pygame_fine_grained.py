@@ -143,11 +143,13 @@ while True:
                 degrees += 5
                 model.Rotate(degrees)
             elif event.key == pygame.K_e:
-                model.StartRandomMotion(
-                    "extra",
+                model.StartMotion(
+                    "extra", 0, 3,
                     onStart=lambda group, no: print(f"{group} {no} started"),
                     onFinish=lambda group, no: print(f"{group} {no} finished"),
                 )
+            elif event.key == pygame.K_r:
+                model.ResetExpression()
 
     if not running:
         break

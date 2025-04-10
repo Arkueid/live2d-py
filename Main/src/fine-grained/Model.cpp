@@ -55,7 +55,7 @@ namespace
 
 Model::Model() : CubismUserModel(), _modelSetting(nullptr), _matrixManager(),
                  _parameterCount(0), _parameterDefaultValues(nullptr), _parameterValues(nullptr),
-                 _tmpOrderedDrawIndice(nullptr)
+                 _tmpOrderedDrawIndice(nullptr), _expFadeOutTimeMillis(0)
 {
     _mocConsistency = true;
 
