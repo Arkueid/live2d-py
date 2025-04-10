@@ -103,6 +103,11 @@ pip install live2d-py
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
+### 基于 live2d-py C 模块及 Qt 开发的 Live2DViewer
+
+![Live2DViewer](./docs/live2dviewer.png)
+
+
 ### 多模型加载
 
 源码见 [main_pygame_three_model.py](./package/main_pygame_three_model.py)

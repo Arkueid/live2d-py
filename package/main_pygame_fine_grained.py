@@ -75,6 +75,8 @@ model.Resize(500, 700)
 live2d.glInit()
 # CreateRenderer should be called after OpenGL context is created and glInit is called
 # maskBufferCount = 2
+# more info about maskBufferCount: https://docs.live2d.com/zh-CHS/cubism-sdk-manual/ow-sdk-mask-premake/
+# typically maskBufferCount = 2 is enough for most cases
 model.CreateRenderer(2)
 
 lastUpdateTime = time.time()
@@ -158,33 +160,47 @@ while True:
     ct = time.time()
     # delta seconds
     deltaSecs = ct - lastUpdateTime
-    deltaSecs = max(0.001, deltaSecs)
+    deltaSecs = max(0.0001, deltaSecs)
     lastUpdateTime = ct
 
-    # the following lines are equal to LAppModel.Update()
+    # the following section is equal to LAppModel.Update()
+
+    # === Section Start Update() ===
     # load cached parameters from last frame
     motionUpdated = False
-    model.LoadParameters()
+    model.LoadParameters() # initialize params using cached values
+
     if not model.IsMotionFinished():
         motionUpdated = model.UpdateMotion(deltaSecs)
 
     # if SetParameterValue is called here, the parameter will be saved to the cache
-    model.SaveParameters()
+    # model.SetParameterValue(StandardParams.ParamAngleX, params.AngleX, 1)
+
+    model.SaveParameters() # save params to cache for next frame
 
     if not motionUpdated:
-        model.UpdateBlink(deltaSecs)  # auto blink
+        # auto blink
+        # update eye blink params if they are defined in the model3.json
+        model.UpdateBlink(deltaSecs)  
 
     model.UpdateExpression(deltaSecs)
 
     model.UpdateDrag(deltaSecs)
 
-    model.UpdateBreath(deltaSecs)  # auto breath
+    # auto breath
+    # update breath params such as ParamBodyAngleX, ParamAngleX...
+    model.UpdateBreath(deltaSecs)  
 
-    # create physics effects according to the parameters set
+    # create physics effects according to current and previous param values
+    # some params can be overridden by physics effects
     model.UpdatePhysics(deltaSecs)
 
     model.UpdatePose(deltaSecs)
+    # === Section End Update() ===
 
+    # Draw():
+    #   1. update meshes according to the parameters
+    #   2. draw meshes using opengl
     model.Draw()
 
     pygame.display.flip()

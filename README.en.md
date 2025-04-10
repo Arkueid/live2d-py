@@ -98,6 +98,10 @@ Source code: [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
+### Live2DViewer based on live2d-py C Module and Qt
+
+![Live2DViewer](./docs/live2dviewer.png)
+
 ### Multi-live2d model rendering
 
 Source code: [main_pygame_three_model.py](./package/main_pygame_three_model.py)
@@ -118,7 +122,7 @@ Source code: [main_pygame.py](./package/main_pygame.py)
 
 ### Model Opacity
 
-源码见 [main_pyqt5_canvas_opacity.py](./package/main_pyqt5_canvas_opacity.py)
+Source Code: [main_pyqt5_canvas_opacity.py](./package/main_pyqt5_canvas_opacity.py)
 
 ![opacity](./docs/opacity.gif)
 
