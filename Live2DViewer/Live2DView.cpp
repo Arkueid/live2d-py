@@ -8,8 +8,6 @@
 #include <QSlider>
 #include <QTreeWidgetItem>
 
-
-
 Live2DView::Live2DView(const QString &filePath, QWidget *parent) : QWidget(parent), hasCdi(false), syncTimer(this), selectedPartIndex(-1)
 {
     ui.setupUi(this);
@@ -77,11 +75,22 @@ void Live2DView::initMotions(Model *model)
     item->setText(0, "Motions");
     ui.treeWidget->addTopLevelItem(item);
 
-    model->GetMotions(item,
-                      [](void *collector, const char *group, int no, const char *file, const char*)
+    QMap<QString, QTreeWidgetItem *> groups;
+    void *collector[2] = {item, &groups};
+    model->GetMotions(collector,
+                      [](void *collector, const char *group, int no, const char *file, const char *)
                       {
-                          QTreeWidgetItem *topLevel = (QTreeWidgetItem *)collector;
-                          QTreeWidgetItem *item = new QTreeWidgetItem(topLevel);                        
+                          QTreeWidgetItem *topLevel = (QTreeWidgetItem *)(((void **)collector)[0]);
+                          QMap<QString, QTreeWidgetItem *> *groups = (QMap<QString, QTreeWidgetItem *> *)(((void **)collector)[1]);
+                          QTreeWidgetItem *groupItem;
+                          if (!groups->contains(group))
+                          {
+                              groupItem = new QTreeWidgetItem(topLevel);
+                              groupItem->setText(0, group);
+                              groups->insert(group, groupItem);
+                          }
+                          groupItem = groups->value(group);
+                          QTreeWidgetItem *item = new QTreeWidgetItem(groupItem);
                           QFileInfo info(file);
                           item->setText(0, info.fileName());
                           item->setData(0, Qt::UserRole, QVariant(group));
@@ -102,7 +111,7 @@ void Live2DView::onTreeItemDoubleClicked(QTreeWidgetItem *item, int column)
     {
         model->SetExpression(item->data(0, Qt::UserRole).toString().toStdString().c_str());
     }
-    else if (item->parent()->text(0) == "Motions")
+    else if (item->parent()->parent() != nullptr && item->parent()->parent()->text(0) == "Motions")
     {
         model->StartMotion(item->data(0, Qt::UserRole).toString().toStdString().c_str(), item->data(0, Qt::UserRole + 1).toInt());
     }

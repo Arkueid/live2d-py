@@ -57,6 +57,8 @@ print(drawableIds)
 expressions = model.GetExpressions()
 print(expressions)
 
+# only motions that are defined in model3.json
+# extra motions are not included
 motions = model.GetMotions()
 print(motions)
 
