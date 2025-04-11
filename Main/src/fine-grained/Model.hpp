@@ -34,6 +34,8 @@ public:
 
     // update
 
+    void Update(float deltaSecs);
+
     /**
      * @brief
      * @param deltaSecs time elapsed since last frame

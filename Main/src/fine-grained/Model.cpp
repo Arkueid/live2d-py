@@ -100,6 +100,60 @@ const char *Model::GetModelHomeDir()
     return _modelHomeDir.GetRawString();
 }
 
+void Model::Update(float deltaSecs)
+{
+    _dragManager->Update(deltaSecs);
+    _dragX = _dragManager->GetX();
+    _dragY = _dragManager->GetY();
+
+    bool motionUpdated = false;
+    _model->LoadParameters();
+    if (!_motionManager->IsFinished())
+    {
+        motionUpdated = _motionManager->UpdateMotion(_model, deltaSecs); 
+    }
+    _model->SaveParameters();
+
+    _opacity = _model->GetModelOpacity();
+
+    if (!motionUpdated)
+    {
+        if (_eyeBlink != NULL)
+        {
+            _eyeBlink->UpdateParameters(_model, deltaSecs);
+        }
+    }
+
+    if (_expressionManager != NULL)
+    {
+        _expressionManager->UpdateMotion(_model, deltaSecs);
+    }
+
+    _model->AddParameterValue(_ParamAngleXi, _dragX * 30);
+    _model->AddParameterValue(_ParamAngleYi, _dragY * 30);
+    _model->AddParameterValue(_ParamAngleZi, _dragX * _dragY * -30);
+
+    _model->AddParameterValue(_ParamBodyAngleXi, _dragX * 10);
+
+    _model->AddParameterValue(_ParamEyeBallXi, _dragX);
+    _model->AddParameterValue(_ParamEyeBallYi, _dragY);
+
+    if (_breath != NULL)
+    {
+        _breath->UpdateParameters(_model, deltaSecs);
+    }
+
+    if (_physics != NULL)
+    {
+        _physics->Evaluate(_model, deltaSecs);
+    }
+
+    if (_pose != NULL)
+    {
+        _pose->UpdateParameters(_model, deltaSecs);
+    }
+}
+
 void Model::SetupModel()
 {
     // moc3

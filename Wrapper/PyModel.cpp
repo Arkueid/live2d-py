@@ -85,6 +85,18 @@ static PyObject *PyModel_GetModelHomeDir(PyModelObject *self, PyObject *args, Py
 {
 	return Py_BuildValue("s", self->model->GetModelHomeDir());
 }
+
+static PyObject *PyModel_Update(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	float deltaTimeSeconds;
+	if (!PyArg_ParseTuple(args, "f", &deltaTimeSeconds))
+	{
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be float");
+		return NULL;
+	}
+	self->model->Update(deltaTimeSeconds);
+	Py_RETURN_NONE;
+}
 static PyObject *PyModel_UpdateMotion(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	float deltaTimeSeconds;
@@ -679,6 +691,7 @@ static PyMethodDef PyModel_Methods[] = {
 	{"Dealloc", (PyCFunction)PyModel_Dealloc, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"LoadModelJson", (PyCFunction)PyModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetModelHomeDir", (PyCFunction)PyModel_GetModelHomeDir, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"Update", (PyCFunction)PyModel_Update, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"UpdateMotion", (PyCFunction)PyModel_UpdateMotion, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"UpdateDrag", (PyCFunction)PyModel_UpdateDrag, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"UpdateBreath", (PyCFunction)PyModel_UpdateBreath, METH_VARARGS | METH_KEYWORDS, nullptr},
