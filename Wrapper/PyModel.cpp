@@ -4,12 +4,13 @@
 
 static void MotionStartCallback(ACubismMotion *motion)
 {
-	if (motion->onStartedCallee == nullptr)
+	void* callee = motion->GetBeganMotionCustomData();
+	if (callee == nullptr)
 	{
 		return;
 	}
 	PyGILState_STATE state = PyGILState_Ensure();
-	PyObject *s_call = (PyObject *)motion->onStartedCallee;
+	PyObject *s_call = (PyObject *)callee;
 	PyObject *result = PyObject_CallFunction(s_call, "si", motion->group.c_str(), motion->no);
 	if (result != nullptr)
 		Py_XDECREF(result);
@@ -19,12 +20,13 @@ static void MotionStartCallback(ACubismMotion *motion)
 
 static void MotionFinishCallback(ACubismMotion *motion)
 {
-	if (motion->onFinishedCallee == nullptr)
+	void* callee = motion->GetFinishedMotionCustomData();
+	if (callee == nullptr)
 	{
 		return;
 	}
 	PyGILState_STATE state = PyGILState_Ensure();
-	PyObject *f_call = (PyObject *)motion->onFinishedCallee;
+	PyObject *f_call = (PyObject *)callee;
 	PyObject *result = PyObject_CallFunction(f_call, "si", motion->group.c_str(), motion->no);
 	if (result != nullptr)
 		Py_XDECREF(result);

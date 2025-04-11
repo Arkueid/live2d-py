@@ -133,7 +133,7 @@ def main():
                 # log.Info(f"Clicked Part: {currentTopClickedPartId}")
                 # model.StartRandomMotion(group="TapBody", onFinishMotionHandler=lambda : print("motion finished"), onStartMotionHandler=lambda group, no: print(f"started motion: {group} {no}"))
                 model.SetRandomExpression()
-                model.StartRandomMotion(priority=3)
+                model.StartRandomMotion(priority=3, onFinishMotionHandler=on_finish_motion_callback)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:

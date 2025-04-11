@@ -550,8 +550,8 @@ CubismMotionQueueEntryHandle LAppModel::StartMotion(const csmChar *group, csmInt
     {
         motion->group = group;
         motion->no = no;
-        motion->onStartedCallee = onStartedCallee;
-        motion->onFinishedCallee = onFinishedCallee;
+        motion->SetBeganMotionCustomData(onStartedCallee);
+        motion->SetFinishedMotionCustomData(onFinishedCallee);
         motion->SetBeganMotionHandler(onStartMotionHandler);
         motion->SetFinishedMotionHandler(onFinishedMotionHandler);
     }
@@ -565,8 +565,8 @@ handler_label:
         FakeMotion fakeMotion;
         fakeMotion.group = group;
         fakeMotion.no = no;
-        fakeMotion.onStartedCallee = onStartedCallee;
-        fakeMotion.onFinishedCallee = onFinishedCallee;
+        fakeMotion.SetBeganMotionCustomData(onStartedCallee);
+        fakeMotion.SetFinishedMotionCustomData(onFinishedCallee);
         if (onStartMotionHandler)
         {
             onStartMotionHandler(&fakeMotion);

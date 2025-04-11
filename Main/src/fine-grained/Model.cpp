@@ -546,8 +546,8 @@ void Model::StartMotion(const char *group, int no, int priority, void *startCall
     {
         motion->group = group;
         motion->no = no;
-        motion->onStartedCallee = startCallee;
-        motion->onFinishedCallee = finishCallee;
+        motion->SetBeganMotionCustomData(startCallee);
+        motion->SetFinishedMotionCustomData(finishCallee);
         motion->SetBeganMotionHandler(onStartMotionHandler);
         motion->SetFinishedMotionHandler(onFinishMotionHandler);
     }
@@ -561,8 +561,8 @@ handler_label:
         FakeMotion fakeMotion;
         fakeMotion.group = group;
         fakeMotion.no = no;
-        fakeMotion.onStartedCallee = startCallee;
-        fakeMotion.onFinishedCallee = finishCallee;
+        fakeMotion.SetBeganMotionCustomData(startCallee);
+        fakeMotion.SetFinishedMotionCustomData(finishCallee);
         if (onStartMotionHandler)
         {
             onStartMotionHandler(&fakeMotion);

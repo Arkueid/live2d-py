@@ -1,4 +1,4 @@
-<div align="center" style="padding-top: 10px">
+<div align="center">
     <h1>
         <img src="./docs/moeroid.ico" alt="koe" width="50px" height="50px">
         <span style="color: #ffc000ff">live</span><span style="color: #ed7d31ff">2d</span><span style="color: #2e75b6ff">-py</span>
