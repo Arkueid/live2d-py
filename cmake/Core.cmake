@@ -20,6 +20,9 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   else()
     set(CORE_LIB_NAME macos/x86_64/libLive2DCubismCore.a)
   endif()
+elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
+  set(CSM_TARGET CSM_TARGET_ANDROID_ES2)
+  set(CORE_LIB_NAME android/${CMAKE_ANDROID_ARCH_ABI}/libLive2DCubismCore.a)
 endif()
 
 set_target_properties(Live2DCubismCore

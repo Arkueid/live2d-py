@@ -6,7 +6,11 @@ set_property(TARGET Main PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(Main PUBLIC src)
 
-find_package(OpenGL REQUIRED)
+if (CMAKE_SYSTEM_NAME MATCHES "Android")
+  set(OPENGL_LIBRARIES GLESv2)
+else() # Windows, Linux, MacOS
+  find_package(OpenGL REQUIRED)
+endif()
 
 if(APPLE)
   set(CMAKE_CXX_STANDARD 11)
@@ -14,8 +18,6 @@ if(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   
   set(CMAKE_OSX_ARCHITECTURES "arm64")
-  
-  find_package(OpenGL REQUIRED)
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)
   find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)

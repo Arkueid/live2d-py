@@ -55,7 +55,7 @@ namespace
 
 Model::Model() : CubismUserModel(), _modelSetting(nullptr), _matrixManager(),
                  _parameterCount(0), _parameterDefaultValues(nullptr), _parameterValues(nullptr),
-                 _tmpOrderedDrawIndice(nullptr), _expFadeOutTimeMillis(0)
+                 _tmpOrderedDrawIndice(nullptr), _expFadeOutTimeMillis(0), _defaultExpressionId("")
 {
     _mocConsistency = true;
 
@@ -1169,7 +1169,7 @@ void Model::ResetExpression()
 
 void Model::SetDefaultExpression(const char *expressionId)
 {
-    if (expressionId == nullptr || _expressions.IsExist(expressionId))
+    if (expressionId != nullptr || _expressions.IsExist(expressionId))
     {
         _defaultExpressionId = expressionId;
         Info("set default expression: [%s]", expressionId);
