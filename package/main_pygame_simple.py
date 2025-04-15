@@ -2,6 +2,7 @@ import os
 import pygame
 # import live2d.v3 as live2d
 import live2d.v2 as live2d
+from live2d.v2 import StandardParams
 import resources
 
 
@@ -33,6 +34,8 @@ def main():
         )
 
     model.Resize(*display)
+    model.SetAutoBlinkEnable(False)
+    model.SetParameterValue(StandardParams.ParamEyeLOpen, 0)
 
     running = True
     while True:
@@ -51,6 +54,7 @@ def main():
 
         live2d.clearBuffer()
         model.Update()
+
         model.Draw()
 
         pygame.display.flip()

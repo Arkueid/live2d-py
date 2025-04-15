@@ -4,8 +4,8 @@ import os
 import threading as td
 
 import pygame
-import live2d.v3 as live2d
-# import live2d.v2 as live2d
+# import live2d.v3 as live2d
+import live2d.v2 as live2d
 import resources
 from facial_params import Params
 if live2d.LIVE2D_VERSION == 3:
@@ -34,7 +34,7 @@ def main():
     display = (450, 700)
     pygame.display.set_mode(display, pygame.DOUBLEBUF | pygame.OPENGL)
 
-    live2d.glInit()
+    live2d.glewInit()
 
     model = live2d.LAppModel()
 
@@ -45,7 +45,7 @@ def main():
                                         "v3/小九/小九皮套（紫）/小九.model3.json"
                                          ))
     elif live2d.LIVE2D_VERSION == 2:
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"))
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"))
     model.Resize(*display)
 
     running = True
@@ -53,7 +53,8 @@ def main():
     params = Params()
     td.Thread(None, mediapipe_capture_task, "Capture Task", (params,), daemon=True).start()
 
-    # model.SetAutoBreathEnable(False)
+    model.SetAutoBreathEnable(False)
+    model.SetAutoBlinkEnable(False)
 
     while True:
         for event in pygame.event.get():

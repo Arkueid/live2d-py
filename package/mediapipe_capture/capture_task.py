@@ -9,7 +9,6 @@ from facial_params import Params
 from mediapipe_capture.calculation import calculate_head_pose, calculate_mouth_openness, calculate_eye_openness, \
     calculate_body_angle_x
 from mediapipe_capture.capture_config import *
-from mediapipe_capture.filters import initialize_kalman_filter, apply_kalman_filter
 from mediapipe_capture.math_utils import clipValue, linearScale01, linearScale_11
 
 
@@ -29,12 +28,12 @@ def mediapipe_capture_task(params: Params):
     pose = mp_pose.Pose()
 
     # 摄像头
+    # cap = cv2.VideoCapture(0)
+
+    # 视频文件
     cap = cv2.VideoCapture(test_video)
 
     pTime = time.time()
-
-    lkfs = [initialize_kalman_filter() for i in range(6)]
-    rkfs = [initialize_kalman_filter() for i in range(6)]
 
     while True:
         ret, frame = cap.read()
@@ -56,20 +55,10 @@ def mediapipe_capture_task(params: Params):
 
             # left eye openness ratio
             leftEyePoints = [(landmarks[i].x, landmarks[i].y) for i in LEFT_EYE]
-            newPoints = []
-            for i in range(6):
-                x = apply_kalman_filter(lkfs[i], leftEyePoints[i])
-                newPoints.append(x)
-            leftEyePoints = newPoints
 
             lEyeOpenRatio = calculate_eye_openness(leftEyePoints)
             # right eye openness ratio
             rightEyePoints = [(landmarks[i].x, landmarks[i].y) for i in RIGHT_EYE]
-            newPoints = []
-            for i in range(6):
-                x = apply_kalman_filter(rkfs[i], rightEyePoints[i])
-                newPoints.append(x)
-            rightEyePoints = newPoints
             rEyeOpenRatio = calculate_eye_openness(rightEyePoints)
             # mouth openness ration
             mouthPoints = [(landmarks[i].x, landmarks[i].y) for i in LIP]

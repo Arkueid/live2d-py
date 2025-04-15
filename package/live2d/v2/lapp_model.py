@@ -124,9 +124,18 @@ class LAppModel(L2DBaseModel):
 
     def SetParameterValue(self, paramId: str, value: float, weight: float = 1.0):
         self.live2DModel.setParamFloat(paramId, value, weight)
+        mdc = self.live2DModel.modelContext
+        idx = mdc.getParamIndex(paramId)
+        if idx < len(mdc.savedParamValues):
+            mdc.savedParamValues[idx] = mdc.savedParamValues[idx] * (1 - weight) + value * weight
+
 
     def AddParameterValue(self, paramId: str, value: float, weight: float = 1.0):
         self.live2DModel.addToParamFloat(paramId, value, weight)
+        mdc = self.live2DModel.modelContext
+        idx = mdc.getParamIndex(paramId)
+        if idx < len(mdc.savedParamValues):
+            mdc.savedParamValues[idx] = mdc.savedParamValues[idx] * (1 - weight) + value * weight
 
     def SetAutoBreathEnable(self, enable: bool):
         self.autoBreath = enable
