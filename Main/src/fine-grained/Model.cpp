@@ -73,6 +73,7 @@ Model::~Model()
 
     ReleaseMotions();
     ReleaseExpressions();
+    ReleaseExpressionManagers();
 
     if (_modelSetting == nullptr)
     {
@@ -1260,6 +1261,15 @@ void Model::ReleaseExpressions()
     }
 
     _expressions.Clear();
+}
+
+void Model::ReleaseExpressionManagers()
+{
+    for (auto& [id, expMgr] : _expManagers)
+    {
+        delete expMgr;
+    }
+    _expManagers.clear();
 }
 
 void Model::SetupTextures()

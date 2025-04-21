@@ -183,6 +183,7 @@ public:
 private:
     void ReleaseMotions();
     void ReleaseExpressions();
+    void ReleaseExpressionManagers();
     void SetupTextures();
     void PreloadMotionGroup(const csmChar* group);
     void SetupModel();
