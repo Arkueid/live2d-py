@@ -728,6 +728,25 @@ static PyObject* PyLAppModel_GetSoundPath(PyLAppModelObject* self, PyObject* arg
     return Py_BuildValue("s", self->model->GetSoundPath(group, index));
 }
 
+static PyObject* PyLAppModel_GetCanvasSize(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    float w, h;
+    self->model->GetCanvasSize(w, h);
+    return Py_BuildValue("ff", w, h);
+}
+
+static PyObject* PyLAppModel_GetCanvasSizePixel(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    float w, h;
+    self->model->GetCanvasSizePixel(w, h);
+    return Py_BuildValue("ff", w, h);
+}
+
+static PyObject* PyLAppModel_GetPixelsPerUnit(PyLAppModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    return Py_BuildValue("f", self->model->GetPixelsPerUnit());
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -782,6 +801,10 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"GetMotionGroups", (PyCFunction)PyLAppModel_GetMotionGroups, METH_VARARGS | METH_KEYWORDS, ""},
 
     {"GetSoundPath", (PyCFunction)PyLAppModel_GetSoundPath, METH_VARARGS | METH_KEYWORDS, ""},
+
+    {"GetCanvasSize", (PyCFunction)PyLAppModel_GetCanvasSize, METH_VARARGS, ""},
+    {"GetCanvasSizePixel", (PyCFunction)PyLAppModel_GetCanvasSizePixel, METH_VARARGS, ""},
+    {"GetPixelsPerUnit", (PyCFunction)PyLAppModel_GetPixelsPerUnit, METH_VARARGS, ""},
 
     {NULL} // 方法列表结束的标志
 };

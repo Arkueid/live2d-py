@@ -611,6 +611,28 @@ static PyObject *PyModel_GetDrawableIds(PyModelObject *self, PyObject *args, PyO
 								});
 	return list;
 }
+static PyObject *PyModel_AddExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	const char *expressionId;
+	if (!PyArg_ParseTuple(args, "s", &expressionId))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
+		return NULL;
+	}
+	self->model->AddExpression(expressionId);
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_RemoveExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	const char *expressionId;
+	if (!PyArg_ParseTuple(args, "s", &expressionId))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
+		return NULL;
+	}
+	self->model->RemoveExpression(expressionId);
+	Py_RETURN_NONE;
+}
 static PyObject *PyModel_SetExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	const char *expressionId;
@@ -620,6 +642,30 @@ static PyObject *PyModel_SetExpression(PyModelObject *self, PyObject *args, PyOb
 		return NULL;
 	}
 	self->model->SetExpression(expressionId);
+	Py_RETURN_NONE;
+}
+
+static PyObject *PyModel_SetRandomExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	const char* expId = self->model->SetRandomExpression();
+	if (expId != nullptr)
+	{
+		return Py_BuildValue("s", expId);
+	}
+	else 
+	{
+		Py_RETURN_NONE;
+	}
+}
+
+static PyObject *PyModel_ResetExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	self->model->ResetExpression();
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_ResetExpressions(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	self->model->ResetExpressions();
 	Py_RETURN_NONE;
 }
 static PyObject *PyModel_GetExpressions(PyModelObject *self, PyObject *args, PyObject *kwargs)
@@ -638,39 +684,6 @@ static PyObject *PyModel_GetExpressions(PyModelObject *self, PyObject *args, PyO
 								});
 	return list;
 }
-static PyObject *PyModel_SetRandomExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
-{
-	const char* expressionId = self->model->SetRandomExpression();
-	return PyUnicode_FromString(expressionId);
-}
-static PyObject *PyModel_ResetExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
-{
-	self->model->ResetExpression();
-	Py_RETURN_NONE;
-}
-static PyObject *PyModel_SetDefaultExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
-{
-	const char* expressionId;
-	if (!PyArg_ParseTuple(args, "s", &expressionId))
-	{
-		PyErr_SetString(PyExc_TypeError, "arguments must be (str)");
-		return NULL;
-	}
-	self->model->SetDefaultExpression(expressionId);
-	Py_RETURN_NONE;
-}
-static PyObject *PyModel_SetFadeOutExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
-{
-	const char* expressionId;
-	double fadeOutMillis;
-	if (!PyArg_ParseTuple(args, "sd", &expressionId, &fadeOutMillis))
-	{
-		PyErr_SetString(PyExc_TypeError, "arguments must be (str, float)");
-		return NULL;
-	}
-	self->model->SetFadeOutExpression(expressionId, fadeOutMillis);
-	Py_RETURN_NONE;
-}
 static PyObject *PyModel_StopAllMotions(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	self->model->StopAllMotions();
@@ -686,6 +699,26 @@ static PyObject *PyModel_ResetPose(PyModelObject *self, PyObject *args, PyObject
 	self->model->ResetPose();
 	Py_RETURN_NONE;
 }
+
+static PyObject* PyModel_GetCanvasSize(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    float w, h;
+    self->model->GetCanvasSize(w, h);
+    return Py_BuildValue("ff", w, h);
+}
+
+static PyObject* PyModel_GetCanvasSizePixel(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    float w, h;
+    self->model->GetCanvasSizePixel(w, h);
+    return Py_BuildValue("ff", w, h);
+}
+
+static PyObject* PyModel_GetPixelsPerUnit(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+    return Py_BuildValue("f", self->model->GetPixelsPerUnit());
+}
+
 static PyMethodDef PyModel_Methods[] = {
 	{"Init", (PyCFunction)PyModel_Init, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"Dealloc", (PyCFunction)PyModel_Dealloc, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -733,15 +766,21 @@ static PyMethodDef PyModel_Methods[] = {
 	{"SetPartScreenColor", (PyCFunction)PyModel_SetPartScreenColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetPartMultiplyColor", (PyCFunction)PyModel_SetPartMultiplyColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetDrawableIds", (PyCFunction)PyModel_GetDrawableIds, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"SetExpression", (PyCFunction)PyModel_SetExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetExpressions", (PyCFunction)PyModel_GetExpressions, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"AddExpression", (PyCFunction)PyModel_AddExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"RemoveExpression", (PyCFunction)PyModel_RemoveExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"SetExpression", (PyCFunction)PyModel_SetExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetRandomExpression", (PyCFunction)PyModel_SetRandomExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"ResetExpression", (PyCFunction)PyModel_ResetExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"SetDefaultExpression", (PyCFunction)PyModel_SetDefaultExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"SetFadeOutExpression", (PyCFunction)PyModel_SetFadeOutExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"ResetExpressions", (PyCFunction)PyModel_ResetExpressions, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"StopAllMotions", (PyCFunction)PyModel_StopAllMotions, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"ResetAllParameters", (PyCFunction)PyModel_ResetAllParameters, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"ResetPose", (PyCFunction)PyModel_ResetPose, METH_VARARGS | METH_KEYWORDS, nullptr},
+
+	{"GetCanvasSize", (PyCFunction)PyModel_GetCanvasSize, METH_VARARGS, ""},
+    {"GetCanvasSizePixel", (PyCFunction)PyModel_GetCanvasSizePixel, METH_VARARGS, ""},
+    {"GetPixelsPerUnit", (PyCFunction)PyModel_GetPixelsPerUnit, METH_VARARGS, ""},
+
 	{NULL}};
 static PyObject *PyModel_New(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {

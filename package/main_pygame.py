@@ -122,6 +122,10 @@ def main():
     progress = 0
     deg = math.sin(progress) * deg_max 
 
+    print("canvas size:", model.GetCanvasSize())
+    print("canvas size in pixels:", model.GetCanvasSizePixel())
+    print("pixels per unit:", model.GetPixelsPerUnit())
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

@@ -206,6 +206,12 @@ public:
 
     const char* GetSoundPath(const char* group, int index);
 
+    void GetCanvasSize(float& w, float& h);
+
+    void GetCanvasSizePixel(float& w, float& h);
+
+    float GetPixelsPerUnit();
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。

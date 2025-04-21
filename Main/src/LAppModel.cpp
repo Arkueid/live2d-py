@@ -1066,3 +1066,21 @@ const char* LAppModel::GetSoundPath(const char *group, int index)
 {
     return _modelSetting->GetMotionSoundFileName(group, index);
 }
+
+void LAppModel::GetCanvasSize(float &w, float &h)
+{
+    w = _model->GetCanvasWidth();
+    h = _model->GetCanvasHeight();
+}
+
+void LAppModel::GetCanvasSizePixel(float &w, float &h)
+{
+    w = _model->GetCanvasWidthPixel();
+    h = _model->GetCanvasHeightPixel();
+}
+
+float LAppModel::GetPixelsPerUnit()
+{
+    return _model->GetPixelsPerUnit();
+}
+

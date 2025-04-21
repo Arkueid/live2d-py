@@ -9,6 +9,7 @@ More usage: package/live2d/v3/live2d.pyi
 import live2d.v3 as live2d
 import resources
 import os
+import random
 
 
 # initialize memory allocation for live2d
@@ -62,6 +63,11 @@ print(expressions)
 motions = model.GetMotions()
 print(motions)
 
+print("canvas size:", model.GetCanvasSize())
+print("canvas size in pixels:", model.GetCanvasSizePixel())
+print("pixels per unit:", model.GetPixelsPerUnit())
+
+lastExpressionId = ""
 
 import pygame
 import time
@@ -81,6 +87,24 @@ model.CreateRenderer(2)
 
 lastUpdateTime = time.time()
 running = True
+
+activeExpressions = []
+
+def addRandomExpression(drop_last: bool = False) -> str:
+    global lastExpressionId
+    global expressions
+    global activeExpressions
+
+    if drop_last:
+        model.RemoveExpression(lastExpressionId)
+
+    expId = random.choice(expressions)
+    model.AddExpression(expId)
+
+    # mantain info about the used expressions
+    lastExpressionId = expId
+    activeExpressions.append(expId)
+    return expId
 
 offsetX = 0.0
 offsetY = 0.0
@@ -102,14 +126,14 @@ while True:
             print("hit:", hitPartIds)
             # to test if the given area name is hit
             if model.IsAreaHit("Head", x, y):
-                print("start expression: ", model.SetRandomExpression())
+                print("add expression: ", addRandomExpression())
             # some assertions to test if the algorithm is correct
             if len(hitDrawableIds) > 0:
                 assert model.IsDrawableHit(drawableIds.index(hitDrawableIds[0]), x, y)
             if len(hitPartIds):
                 assert model.IsPartHit(partIds.index(hitPartIds[0]), x, y)
         # motion
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             model.StartRandomMotion(
                 onStart=lambda group, no: print(f"{group} {no} started"),
                 onFinish=lambda group, no: print(f"{group} {no} finished"),
@@ -151,6 +175,10 @@ while True:
                     onFinish=lambda group, no: print(f"{group} {no} finished"),
                 )
             elif event.key == pygame.K_r:
+                model.ResetExpressions()
+            elif event.key == pygame.K_t:
+                print("set expression:", model.SetRandomExpression())
+            elif event.key == pygame.K_q:
                 model.ResetExpression()
 
     if not running:
