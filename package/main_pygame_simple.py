@@ -1,7 +1,7 @@
 import os
 import pygame
-# import live2d.v3 as live2d
-import live2d.v2 as live2d
+import live2d.v3 as live2d
+# import live2d.v2 as live2d
 from live2d.v2 import StandardParams
 import resources
 

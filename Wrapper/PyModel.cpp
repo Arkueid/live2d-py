@@ -611,6 +611,30 @@ static PyObject *PyModel_GetDrawableIds(PyModelObject *self, PyObject *args, PyO
 								});
 	return list;
 }
+static PyObject *PyModel_SetDrawableMultiplyColor(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	int index;
+	float r, g, b, a;
+	if (!PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (int, float, float, float, float)");
+		return NULL;
+	}
+	self->model->SetDrawableMultiColor(index, r, g, b, a);
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_SetDrawableScreenColor(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	int index;
+	float r, g, b, a;
+	if (!PyArg_ParseTuple(args, "iffff", &index, &r, &g, &b, &a))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (int, float, float, float, float)");
+		return NULL;
+	}
+	self->model->SetDrawableScreenColor(index, r, g, b, a);
+	Py_RETURN_NONE;
+}
 static PyObject *PyModel_AddExpression(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	const char *expressionId;
@@ -766,6 +790,9 @@ static PyMethodDef PyModel_Methods[] = {
 	{"SetPartScreenColor", (PyCFunction)PyModel_SetPartScreenColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetPartMultiplyColor", (PyCFunction)PyModel_SetPartMultiplyColor, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetDrawableIds", (PyCFunction)PyModel_GetDrawableIds, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"SetDrawableMultiplyColor", (PyCFunction)PyModel_SetDrawableMultiplyColor, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"SetDrawableScreenColor", (PyCFunction)PyModel_SetDrawableScreenColor, METH_VARARGS | METH_KEYWORDS, nullptr},
+
 	{"GetExpressions", (PyCFunction)PyModel_GetExpressions, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"AddExpression", (PyCFunction)PyModel_AddExpression, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"RemoveExpression", (PyCFunction)PyModel_RemoveExpression, METH_VARARGS | METH_KEYWORDS, nullptr},

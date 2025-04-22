@@ -204,6 +204,14 @@ public:
 
     void GetMotionGroups(void* collector, void(*callback)(void* collector, const char* groupName, int count));
 
+    int GetDrawableCount();
+
+    void GetDrawableIds(void* collector, void(*callback)(void* collector, const char* drawableId));
+
+    void SetDrawableMultiplyColor(int index, float r, float g, float b, float a);
+
+    void SetDrawableScreenColor(int index, float r, float g, float b, float a);
+
     const char* GetSoundPath(const char* group, int index);
 
     void GetCanvasSize(float& w, float& h);

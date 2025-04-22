@@ -149,6 +149,9 @@ public:
     const int GetDrawableVertexIndexCount(int index);
     const unsigned short* GetDrawableIndices(int index);
 
+    void SetDrawableMultiColor(int index, float r, float g, float b, float a);
+    void SetDrawableScreenColor(int index, float r, float g, float b, float a);
+
     // expression
     void AddExpression(const char *expressionId);
 

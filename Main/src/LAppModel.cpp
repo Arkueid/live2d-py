@@ -46,8 +46,8 @@ namespace
     class FakeMotion : public ACubismMotion
     {
     protected:
-        void DoUpdateParameters(CubismModel* model, csmFloat32 userTimeSeconds, csmFloat32 weight,
-            CubismMotionQueueEntry* motionQueueEntry) override
+        void DoUpdateParameters(CubismModel *model, csmFloat32 userTimeSeconds, csmFloat32 weight,
+                                CubismMotionQueueEntry *motionQueueEntry) override
         {
         }
 
@@ -268,7 +268,7 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     _tmpOrderedDrawIndices = new int[_model->GetDrawableCount()];
     _matrixManager.SetModelWH(_model->GetCanvasWidth(), _model->GetCanvasHeight());
 
-    Live2D::Cubism::Core::csmModel* model = _model->GetModel();
+    Live2D::Cubism::Core::csmModel *model = _model->GetModel();
     _defaultParameterValues = Live2D::Cubism::Core::csmGetParameterDefaultValues(model);
     _parameterValues = Live2D::Cubism::Core::csmGetParameterValues(model);
     _parameterCount = Live2D::Cubism::Core::csmGetParameterCount(model);
@@ -374,8 +374,8 @@ bool LAppModel::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 p
         return false; // 存在しない場合はfalse
     }
 
-    const csmInt32    count = _model->GetDrawableVertexCount(drawIndex);
-    const csmFloat32* vertices = _model->GetDrawableVertices(drawIndex);
+    const csmInt32 count = _model->GetDrawableVertexCount(drawIndex);
+    const csmFloat32 *vertices = _model->GetDrawableVertices(drawIndex);
 
     csmFloat32 left = vertices[0];
     csmFloat32 right = vertices[0];
@@ -1057,12 +1057,48 @@ void LAppModel::GetMotionGroups(void *collector, void (*callback)(void *collecto
     const int count = _modelSetting->GetMotionGroupCount();
     for (int i = 0; i < count; i++)
     {
-        const char* group = _modelSetting->GetMotionGroupName(i);
+        const char *group = _modelSetting->GetMotionGroupName(i);
         callback(collector, group, _modelSetting->GetMotionCount(group));
     }
 }
 
-const char* LAppModel::GetSoundPath(const char *group, int index)
+int LAppModel::GetDrawableCount()
+{
+    return _model->GetDrawableCount();
+}
+
+void LAppModel::GetDrawableIds(void *collector, void (*callback)(void *collector, const char *drawableId))
+{
+    const int count = _model->GetDrawableCount();
+    for (int i = 0; i < count; i++)
+    {
+        callback(collector, _model->GetDrawableId(i)->GetString().GetRawString());
+    }
+}
+
+void LAppModel::SetDrawableMultiplyColor(int index, float r, float g, float b, float a)
+{
+    const int count = _model->GetDrawableVertexCount(index);
+    if (index < 0 || index >= count)
+    {
+        return;
+    }
+    _model->SetOverwriteFlagForDrawableMultiplyColors(index, true);
+    _model->SetMultiplyColor(index, r, g, b, a);
+}
+
+void LAppModel::SetDrawableScreenColor(int index, float r, float g, float b, float a)
+{
+    const int count = _model->GetDrawableVertexCount(index);
+    if (index < 0 || index >= count)
+    {
+        return;
+    }
+    _model->SetOverwriteFlagForDrawableScreenColors(index, true);
+    _model->SetScreenColor(index, r, g, b, a);
+}
+
+const char *LAppModel::GetSoundPath(const char *group, int index)
 {
     return _modelSetting->GetMotionSoundFileName(group, index);
 }
@@ -1083,4 +1119,3 @@ float LAppModel::GetPixelsPerUnit()
 {
     return _model->GetPixelsPerUnit();
 }
-

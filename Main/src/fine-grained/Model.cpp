@@ -1106,6 +1106,28 @@ const unsigned short *Model::GetDrawableIndices(int index)
     return _model->GetDrawableVertexIndices(index);
 }
 
+void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a)
+{
+    const int count = _model->GetDrawableVertexCount(index);
+    if (index < 0 || index >= count)
+    {
+        return;
+    }
+    _model->SetOverwriteFlagForDrawableMultiplyColors(index, true);
+    _model->SetMultiplyColor(index, r, g, b, a);
+}
+
+void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a)
+{
+    const int count = _model->GetDrawableVertexCount(index);
+    if (index < 0 || index >= count)
+    {
+        return;
+    }
+    _model->SetOverwriteFlagForDrawableScreenColors(index, true);
+    _model->SetScreenColor(index, r, g, b, a);
+}
+
 void Model::AddExpression(const char *expressionId)
 {
     ACubismMotion *motion = _expressions[expressionId];
