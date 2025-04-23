@@ -25,6 +25,17 @@ def calculate_mouth_openness(points):
     return calculate_eye_openness(points)
 
 
+def calculate_mouth_form(points):
+    """
+    计算嘴巴纵横比
+    :param points: 所有面部特征点
+    :return: 嘴巴纵横比
+    """
+    return euclideanDistance(points[0], points[1])
+             
+            
+
+
 def calculate_head_pose(points):
     """
     计算面部角度
@@ -63,3 +74,13 @@ def calculate_body_angle_x(body_center_x, left_shoulder, right_shoulder):
     perpLeft = abs(left_shoulder.x - body_center_x)
     perpRight = abs(right_shoulder.x - body_center_x)
     return np.degrees(np.arcsin((perpRight - perpLeft) / (perpRight + perpLeft)))
+
+
+def calculate_eye_ball_x(points):
+    # 瞳孔, 左眼角，右眼角
+    # 瞳孔 x (-1, 1)
+    left_center_x = (points[2][0] + points[1][0]) / 2
+    left_eye_ball_x = (points[0][0] - left_center_x) / (points[2][0] - points[1][0]) * 2
+    right_center_x = (points[5][0] + points[4][0]) / 2
+    right_eye_ball_x = (points[3][0] - right_center_x) / (points[5][0] - points[4][0]) * 2
+    return (left_eye_ball_x + right_eye_ball_x) / 2

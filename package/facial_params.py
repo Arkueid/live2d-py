@@ -2,26 +2,30 @@ class Params:
     """
     面部参数
     """
-    EyeLOpen: float = 1.0
-    EyeROpen: float = 1.0
-    MouthOpenY: float = 0.0
-    MouthForm: float = 0.0
-    AngleX: float = 0.0
-    AngleY: float = 0.0
-    AngleZ: float = 0.0
-    BodyAngleX: float = 0.0
-    BodyAngleY: float = 0.0
-    BodyAngleZ: float = 0.0
-    # 前一帧参数存储
-    prev_EyeLOpen = 0
-    prev_EyeROpen = 0
-    prev_MouthOpenY = 0
-    prev_AngleX = 0
-    prev_AngleY = 0
-    prev_AngleZ = 0
-    prev_BodyAngleX = 0
-    # 滤波因子
-    smooth_factor = 0.3  # 0~1之间，值越大越平滑画面迟滞越明显，值越小抖动越明显画面变化越灵敏
+    def __init__(self):
+        self.EyeLOpen: float = 1.0
+        self.EyeROpen: float = 1.0
+        self.MouthOpenY: float = 0.0
+        self.MouthForm: float = 0.0
+        self.AngleX: float = 0.0
+        self.AngleY: float = 0.0
+        self.AngleZ: float = 0.0
+        self.BodyAngleX: float = 0.0
+        self.BodyAngleY: float = 0.0
+        self.BodyAngleZ: float = 0.0
+        self.EyeBallX: float = 0.0
+        # 前一帧参数存储
+        self.prev_EyeLOpen = 0
+        self.prev_EyeROpen = 0
+        self.prev_MouthOpenY = 0
+        self.prev_MouthForm = 0
+        self.prev_AngleX = 0
+        self.prev_AngleY = 0
+        self.prev_AngleZ = 0
+        self.prev_BodyAngleX = 0
+        self.prev_EyeBallX = 0
+        # 滤波因子
+        self.smooth_factor = 0.3  # 0~1之间，值越大越平滑画面迟滞越明显，值越小抖动越明显画面变化越灵敏
 
     def smooth(self, current_value, prev_value):
         return self.smooth_factor * prev_value + (1 - self.smooth_factor) * current_value
@@ -47,3 +51,9 @@ class Params:
 
         self.BodyAngleX = self.smooth(new_params.BodyAngleX, self.prev_BodyAngleX)
         self.prev_BodyAngleX = self.BodyAngleX
+
+        self.EyeBallX = self.smooth(new_params.EyeBallX, self.prev_EyeBallX)
+        self.prev_EyeBallX = self.EyeBallX
+
+        self.MouthForm = self.smooth(new_params.MouthForm, self.prev_MouthForm)
+        self.prev_MouthForm = self.MouthForm
