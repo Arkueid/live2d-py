@@ -10,6 +10,10 @@ from mediapipe_capture.calculation import *
 from mediapipe_capture.new_capture_config import *
 from mediapipe_capture.math_utils import *
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..facial_params import Params
+
 
 def draw_landmarks_on_image(rgb_image, detection_result):
   face_landmarks_list = detection_result.face_landmarks
@@ -80,10 +84,10 @@ options = FaceLandmarkerOptions(
     num_faces=1,
 )
 
-def capture_task(params: 'Params' = None):
+def capture_task(params: 'Params' = None, source = 0):
 
     with FaceLandmarker.create_from_options(options) as landmarker:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(source)
 
         while True:
             ret, frame = cap.read()

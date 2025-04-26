@@ -25,7 +25,7 @@ class Params:
         self.prev_BodyAngleX = 0
         self.prev_EyeBallX = 0
         # 滤波因子
-        self.smooth_factor = 0.3  # 0~1之间，值越大越平滑画面迟滞越明显，值越小抖动越明显画面变化越灵敏
+        self.smooth_factor = 0.5  # 0~1之间，值越大越平滑画面迟滞越明显，值越小抖动越明显画面变化越灵敏
 
     def smooth(self, current_value, prev_value):
         return self.smooth_factor * prev_value + (1 - self.smooth_factor) * current_value

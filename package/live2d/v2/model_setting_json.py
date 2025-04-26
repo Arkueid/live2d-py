@@ -57,13 +57,13 @@ class ModelSettingJson():
     
     
     def getHitAreaID(self, n):
-        if self.json.get(self.HIT_AREAS, None) is None or self.json[self.HIT_AREAS].get(n, None) is None:
+        if self.json.get(self.HIT_AREAS, None) is None or len(self.json[self.HIT_AREAS]) == 0:
             return None
         return self.json[self.HIT_AREAS][n][self.ID]
     
     
     def getHitAreaName(self, n):
-        if self.json.get(self.HIT_AREAS, None) is None or self.json[self.HIT_AREAS].get(n, None) is None:
+        if self.json.get(self.HIT_AREAS, None) is None or len(self.json[self.HIT_AREAS]) == 0:
             return None
         return self.json[self.HIT_AREAS][n][self.NAME]
     

@@ -52,7 +52,7 @@ def main():
     running = True
 
     params = Params()
-    td.Thread(None, capture_task, "Capture Task", (params,), daemon=True).start()
+    td.Thread(None, capture_task, "Capture Task", (params,0), daemon=True).start()
 
     model.SetAutoBreathEnable(False)
     model.SetAutoBlinkEnable(False)
