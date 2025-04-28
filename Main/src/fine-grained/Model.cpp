@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <functional>
 #include <unordered_set>
+#include <algorithm>
 
 using namespace Live2D::Cubism::Framework;
 using namespace LAppDefine;
