@@ -75,15 +75,14 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(st
     LAppPal::ReleaseBytes(address);
 
     LAppTextureManager::TextureInfo* textureInfo = new LAppTextureManager::TextureInfo();
-    if (textureInfo != NULL)
-    {
-        textureInfo->fileName = fileName;
-        textureInfo->width = width;
-        textureInfo->height = height;
-        textureInfo->id = textureId;
 
-        _textures.PushBack(textureInfo);
-    }
+    textureInfo->fileName = fileName;
+    textureInfo->width = width;
+    textureInfo->height = height;
+    textureInfo->id = textureId;
+
+    _textures.PushBack(textureInfo);
+    
 
     return textureInfo;
 

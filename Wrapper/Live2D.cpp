@@ -4,6 +4,7 @@
 #include <LAppPal.hpp>
 #include <LAppAllocator.hpp>
 #include <Log.hpp>
+#include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -49,6 +50,12 @@ static PyObject* live2d_glInit()
     {
         Error("Can't initilize glad.");
     }
+    Py_RETURN_NONE;
+}
+
+static PyObject* live2d_glRelease()
+{
+    Csm::Rendering::CubismRenderer::StaticRelease();
     Py_RETURN_NONE;
 }
 
@@ -98,6 +105,7 @@ static PyMethodDef live2d_methods[] = {
     {"dispose", (PyCFunction)live2d_dispose, METH_VARARGS, ""},
     {"glewInit", (PyCFunction)live2d_glew_init, METH_VARARGS, ""},
     {"glInit", (PyCFunction)live2d_glInit, METH_VARARGS, ""},
+    {"glRelease", (PyCFunction)live2d_glRelease, METH_VARARGS, ""},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"setLogEnable", (PyCFunction)live2d_set_log_enable, METH_VARARGS, ""},
     {"logEnable", (PyCFunction)live2d_log_enable, METH_VARARGS, ""},

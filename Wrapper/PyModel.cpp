@@ -538,6 +538,11 @@ static PyObject *PyModel_CreateRenderer(PyModelObject *self, PyObject *args, PyO
 	self->model->CreateRenderer(maskBufferCount);
 	Py_RETURN_NONE;
 }
+static PyObject *PyModel_DestroyRenderer(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	self->model->DeleteRenderer();
+	Py_RETURN_NONE;
+}
 static PyObject *PyModel_Draw(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	self->model->Draw();
@@ -744,8 +749,6 @@ static PyObject* PyModel_GetPixelsPerUnit(PyModelObject* self, PyObject* args, P
 }
 
 static PyMethodDef PyModel_Methods[] = {
-	{"Init", (PyCFunction)PyModel_Init, METH_VARARGS | METH_KEYWORDS, nullptr},
-	{"Dealloc", (PyCFunction)PyModel_Dealloc, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"LoadModelJson", (PyCFunction)PyModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetModelHomeDir", (PyCFunction)PyModel_GetModelHomeDir, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"Update", (PyCFunction)PyModel_Update, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -783,7 +786,10 @@ static PyMethodDef PyModel_Methods[] = {
 	{"IsAreaHit", (PyCFunction)PyModel_IsAreaHit, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"IsPartHit", (PyCFunction)PyModel_IsPartHit, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"IsDrawableHit", (PyCFunction)PyModel_IsDrawableHit, METH_VARARGS | METH_KEYWORDS, nullptr},
+
 	{"CreateRenderer", (PyCFunction)PyModel_CreateRenderer, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"DestroyRenderer", (PyCFunction)PyModel_DestroyRenderer, METH_VARARGS | METH_KEYWORDS, nullptr},
+
 	{"Draw", (PyCFunction)PyModel_Draw, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetPartIds", (PyCFunction)PyModel_GetPartIds, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetPartOpacity", (PyCFunction)PyModel_SetPartOpacity, METH_VARARGS | METH_KEYWORDS, nullptr},

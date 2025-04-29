@@ -1013,9 +1013,15 @@ void Model::Drag(float x, float y)
 
 void Model::CreateRenderer(int maskBufferCount)
 {
-    CubismUserModel::DeleteRenderer();
+    _textureManager.ReleaseTextures();
     CubismUserModel::CreateRenderer(maskBufferCount);
     SetupTextures();
+}
+
+void Model::DestroyRenderer()
+{
+    _textureManager.ReleaseTextures();
+    CubismUserModel::DeleteRenderer();
 }
 
 void Model::Draw()

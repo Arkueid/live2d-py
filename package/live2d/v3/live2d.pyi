@@ -28,6 +28,14 @@ def glInit() -> None:
     """
     ...
 
+def glRelease() -> None:
+    """
+    release gl shaders when no longer rendering
+
+    should be called when opengl context is active and is about to be destroyed
+    """
+    ...
+
 def clearBuffer(r=0.0, g=0.0, b=0.0, a=0.0) -> None:
     """
     glClearColor(0.0, 0.0, 0.0, 0.0)
@@ -377,6 +385,14 @@ class Model:
     def IsDrawableHit(self, index: int, x: float, y: float) -> bool: ...
 
     def CreateRenderer(self, maskBufferCount: int = 1): ...
+
+    def DestroyRenderer(self): 
+        """
+        release texture and buffers
+
+        should be called when opengl context is active and is about to be destroyed
+        """
+        ...
 
     def Draw(self): ...
 

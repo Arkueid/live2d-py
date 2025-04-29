@@ -131,6 +131,8 @@ public:
      */
     void CreateRenderer(int maskBufferCount = 1);
 
+    void DestroyRenderer();
+
     void Draw();
 
     // part
