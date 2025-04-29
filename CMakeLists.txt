@@ -2,7 +2,6 @@
 cmake_minimum_required(VERSION 3.26)
 
 project(LAppModelWrapper)
-set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(APPLE)
   set(CMAKE_CXX_STANDARD 11)
@@ -26,10 +25,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   execute_process(COMMAND chcp 65001)
 endif()
 
-include(cmake/Core.cmake)
-include(cmake/Glad.cmake)
-include(cmake/Framework.cmake)
-include(cmake/Main.cmake)
+
+include(Live2D/cmake/Live2D.cmake)
 
 # set(VIEWER 1)
 

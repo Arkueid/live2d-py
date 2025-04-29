@@ -1,10 +1,10 @@
 
-add_subdirectory(Main)
+add_subdirectory(${LIVE2D_ROOT}/Main)
 
 set_property(TARGET Main PROPERTY CXX_STANDARD 17)
 set_property(TARGET Main PROPERTY CXX_STANDARD_REQUIRED ON)
 
-target_include_directories(Main PUBLIC src)
+target_include_directories(Main PUBLIC ${LIVE2D_ROOT}/Main/src)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Android")
   set(OPENGL_LIBRARIES GLESv2)

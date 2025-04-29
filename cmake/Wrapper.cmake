@@ -1,12 +1,12 @@
 # Create Wrapper 
 set(Wrapper Live2DWrapper)
 add_library(${Wrapper} SHARED 
-  ${PROJECT_ROOT}/Wrapper/Python.hpp
-  ${PROJECT_ROOT}/Wrapper/Live2D.cpp
-  ${PROJECT_ROOT}/Wrapper/PyLAppModel.hpp
-  ${PROJECT_ROOT}/Wrapper/PyLAppModel.cpp
-  ${PROJECT_ROOT}/Wrapper/PyModel.hpp
-  ${PROJECT_ROOT}/Wrapper/PyModel.cpp
+  ${PROJECT_SOURCE_DIR}/Wrapper/Python.hpp
+  ${PROJECT_SOURCE_DIR}/Wrapper/Live2D.cpp
+  ${PROJECT_SOURCE_DIR}/Wrapper/PyLAppModel.hpp
+  ${PROJECT_SOURCE_DIR}/Wrapper/PyLAppModel.cpp
+  ${PROJECT_SOURCE_DIR}/Wrapper/PyModel.hpp
+  ${PROJECT_SOURCE_DIR}/Wrapper/PyModel.cpp
 )
 
 set(Python3_FIND_REGISTRY "NEVER")
@@ -21,7 +21,7 @@ endif()
 
 find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
 
-target_link_libraries(${Wrapper} PRIVATE Main Python3::SABIModule)
+target_link_libraries(${Wrapper} PRIVATE Live2D::Main Python3::SABIModule)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(MODULE_NAME lib${Wrapper}.so)

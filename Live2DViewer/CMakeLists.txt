@@ -36,7 +36,6 @@ target_include_directories(Live2DViewer
     PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${QTINC}
-    ${PROJECT_ROOT}/Main/src
 )
 
 target_link_libraries(Live2DViewer
@@ -45,17 +44,17 @@ target_link_libraries(Live2DViewer
     Qt6::Widgets
     Qt6::Gui
     Qt6::OpenGLWidgets 
-    Main
+    Live2D::Main
 )
 
 set_target_properties(Live2DViewer PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_ROOT}/x64/Debug
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_ROOT}/x64/Release
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/x64/Debug
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/x64/Release
 )
 
 file(COPY moeroid.ico DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-set(MARKER $<IF:$<CONFIG:DEBUG>,${PROJECT_ROOT}/x64/Debug/.deployed,${PROJECT_ROOT}/x64/Release/.deployed>)
+set(MARKER $<IF:$<CONFIG:DEBUG>,${PROJECT_SOURCE_DIR}/x64/Debug/.deployed,${PROJECT_SOURCE_DIR}/x64/Release/.deployed>)
 
 # 获取 windeployqt6 工具的路径
 get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)

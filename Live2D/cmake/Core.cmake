@@ -28,9 +28,9 @@ endif()
 set_target_properties(Live2DCubismCore
   PROPERTIES
     IMPORTED_LOCATION
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/lib/${CORE_LIB_NAME}
+    ${LIVE2D_ROOT}/Core/lib/${CORE_LIB_NAME}
     INTERFACE_INCLUDE_DIRECTORIES
-      ${CMAKE_CURRENT_SOURCE_DIR}/Core/include
+      ${LIVE2D_ROOT}/Core/include
 )
 target_compile_definitions(Live2DCubismCore
   INTERFACE
