@@ -279,6 +279,57 @@ static PyObject *PyModel_AddParameterValueById(PyModelObject *self, PyObject *ar
 	self->model->AddParameterValue(id, value);
 	Py_RETURN_NONE;
 }
+static PyObject *PyModel_SetAndSaveParameterValue(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	int index;
+	float value;
+	float weight = 1.0f;
+	if (!PyArg_ParseTuple(args, "if|f", &index, &value, &weight))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (int, float, [float])");
+		return NULL;
+	}
+	self->model->SetAndSaveParameterValue(index, value, weight);
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_SetAndSaveParameterValueById(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	const char *id;
+	float value, weight = 1.0f;
+	if (!PyArg_ParseTuple(args, "sf|f", &id, &value, &weight))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (str, float, [float])");
+		return NULL;
+	}
+	self->model->SetAndSaveParameterValue(id, value, weight);
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_AddAndSaveParameterValue(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	int index;
+	float value;
+	if (!PyArg_ParseTuple(args, "if", &index, &value))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (int, float)");
+		return NULL;
+	}
+
+	self->model->AddAndSaveParameterValue(index, value);
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_AddAndSaveParameterValueById(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	const char *id;
+	float value;
+	if (!PyArg_ParseTuple(args, "sf", &id, &value))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (str, float)");
+		return NULL;
+	}
+	self->model->AddAndSaveParameterValue(id, value);
+	Py_RETURN_NONE;
+}
+
 static PyObject *PyModel_LoadParameters(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	self->model->LoadParameters();
@@ -764,10 +815,17 @@ static PyMethodDef PyModel_Methods[] = {
 	{"GetParameterMaximumValue", (PyCFunction)PyModel_GetParameterMaximumValue, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetParameterMinimumValue", (PyCFunction)PyModel_GetParameterMinimumValue, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetParameterDefaultValue", (PyCFunction)PyModel_GetParameterDefaultValue, METH_VARARGS | METH_KEYWORDS, nullptr},
+
 	{"SetParameterValue", (PyCFunction)PyModel_SetParameterValue, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetParameterValueById", (PyCFunction)PyModel_SetParameterValueById, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"AddParameterValue", (PyCFunction)PyModel_AddParameterValue, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"AddParameterValueById", (PyCFunction)PyModel_AddParameterValueById, METH_VARARGS | METH_KEYWORDS, nullptr},
+
+	{"SetAndSaveParameterValue", (PyCFunction)PyModel_SetAndSaveParameterValue, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"SetAndSaveParameterValueById", (PyCFunction)PyModel_SetAndSaveParameterValueById, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"AddAndSaveParameterValue", (PyCFunction)PyModel_AddAndSaveParameterValue, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"AddAndSaveParameterValueById", (PyCFunction)PyModel_AddAndSaveParameterValueById, METH_VARARGS | METH_KEYWORDS, nullptr},
+
 	{"LoadParameters", (PyCFunction)PyModel_LoadParameters, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SaveParameters", (PyCFunction)PyModel_SaveParameters, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"Resize", (PyCFunction)PyModel_Resize, METH_VARARGS | METH_KEYWORDS, nullptr},

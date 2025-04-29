@@ -17,9 +17,7 @@ Live2DView::Live2DView(const QString &filePath, QWidget *parent) : QWidget(paren
 
     ui.scene->LoadModel(filePath);
 
-    paramValues = ui.scene->GetParamValues();
-
-    Model *model = ui.scene->GetModel();
+    model = ui.scene->GetModel();
     initExpressions(model);
     initMotions(model);
 
@@ -137,7 +135,7 @@ void Live2DView::initCdi(Model *model)
 
 void Live2DView::initParameters(Model *model)
 {
-    void *ptrs[4] = {ui.paramTable, nullptr, model, paramValues};
+    void *ptrs[4] = {ui.paramTable, nullptr, model};
     QJsonArray parameters;
     if (hasCdi)
     {
@@ -150,7 +148,6 @@ void Live2DView::initParameters(Model *model)
                                QTableWidget *table = (QTableWidget *)(((void **)collector)[0]);
                                QJsonArray *cdiParams = (QJsonArray *)(((void **)collector)[1]);
                                Model *model = (Model *)(((void **)collector)[2]);
-                               QVector<ParamValue> *paramValues = (QVector<ParamValue> *)(((void **)collector)[3]);
 
                                QString name = id;
                                const int index = table->rowCount();
@@ -179,7 +176,7 @@ void Live2DView::initParameters(Model *model)
                                                     valueItem->setText(QString::number(v, 'f', 2));
                                                     if (slider->isSliderDown())
                                                     {
-                                                        paramValues->push_back({index, v});
+                                                        model->SetAndSaveParameterValue(index, v);
                                                     }
                                                 });
                                table->setItem(index, 0, idItem);

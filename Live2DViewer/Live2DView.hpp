@@ -36,7 +36,7 @@ private:
     bool hasCdi;
     QJsonObject cdi;
 
-    QVector<ParamValue>* paramValues;
+    Model *model;
     int selectedPartIndex;
 
     QTimer syncTimer;

@@ -421,7 +421,7 @@ void Model::UpdateExpression(float deltaSecs)
             pair.second->UpdateMotion(_model, deltaSecs);
         }
     }
-    else 
+    else
     {
         _expressionManager->UpdateMotion(_model, deltaSecs);
     }
@@ -502,14 +502,69 @@ void Model::AddParameterValue(int index, float value)
     _model->AddParameterValue(index, value);
 }
 
+void Model::SetAndSaveParameterValue(const char *id, float value, float weight)
+{
+    const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
+    const int index = _model->GetParameterIndex(handle);
+    _model->SetParameterValue(index, value, weight);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
+}
+
+void Model::SetAndSaveParameterValue(int index, float value, float weight)
+{
+    _model->SetParameterValue(index, value, weight);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
+}
+
+void Model::AddAndSaveParameterValue(const char *id, float value)
+{
+    const CubismId* handle = CubismFramework::GetIdManager()->GetId(id);
+    const int index = _model->GetParameterIndex(handle);
+    _model->AddParameterValue(index, value);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
+}
+
+void Model::AddAndSaveParameterValue(int index, float value)
+{
+    _model->AddParameterValue(index, value);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
+}
+
 void Model::LoadParameters()
 {
-    _model->LoadParameters();
+    const int size = _savedParameterValues.size();
+    for (int i = 0; i < size; ++i)
+    {
+        _model->SetParameterValue(i, _savedParameterValues[i]);
+    }
 }
 
 void Model::SaveParameters()
 {
-    _model->SaveParameters();
+    const int savedSize = _savedParameterValues.size();
+    for (int i = 0; i < _parameterCount; ++i)
+    {
+        if (i >= savedSize)
+        {
+            _savedParameterValues.push_back(_model->GetParameterValue(i));
+        }
+        else 
+        {
+            _savedParameterValues[i] = _parameterValues[i];
+        }
+    }
 }
 
 void Model::Resize(int width, int height)
@@ -1178,7 +1233,7 @@ void Model::SetExpression(const char *expressionId)
     }
 }
 
-const char* Model::SetRandomExpression()
+const char *Model::SetRandomExpression()
 {
     const int size = _expressions.GetSize();
     if (size == 0)
@@ -1203,7 +1258,7 @@ const char* Model::SetRandomExpression()
 
 void Model::ResetExpressions()
 {
-    for (auto& [id, expMgr] : _expManagers)
+    for (auto &[id, expMgr] : _expManagers)
     {
         expMgr->StopAllMotions();
     }
@@ -1214,7 +1269,7 @@ void Model::ResetExpressions()
 
 void Model::ResetExpression()
 {
-   _expressionManager->StopAllMotions();
+    _expressionManager->StopAllMotions();
 }
 
 int Model::GetExpressionCount()
@@ -1294,7 +1349,7 @@ void Model::ReleaseExpressions()
 
 void Model::ReleaseExpressionManagers()
 {
-    for (auto& [id, expMgr] : _expManagers)
+    for (auto &[id, expMgr] : _expManagers)
     {
         delete expMgr;
     }

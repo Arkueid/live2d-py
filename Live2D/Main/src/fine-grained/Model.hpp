@@ -77,6 +77,14 @@ public:
 
     void AddParameterValue(int index, float value);
 
+    void SetAndSaveParameterValue(const char *id, float value, float weight = 1.0f);
+
+    void SetAndSaveParameterValue(int index, float value, float weight = 1.0f);
+
+    void AddAndSaveParameterValue(const char *id, float value);
+
+    void AddAndSaveParameterValue(int index, float value);
+
     void LoadParameters();
 
     void SaveParameters();
@@ -232,4 +240,6 @@ private:
 
     std::vector<csmString> _motionGroupNames;
     std::vector<int> _motionCounts;
+
+    std::vector<float> _savedParameterValues;
 };
