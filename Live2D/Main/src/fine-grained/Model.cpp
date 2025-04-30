@@ -298,8 +298,6 @@ void Model::SetupModel()
     _modelSetting->GetLayoutMap(layout);
     _modelMatrix->SetupFromLayout(layout);
 
-    _model->SaveParameters();
-
     // motion3.json
     _motionGroupNames.clear();
     _motionCounts.clear();
@@ -326,6 +324,7 @@ void Model::SetupModel()
     _parameterCount = csmGetParameterCount(model);
 
     _savedParameterValues.resize(_parameterCount);
+    SaveParameters();
 }
 
 bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)

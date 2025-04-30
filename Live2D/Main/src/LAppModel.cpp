@@ -253,12 +253,9 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     }
 
     // Layout
-    // csmMap<csmString, csmFloat32> layout;
-    // _modelSetting->GetLayoutMap(layout);
-    // _modelMatrix->SetupFromLayout(layout);
-    // 目前来说不需要
-
-    _model->SaveParameters();
+    csmMap<csmString, csmFloat32> layout;
+    _modelSetting->GetLayoutMap(layout);
+    _modelMatrix->SetupFromLayout(layout);
 
     for (csmInt32 i = 0; i < _modelSetting->GetMotionGroupCount(); i++)
     {
@@ -280,6 +277,7 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     _parameterCount = Live2D::Cubism::Core::csmGetParameterCount(model);
 
     _savedParameterValues.resize(_parameterCount);
+    SaveParameters();
 
     _iParamAngleX = _model->GetParameterIndex(_idParamAngleX);
     _iParamAngleY = _model->GetParameterIndex(_idParamAngleY);
