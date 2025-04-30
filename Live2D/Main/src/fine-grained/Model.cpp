@@ -1290,8 +1290,8 @@ void Model::ResetAllParameters()
     for (int i = 0; i < _parameterCount; i++)
     {
         _parameterValues[i] = _parameterDefaultValues[i];
+        _savedParameterValues[i] = _parameterDefaultValues[i];
     }
-    _model->SaveParameters();
 }
 
 void Model::ResetPose()

@@ -1057,8 +1057,8 @@ void LAppModel::ResetParameters()
     for (int i = 0; i < _parameterCount; i++)
     {
         _parameterValues[i] = _defaultParameterValues[i];
+        _savedParameterValues[i] = _defaultParameterValues[i];
     }
-    _model->SaveParameters();
 }
 
 void LAppModel::ResetPose()
