@@ -9,6 +9,7 @@ from live2d.utils import log
 
 
 import resources
+import random
 
 
 def main():
@@ -36,6 +37,10 @@ def main():
 
     running = True
 
+    expIds = model.GetExpressionIds()
+
+    activeExpIds = set()
+
     model.SetRandomExpression() # 默认表情设置为 exp_03
     while True:
         for event in pygame.event.get():
@@ -50,6 +55,17 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     model.ResetExpression()
+                elif event.key == pygame.K_a:
+                    e = random.choice(expIds)
+                    model.AddExpression(e)
+                    activeExpIds.add(e)
+                elif event.key == pygame.K_s:
+                    model.ResetExpressions()
+                elif event.key == pygame.K_d:
+                    if len(activeExpIds) > 0:
+                        e = random.choice(list(activeExpIds))
+                        model.RemoveExpression(e)
+                        activeExpIds.remove(e)
         
         if not running:
             break

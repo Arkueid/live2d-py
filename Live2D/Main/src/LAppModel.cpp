@@ -69,6 +69,8 @@ LAppModel::LAppModel()
     _idParamBodyAngleX = CubismFramework::GetIdManager()->GetId(ParamBodyAngleX);
     _idParamEyeBallX = CubismFramework::GetIdManager()->GetId(ParamEyeBallX);
     _idParamEyeBallY = CubismFramework::GetIdManager()->GetId(ParamEyeBallY);
+
+
 }
 
 LAppModel::~LAppModel()
@@ -159,8 +161,12 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
                 {
                     ACubismMotion::Delete(_expressions[name]);
                     _expressions[name] = NULL;
+
+                    CSM_DELETE(_expMgrs[name.GetRawString()]);
+                    _expMgrs.erase(name.GetRawString());
                 }
                 _expressions[name] = motion;
+                _expMgrs[name.GetRawString()] = CSM_NEW CubismExpressionMotionManager();
             }
 
             DeleteBuffer(buffer, path.GetRawString());
@@ -272,6 +278,8 @@ void LAppModel::SetupModel(ICubismModelSetting *setting)
     _defaultParameterValues = Live2D::Cubism::Core::csmGetParameterDefaultValues(model);
     _parameterValues = Live2D::Cubism::Core::csmGetParameterValues(model);
     _parameterCount = Live2D::Cubism::Core::csmGetParameterCount(model);
+
+    _savedParameterValues.resize(_parameterCount);
 
     _iParamAngleX = _model->GetParameterIndex(_idParamAngleX);
     _iParamAngleY = _model->GetParameterIndex(_idParamAngleY);
@@ -424,12 +432,12 @@ void LAppModel::Update()
     csmBool motionUpdated = false;
 
     //-----------------------------------------------------------------
-    _model->LoadParameters(); // 前回セーブされた状態を
+    LoadParameters();
     if (!_motionManager->IsFinished())
     {
         motionUpdated = _motionManager->UpdateMotion(_model, _deltaTimeSeconds); // モーションを更新
     }
-    _model->SaveParameters(); // 状態を保存
+    SaveParameters();
     //-----------------------------------------------------------------
 
     // 不透明度
@@ -445,7 +453,14 @@ void LAppModel::Update()
         }
     }
 
-    if (_expressionManager != NULL)
+    if (_expressionManager->IsFinished())
+    {
+        for (auto &[expId, mgr] : _expMgrs)
+        {
+            mgr->UpdateMotion(_model, _deltaTimeSeconds);
+        }
+    }
+    else
     {
         _expressionManager->UpdateMotion(_model, _deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
     }
@@ -676,7 +691,7 @@ void LAppModel::SetExpression(const csmChar *expressionID)
     }
 }
 
-std::string LAppModel::SetRandomExpression()
+const char* LAppModel::SetRandomExpression()
 {
     const int size = _expressions.GetSize();
     if (size == 0)
@@ -781,23 +796,41 @@ bool LAppModel::IsMotionFinished()
 void LAppModel::SetParameterValue(const char *paramId, float value, float weight)
 {
     const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
-    _model->SetAndSaveParameterValue(paramHanle, value, weight);
+    const int index = _model->GetParameterIndex(paramHanle);
+    _model->SetParameterValue(index, value, weight);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
 }
 
 void LAppModel::SetIndexParamValue(int index, float value, float weight)
 {
-    _model->SetAndSaveParameterValue(index, value, weight);
+    _model->SetParameterValue(index, value, weight);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
 }
 
 void LAppModel::AddParameterValue(const char *paramId, float value)
 {
     const Csm::CubismId *paramHanle = CubismFramework::GetIdManager()->GetId(paramId);
-    _model->AddAndSaveParameterValue(paramHanle, value);
+    const int index = _model->GetParameterIndex(paramHanle);
+    _model->AddParameterValue(index, value, 1.0f);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
 }
 
 void LAppModel::AddIndexParamValue(int index, float value)
 {
-    _model->AddAndSaveParameterValue(index, value);
+    _model->AddParameterValue(index, value, 1.0f);
+    if (index < _parameterCount)
+    {
+        _savedParameterValues[index] = _parameterValues[index];
+    }
 }
 
 void LAppModel::SetAutoBreathEnable(bool enable)
@@ -1118,4 +1151,56 @@ void LAppModel::GetCanvasSizePixel(float &w, float &h)
 float LAppModel::GetPixelsPerUnit()
 {
     return _model->GetPixelsPerUnit();
+}
+
+void LAppModel::LoadParameters()
+{
+    for (int i = 0; i < _parameterCount; i++)
+    {
+        _parameterValues[i] = _savedParameterValues[i];
+    }
+}
+
+void LAppModel::SaveParameters()
+{
+    for (int i = 0; i < _parameterCount; i++)
+    {
+        _savedParameterValues[i] = _parameterValues[i];
+    }
+}
+
+void LAppModel::AddExpression(const char* expId)
+{
+    ACubismMotion *motion = _expressions[expId];
+
+    Info("expression: [%s]", expId);
+
+    if (motion != nullptr)
+    {
+        _expMgrs[expId]->StartMotion(motion, false);
+    }
+    else
+    {
+        Info("expression[%s] is null ", expId);
+    }
+}
+
+void LAppModel::RemoveExpression(const char* expId)
+{
+    if (_expMgrs.find(expId) == _expMgrs.end())
+    {
+        return;
+    }
+    _expMgrs[expId]->StopAllMotions();
+
+    Info("reset expression: [%s]", expId);
+}
+
+void LAppModel::ResetExpressions()
+{
+    for (auto& [expId, mgr]: _expMgrs)
+    {
+        mgr->StopAllMotions();
+    }
+    _expressionManager->StopAllMotions();
 }

@@ -17,6 +17,12 @@
 
 #include "MatrixManager.hpp"
 
+#include <Motion/CubismExpressionMotionManager.hpp>
+
+#include <vector>
+#include <unordered_map>
+#include <string>
+
 /**
  * @brief ユーザーが実際に使用するモデルの実装クラス<br>
  *         モデル生成、機能コンポーネント生成、更新処理とレンダリングの呼び出しを行う。
@@ -105,7 +111,7 @@ public:
      * @brief   ランダムに選ばれた表情モーションをセットする
      *
      */
-    std::string SetRandomExpression();
+    const char* SetRandomExpression();
 
     /**
      * @brief   イベントの発火を受け取る
@@ -220,6 +226,16 @@ public:
 
     float GetPixelsPerUnit();
 
+    void LoadParameters();
+
+    void SaveParameters();
+
+    void AddExpression(const char* expId);
+
+    void RemoveExpression(const char* expId);
+
+    void ResetExpressions();
+
 protected:
     /**
      *  @brief  モデルを描画する処理。モデルを描画する空間のView-Projection行列を渡す。
@@ -265,7 +281,7 @@ private:
      */
     void ReleaseExpressions();
 
-    bool IsHit(Csm::CubismIdHandle drawableId, float pointX, float pointY) override;
+    bool IsHit(Csm::CubismIdHandle drawableId, Live2D::Cubism::Framework::csmFloat32 pointX, Live2D::Cubism::Framework::csmFloat32 pointY) override;
 
     Csm::ICubismModelSetting* _modelSetting; ///< モデルセッティング情報
     Csm::csmString _modelHomeDir; ///< モデルセッティングが置かれたディレクトリ
@@ -308,4 +324,8 @@ private:
     float* _parameterValues;
     bool _clearMotionFlag;
     int _parameterCount;
+
+    std::vector<float> _savedParameterValues;
+
+    std::unordered_map<std::string, Live2D::Cubism::Framework::CubismExpressionMotionManager*> _expMgrs;
 };

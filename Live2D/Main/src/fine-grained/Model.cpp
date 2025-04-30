@@ -324,6 +324,8 @@ void Model::SetupModel()
     _parameterDefaultValues = csmGetParameterDefaultValues(model);
     _parameterValues = csmGetParameterValues(model);
     _parameterCount = csmGetParameterCount(model);
+
+    _savedParameterValues.resize(_parameterCount);
 }
 
 bool Model::IsHit(CubismIdHandle drawableId, csmFloat32 pointX, csmFloat32 pointY)
@@ -544,8 +546,7 @@ void Model::AddAndSaveParameterValue(int index, float value)
 
 void Model::LoadParameters()
 {
-    const int size = _savedParameterValues.size();
-    for (int i = 0; i < size; ++i)
+    for (int i = 0; i < _parameterCount; ++i)
     {
         _model->SetParameterValue(i, _savedParameterValues[i]);
     }
@@ -553,17 +554,9 @@ void Model::LoadParameters()
 
 void Model::SaveParameters()
 {
-    const int savedSize = _savedParameterValues.size();
     for (int i = 0; i < _parameterCount; ++i)
     {
-        if (i >= savedSize)
-        {
-            _savedParameterValues.push_back(_model->GetParameterValue(i));
-        }
-        else 
-        {
-            _savedParameterValues[i] = _parameterValues[i];
-        }
+        _savedParameterValues[i] = _parameterValues[i];
     }
 }
 

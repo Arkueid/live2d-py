@@ -784,6 +784,44 @@ static PyObject *PyLAppModel_GetPixelsPerUnit(PyLAppModelObject *self, PyObject 
     return Py_BuildValue("f", self->model->GetPixelsPerUnit());
 }
 
+static PyObject *PyLAppModel_AddExpression(PyLAppModelObject* self, PyObject *args, PyObject* kwargs)
+{
+    const char* expId = nullptr;
+    if (PyArg_ParseTuple(args, "s", &expId) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "argument must be (str)");
+        return nullptr;
+    }
+    
+    self->model->AddExpression(expId);
+    Py_RETURN_NONE;
+}
+static PyObject *PyLAppModel_RemoveExpression(PyLAppModelObject* self, PyObject *args, PyObject* kwargs)
+{
+    const char* expId = nullptr;
+    if (PyArg_ParseTuple(args, "s", &expId) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "argument must be (str)");
+        return nullptr;
+    }
+    
+    self->model->RemoveExpression(expId);
+
+    Py_RETURN_NONE;
+}
+static PyObject *PyLAppModel_ResetExpressions(PyLAppModelObject* self, PyObject *args, PyObject* kwargs)
+{
+    self->fadeout = -1;
+    self->expStartedAt = -1;
+    if (!self->lastExpression.empty())
+    {
+        self->lastExpression = "";
+    }
+
+    self->model->ResetExpressions();
+    Py_RETURN_NONE;
+}
+
 // 包装模块方法的方法列表
 static PyMethodDef PyLAppModel_methods[] = {
     {"LoadModelJson", (PyCFunction)PyLAppModel_LoadModelJson, METH_VARARGS, ""},
@@ -846,6 +884,10 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"GetCanvasSize", (PyCFunction)PyLAppModel_GetCanvasSize, METH_VARARGS, ""},
     {"GetCanvasSizePixel", (PyCFunction)PyLAppModel_GetCanvasSizePixel, METH_VARARGS, ""},
     {"GetPixelsPerUnit", (PyCFunction)PyLAppModel_GetPixelsPerUnit, METH_VARARGS, ""},
+
+    {"AddExpression", (PyCFunction)PyLAppModel_AddExpression, METH_VARARGS, ""},
+    {"RemoveExpression", (PyCFunction)PyLAppModel_RemoveExpression, METH_VARARGS, ""},
+    {"ResetExpressions", (PyCFunction)PyLAppModel_ResetExpressions, METH_VARARGS, ""},
 
     {NULL} // 方法列表结束的标志
 };
