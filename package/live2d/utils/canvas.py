@@ -67,8 +67,8 @@ class Canvas:
         self.__create_canvas_framebuffer()
 
     def __create_canvas_framebuffer(self):
-        GL.glDeleteFramebuffers(1, self._canvas_framebuffer)
-        GL.glDeleteTextures(1, self._canvas_texture)
+        GL.glDeleteFramebuffers(1, np.array([self._canvas_framebuffer]))
+        GL.glDeleteTextures(1, np.array([self._canvas_texture]))
         self._canvas_framebuffer, self._canvas_texture = create_canvas_framebuffer(self._width, self._height)
 
     def __draw_on_canvas(self, on_draw):
@@ -83,7 +83,7 @@ class Canvas:
         self.__create_program()
         self.__create_vao()
 
-    def draw(self, on_draw: Callable[None, None]):
+    def draw(self, on_draw: Callable[[], None]):
         # 先绘制到 canvas buffer
         # 再设置整个 canvas buffer 的透明度
         # 最后将 canvas buffer 绘制到 qt opengl 窗口上
