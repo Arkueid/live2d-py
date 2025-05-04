@@ -45,7 +45,7 @@ class Live2DCanvas(QOpenGLWidget):
     def timerEvent(self, a0):
         self.total_radius += self.radius_per_frame
         v = abs(math.cos(self.total_radius))
-        self.canvas.setOutputOpacity(v)
+        self.canvas.SetOutputOpacity(v)
         self.update()
 
     def on_draw(self):
@@ -55,12 +55,12 @@ class Live2DCanvas(QOpenGLWidget):
     def paintGL(self):
         self.model.Update()
         
-        self.canvas.draw(self.on_draw)
+        self.canvas.Draw(self.on_draw)
 
     def resizeGL(self, width: int, height: int):
         self.model.Resize(width, height)
 
-        self.canvas.setSize(width, height)
+        self.canvas.SetSize(width, height)
 
 
 if __name__ == '__main__':

@@ -60,7 +60,7 @@ class Canvas:
         ], dtype=np.float32)
         self._vao = create_vao(vertices, uvs)
 
-    def setSize(self, width, height):
+    def SetSize(self, width, height):
         self._width = width
         self._height = height
         
@@ -83,7 +83,7 @@ class Canvas:
         self.__create_program()
         self.__create_vao()
 
-    def draw(self, on_draw: Callable[[], None]):
+    def Draw(self, on_draw: Callable[[], None]):
         # 先绘制到 canvas buffer
         # 再设置整个 canvas buffer 的透明度
         # 最后将 canvas buffer 绘制到 qt opengl 窗口上
@@ -98,7 +98,7 @@ class Canvas:
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 6)
         GL.glBindVertexArray(0)
     
-    def setOutputOpacity(self, value):
+    def SetOutputOpacity(self, value):
         self.__canvas_opacity = value
 
     
