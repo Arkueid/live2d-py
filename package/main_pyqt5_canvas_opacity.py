@@ -3,7 +3,7 @@ import sys
 from live2d.utils.canvas import Canvas
 
 """
-设置模型整体透明度示例
+Example of controlling model opacity using live2d.utils.canvas.Canvas
 """
 
 # import live2d.v2 as live2d
@@ -45,7 +45,10 @@ class Live2DCanvas(QOpenGLWidget):
     def timerEvent(self, a0):
         self.total_radius += self.radius_per_frame
         v = abs(math.cos(self.total_radius))
+
+        # change opacity
         self.canvas.SetOutputOpacity(v)
+        
         self.update()
 
     def on_draw(self):
@@ -55,11 +58,13 @@ class Live2DCanvas(QOpenGLWidget):
     def paintGL(self):
         self.model.Update()
         
+        # render callback
         self.canvas.Draw(self.on_draw)
 
     def resizeGL(self, width: int, height: int):
         self.model.Resize(width, height)
 
+        # resize canvas
         self.canvas.SetSize(width, height)
 
 
