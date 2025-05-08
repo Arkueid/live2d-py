@@ -32,6 +32,7 @@ class Canvas:
         uniform float opacity;
         void main() {
             vec4 color = texture(canvas, v_texCoord);
+            color.rgb *= color.a;
             color *= opacity;
             gl_FragColor =  color;
         }
