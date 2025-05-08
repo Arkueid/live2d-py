@@ -60,9 +60,9 @@ class Canvas:
         ], dtype=np.float32)
         self._vao = create_vao(vertices, uvs)
 
-    def SetSize(self, width, height):
-        self._width = width
-        self._height = height
+    def SetSize(self, true_width, true_height):
+        self._width = true_width
+        self._height = true_height
         
         self.__create_canvas_framebuffer()
 
@@ -72,6 +72,7 @@ class Canvas:
         self._canvas_framebuffer, self._canvas_texture = create_canvas_framebuffer(self._width, self._height)
 
     def __draw_on_canvas(self, on_draw):
+        GL.glBindVertexArray(0)
         old_fbo = GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self._canvas_framebuffer)
 
@@ -88,8 +89,8 @@ class Canvas:
         # 再设置整个 canvas buffer 的透明度
         # 最后将 canvas buffer 绘制到 qt opengl 窗口上
         self.__draw_on_canvas(on_draw)
-        GL.glClearColor(0.0, 0.0, 0.0, 0.0)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
         GL.glBindVertexArray(self._vao)
         GL.glUseProgram(self._program)
         GL.glProgramUniform1f(self._program, self._opacity_loc, self.__canvas_opacity)
