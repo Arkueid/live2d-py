@@ -134,7 +134,7 @@ pip install live2d-py
 
 ## 鸣谢
 
-特别感谢 [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo], [Barracuda72] 为本项目提供的帮助和支持。
+特别感谢 [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo], [Barracuda72], [GuangChen2333] 为本项目提供的帮助和支持。
 
 [96bearli]: https://github.com/96bearli
 
@@ -153,6 +153,8 @@ pip install live2d-py
 [TinyKiecoo]: https://github.com/TinyKiecoo
 
 [Barracuda72]: https://github.com/Barracuda72
+
+[GuangChen2333]: https://github.com/GuangChen2333
 
 非常感谢以下项目及其贡献者们的帮助：
 
