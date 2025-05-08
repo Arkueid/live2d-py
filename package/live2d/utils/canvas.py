@@ -32,6 +32,7 @@ class Canvas:
         uniform float opacity;
         void main() {
             vec4 color = texture(canvas, v_texCoord);
+            color.rgb *= color.a;
             color *= opacity;
             gl_FragColor =  color;
         }
@@ -90,7 +91,7 @@ class Canvas:
         # 最后将 canvas buffer 绘制到 qt opengl 窗口上
         self.__draw_on_canvas(on_draw)
         GL.glEnable(GL.GL_BLEND)
-        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+        GL.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA)
         GL.glBindVertexArray(self._vao)
         GL.glUseProgram(self._program)
         GL.glProgramUniform1f(self._program, self._opacity_loc, self.__canvas_opacity)
