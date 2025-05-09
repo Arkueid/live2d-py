@@ -53,7 +53,7 @@ jobs:
       - name: Upload Wheel to Release
         uses: softprops/action-gh-release@v2
         with:
-          # tag_name: v0.4.3
+          tag_name: v0.5.3
           files: |
             dist/*.whl
             macos-screenshot.png
