@@ -81,18 +81,19 @@ class ADPOpenGLCanvas(QOpenGLWidget):
         vertex_shader = """#version 330 core
         layout(location = 0) in vec2 a_position;
         layout(location = 1) in vec2 a_texCoord;
-
+        
         out vec2 v_texCoord;
         uniform float rotation_angle;
-
+        
         void main() {
             gl_Position = vec4(a_position, 0.0, 1.0);
-
+        
             float angle = radians(rotation_angle);
             mat2 rotationMatrix = mat2(cos(angle), -sin(angle),
                                        sin(angle), cos(angle));
-
-            v_texCoord = rotationMatrix * a_texCoord;
+        
+            vec2 centeredTexCoord = a_texCoord - vec2(0.5, 0.5);
+            v_texCoord = rotationMatrix * centeredTexCoord + vec2(0.5, 0.5);
         }
         """
         frag_shader = """#version 330 core
@@ -157,7 +158,7 @@ class ADPOpenGLCanvas(QOpenGLWidget):
         GL.glUseProgram(self._program)
 
         GL.glProgramUniform1f(self._program, self._opacity_loc, self.__canvas_opacity)
-        GL.glProgramUniform1f(self._program, self._rotation_angle_loc, np.radians(self.__rotation_angle))
+        GL.glProgramUniform1f(self._program, self._rotation_angle_loc, self.__rotation_angle)
 
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._canvas_texture)
