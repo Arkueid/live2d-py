@@ -3,6 +3,7 @@ import os
 from PySide6.QtCore import QTimerEvent, Qt
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
+from OpenGL.GL import *
 
 import live2d.v3 as live2d
 # import live2d.v2 as live2d
@@ -14,7 +15,7 @@ class Win(QOpenGLWidget):
     def __init__(self) -> None:
         super().__init__()
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.resize(400, 500)
         self.model: live2d.LAppModel | None = None
 
@@ -34,6 +35,7 @@ class Win(QOpenGLWidget):
         self.startTimer(int(1000 / 120))
 
     def resizeGL(self, w: int, h: int) -> None:
+        glViewport(0, 0, w, h)
         self.model.Resize(w, h)
 
     def paintGL(self) -> None:
@@ -53,11 +55,23 @@ class Win(QOpenGLWidget):
 
 if __name__ == "__main__":
     import sys
+    from PySide6.QtWidgets import QMainWindow, QVBoxLayout
     live2d.init()
 
     app = QApplication(sys.argv)
+    mw = QMainWindow()
+        
+
     win = Win()
-    win.show()
+    # win.setFixedSize(500, 700)
+    mw.setCentralWidget(win)
+
+    mw.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    mw.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+    mw.setStyleSheet("background:transparent;")
+    mw.resize(500, 700)
+
+    mw.show()
     app.exec()
 
     live2d.dispose()

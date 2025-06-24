@@ -56,3 +56,5 @@ X64
 venv-38
 venv-310
 venv-312
+
+package/test*.py

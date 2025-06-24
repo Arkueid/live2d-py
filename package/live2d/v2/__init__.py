@@ -29,6 +29,10 @@ def glewInit():
     pass
 
 
+def glInit():
+    pass
+
+
 def dispose():
     pass
 

@@ -40,7 +40,6 @@ static PyObject* live2d_glew_init()
     {
         Error("Can't initilize glad.");
     }
-    // LAppPal::UpdateTime();
     Py_RETURN_NONE;
 }
 
