@@ -16,6 +16,8 @@
     <img title="C++" src="https://img.shields.io/badge/C%2B%2B-17-yellow" alt="C++17" style="margin: 0 10px;">
     <img title="CsmSDK" src="https://img.shields.io/badge/CsmSDK-5_r3-orange" alt="CsmSDK" style="margin: 0 10px;">
     <br>
+    <img title="QQ Group" src="https://img.shields.io/badge/QQ群-783375488-brightgreen" style="margin: 0 10px;">
+    <br>
     <a href="https://github.com/Arkueid/live2d-py/blob/main/README.en.md">English README</a>
 </p>
 
