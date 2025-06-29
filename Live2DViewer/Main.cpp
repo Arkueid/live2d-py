@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
     
     // Load application translations
     QString translationPath = QApplication::applicationDirPath();
-    if (translator.load("moe_" + locale, translationPath)) {
+    if (translator.load(":/i18n/moe_" + locale, translationPath)) {
         app.installTranslator(&translator);
     } else {
         // Fallback to English if system locale translation not found
-        if (translator.load("moe_en", translationPath)) {
+        if (translator.load(":/i18n/moe_en", translationPath)) {
             app.installTranslator(&translator);
         }
     }
