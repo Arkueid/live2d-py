@@ -1,0 +1,13 @@
+numpy
+moderngl
+PyQt5
+pygame
+PySide2
+PySide6
+glfw
+PyOpenGL
+Pillow
+pyautogui
+pyopengltk
+mediapipe
+opencv-python

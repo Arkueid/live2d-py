@@ -25,7 +25,7 @@ The functionalities of Live2D Native SDK are wrapped into Python via Python C AP
 
 Theoretically, Live2D models can be rendered on any OpenGL-based windows in Python as long as the OpenGL context is properly configured.   
 
-Code example: [package](./package/)
+Code example: [examples](./examples/)
 
 Documentation：[Wiki](https://github.com/Arkueid/live2d-py/wiki)
 
@@ -94,7 +94,7 @@ pip install live2d-py
 
 ### Simple Facerig
 
-Source code: [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
+Source code: [main_facial_bind_mediapipe.py](./examples/main_facial_bind.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
@@ -104,25 +104,25 @@ Source code: [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
 
 ### Multi-live2d model rendering
 
-Source code: [main_pygame_three_model.py](./package/main_pygame_three_model.py)
+Source code: [main_pygame_three_model.py](./examples/main_pygame_three_model.py)
 
 ![three_model](./docs/three_model.png)
 
 ### Rendering with background image
 
-Source code: [main_pygame_background.py](./package/main_pygame_background.py)
+Source code: [main_pygame_background.py](./examples/main_pygame_background.py)
 
 ![background](./docs/background.png)
 
 ### Model transforming & lipsync with `wav` file & Click test
 
-Source code: [main_pygame.py](./package/main_pygame.py)
+Source code: [main_pygame.py](./examples/main_pygame.py)
 
 ![完整用例](./docs/full%20demo.gif)
 
 ### Model Opacity
 
-Source Code: [main_pyqt5_canvas_opacity.py](./package/main_pyqt5_canvas_opacity.py)
+Source Code: [main_pyqt5_canvas_opacity.py](./examples/main_pyqt5_canvas_opacity.py)
 
 ![opacity](./docs/opacity.gif)
 
