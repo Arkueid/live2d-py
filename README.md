@@ -18,7 +18,6 @@
     <br>
     <img title="QQ Group" src="https://img.shields.io/badge/QQ群-783375488-brightgreen" style="margin: 0 10px;">
     <br>
-
     <a href="https://github.com/Arkueid/live2d-py/blob/main/README.en.md">English README</a>
 </p>
 
