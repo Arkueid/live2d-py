@@ -127,7 +127,7 @@ Source Code: [main_pyqt5_canvas_opacity.py](./examples/main_pyqt5_canvas_opacity
 ![opacity](./docs/opacity.gif)
 
 ## Contributions
-Special thanks to [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo], [Barracuda72], [GuangChen2333] for their support and contributions to this project.
+Special thanks to [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo], [Barracuda72], [GuangChen2333], [makabakadot], [thynetruly], [mastwet] for their support and contributions to this project.
 
 [96bearli]: https://github.com/96bearli
 
@@ -148,6 +148,12 @@ Special thanks to [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [Robert
 [Barracuda72]: https://github.com/Barracuda72
 
 [GuangChen2333]: https://github.com/GuangChen2333
+
+[makabakadot]: https://github.com/makabakadot
+
+[thynetruly]: https://github.com/thynetruly
+
+[mastwet]: https://github.com/mastwet
 
 Special thanks to the following repos and their contributors:
 
