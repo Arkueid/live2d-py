@@ -1,9 +1,9 @@
 """
 fine-grained model example
 
-live2d.v3.Model
+class: live2d.v3.Model
 
-More usage: package/live2d/v3/live2d.pyi
+API: package/live2d/v3/live2d.pyi # class Model
 """
 
 import live2d.v3 as live2d

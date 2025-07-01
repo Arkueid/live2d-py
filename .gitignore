@@ -30,10 +30,6 @@ test
 
 !package/audio1.wav
 
-!package/audio2.wav
-
-!package/test.mp4
-
 package/test_model.py
 
 !Core/lib/windows/x64/*.lib

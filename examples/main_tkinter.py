@@ -1,3 +1,5 @@
+# usage with tkinter
+
 import os.path
 import tkinter
 

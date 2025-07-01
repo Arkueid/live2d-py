@@ -1,3 +1,5 @@
+# example of rendering live2d in multiple opengl windows at one time
+
 import live2d.v3 as live2d
 
 from PyQt5.Qt import QCursor

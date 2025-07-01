@@ -1,3 +1,5 @@
+# test run for macos: save image of the first rendered frame
+
 import os
 
 import OpenGL.GL as gl

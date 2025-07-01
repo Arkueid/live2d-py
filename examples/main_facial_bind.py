@@ -7,7 +7,7 @@ import pygame
 import live2d.v3 as live2d
 # import live2d.v2 as live2d
 import resources
-from facial_params import Params
+from mediapipe_capture.facial_params import Params
 if live2d.LIVE2D_VERSION == 3:
     from live2d.v3.params import StandardParams
 elif live2d.LIVE2D_VERSION == 2:
