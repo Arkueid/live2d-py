@@ -71,11 +71,12 @@ def main():
 
     def on_start_motion_callback(group: str, no: int):
         log.Info("start motion: [%s_%d]" % (group, no))
-        audioPath = os.path.join(resources.CURRENT_DIRECTORY, "audio2.wav")
-        pygame.mixer.music.load(audioPath)
-        pygame.mixer.music.play()
-        log.Info("start lipSync")
-        wavHandler.Start(audioPath)
+        # play your voice here
+        # audioPath = os.path.join(resources.CURRENT_DIRECTORY, "path to wav file")
+        # pygame.mixer.music.load(audioPath)
+        # pygame.mixer.music.play()
+        # log.Info("start lipSync")
+        # wavHandler.Start(audioPath)
 
     def on_finish_motion_callback():
         log.Info("motion finished")
