@@ -21,7 +21,7 @@
 
 Load and manipulate Live2D models using pure Python instead of web engine (JavaScript). 
 
-The functionalities of Live2D Native SDK are wrapped into Python via Python C API. 
+The functionalities of Live2D Native SDK are wrapped into Python via Python C Extension. 
 
 Theoretically, Live2D models can be rendered on any OpenGL-based windows in Python as long as the OpenGL context is properly configured.   
 

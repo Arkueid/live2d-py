@@ -23,7 +23,7 @@
 
 使用 Python 直接加载和操作 Live2D 模型，不通过 Web Engine 等间接手段进行渲染。
 
-基于 Python C++ API 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
+基于 Python C Extension 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
 代码使用示例：[package](./package/)
 

@@ -1,13 +1,13 @@
-[python c api]: https://docs.python.org/3/c-api/index.html
+[python c extension]: https://docs.python.org/3/c-api/index.html
 
 [Core api 文档]: https://docs.live2d.com/en/cubism-sdk-manual/cubism-core-api-reference/
 
 # 开发说明
 
-本项目涉及：CMake、Cubism Native SDK、Python C API、OpenGL。
+本项目涉及：CMake、Cubism Native SDK、Python C Extension、OpenGL。
 
 * Cubism 相关部分可以查阅官方文档，这里推荐官方的 [Core api 文档]（可以下载pdf），可以对整个 Live2D 绘制流程有一个整体把握。
-* [Python c api]
+* [Python c extension]
 
 ## 项目结构
 
@@ -19,7 +19,7 @@ live2d.v2 完全采用 python 实现，通过工具对 live2d.min.js 反混淆�
 
 live2d.v3 加载 Cubism 3.0 及以上的 live2d 模型。
 
-live2d.v3 使用 [python c api] 对 Cubism Native SDK 进行封装。
+live2d.v3 使用 [python c extension] 对 Cubism Native SDK 进行封装。
 
 ## live2d.v3 构成
 
