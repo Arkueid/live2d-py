@@ -25,7 +25,7 @@
 
 基于 Python C Extension 对 Live2D Native SDK (C++) 进行了封装。理论上，只要配置好 OpenGL 上下文，可在 Python 中将 live2d 绘制在任何基于 OpenGL 的窗口。
 
-代码使用示例：[package](./package/)
+代码使用示例：[examples](./examples/)
 
 详细使用文档：[Wiki](https://github.com/Arkueid/live2d-py/wiki)
 
@@ -101,7 +101,7 @@ pip install live2d-py
 
 ### 简易面捕
 
-源码见 [main_facial_bind_mediapipe.py](./package/main_facial_bind.py)
+源码见 [main_facial_bind_mediapipe.py](./examples/main_facial_bind.py)
 
 ![面捕-期末周破防](./docs/video_test.gif)
 
@@ -112,25 +112,25 @@ pip install live2d-py
 
 ### 多模型加载
 
-源码见 [main_pygame_three_model.py](./package/main_pygame_three_model.py)
+源码见 [main_pygame_three_model.py](./examples/main_pygame_three_model.py)
 
 ![three_model](./docs/three_model.png)
 
 ### 添加背景
 
-源码见 [main_pygame_background.py](./package/main_pygame_background.py)
+源码见 [main_pygame_background.py](./examples/main_pygame_background.py)
 
 ![background](./docs/background.png)
 
 ### 模型变换 & 口型同步音频 & 点击测试
 
-源码见 [main_pygame.py](./package/main_pygame.py)
+源码见 [main_pygame.py](./examples/main_pygame.py)
 
 ![完整用例](./docs/full%20demo.gif)
 
 ### 模型整体透明度示例
 
-源码见 [main_pyqt5_canvas_opacity.py](./package/main_pyqt5_canvas_opacity.py)
+源码见 [main_pyqt5_canvas_opacity.py](./examples/main_pyqt5_canvas_opacity.py)
 
 ![opacity](./docs/opacity.gif)
 
