@@ -31,6 +31,7 @@ class DrawParamOpenGL(DrawParam):
         self.fragShader = None
         self.vertShaderOff = None
         self.fragShaderOff = None
+        self.lastBlending = [0, 0, 0, 0]
 
     def getGL(self):
         return self.gl
@@ -61,6 +62,13 @@ class DrawParamOpenGL(DrawParam):
         a_h.colorMask(1, 1, 1, 1)
         a_h.bindBuffer(a_h.ARRAY_BUFFER, 0)
         a_h.bindBuffer(a_h.ELEMENT_ARRAY_BUFFER, 0)
+        self.lastBlending[0] = a_h.getParameter(a_h.BLEND_SRC_RGB)
+        self.lastBlending[1] = a_h.getParameter(a_h.BLEND_SRC_ALPHA)
+        self.lastBlending[2] = a_h.getParameter(a_h.BLEND_DST_RGB)
+        self.lastBlending[3] = a_h.getParameter(a_h.BLEND_DST_ALPHA)
+
+    def endDraw(self):
+        self.gl.blendFuncSeparate(self.lastBlending[0], self.lastBlending[1], self.lastBlending[2], self.lastBlending[3])
 
     def drawTexture(self, texNo, screenColor, indexArray, vertexArray, uvArray, opacity, comp, multiplyColor):
         if opacity < 0.01 and self.clipBufPre_clipContextMask is None:

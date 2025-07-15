@@ -46,5 +46,6 @@ __all__ = ['LAppModel',
            "StandardParams",
            "init",
            "glewInit",
+           "glInit",
            "clearBuffer",
            "dispose"]

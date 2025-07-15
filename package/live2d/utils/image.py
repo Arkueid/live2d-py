@@ -21,7 +21,8 @@ class Image:
         uniform sampler2D tex;
         uniform float opacity;
         void main() {
-            gl_FragColor = texture(tex, v_texCoord);
+            vec4 col = texture(tex, v_texCoord);
+            gl_FragColor = col;
         }
         """
         self.program = create_program(vertex_shader, frag_shader)

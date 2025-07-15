@@ -253,6 +253,7 @@ class ModelContext:
                     break
 
                 aN = aO
+        aM.endDraw()
 
     def getParamIndex(self, paramId):
         for i in range(0, len(self.paramIdList), 1):

@@ -56,3 +56,4 @@ venv-312
 package/test*.py
 
 .vscode
+/examples/live2d/
