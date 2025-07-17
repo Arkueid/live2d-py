@@ -2,7 +2,11 @@ add_library(Live2DCubismCore STATIC IMPORTED)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(CSM_TARGET CSM_TARGET_LINUX_GL)
-  set(CORE_LIB_NAME linux/x86_64/libLive2DCubismCore.a)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(CORE_LIB_NAME experimental/linux/arm64/libLive2DCubismCore.a)  # ARM64 库
+  else()
+    set(CORE_LIB_NAME linux/x86_64/libLive2DCubismCore.a) # x86_64 库
+  endif()
   add_compile_options(-fPIC)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
   set(CSM_TARGET CSM_TARGET_WIN_GL)
