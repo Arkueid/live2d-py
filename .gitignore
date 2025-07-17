@@ -57,3 +57,5 @@ package/test*.py
 
 .vscode
 /examples/live2d/
+
+!/package/test_run_macos.py

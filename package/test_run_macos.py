@@ -14,8 +14,8 @@ from PySide6.QtCore import QTimer
 
 import live2d.v3 as live2d
 # import live2d.v2 as live2d
-import resources
 
+cd = os.path.split(__file__)[0]
 
 def callback():
     print("motion end")
@@ -46,9 +46,9 @@ class Win(QOpenGLWidget):
         self.model = live2d.LAppModel()
 
         if live2d.LIVE2D_VERSION == 3:
-            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+            self.model.LoadModelJson(os.path.join(cd + "/../Resources", "v3/Haru/Haru.model3.json"))
         else:
-            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
+            self.model.LoadModelJson(os.path.join(cd + "/../Resources", "v2/shizuku/shizuku.model.json"))
 
         # 以 fps = 120 的频率进行绘图
         self.startTimer(int(1000 / 120))
