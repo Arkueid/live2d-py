@@ -29,6 +29,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
   set(CORE_LIB_NAME android/${CMAKE_ANDROID_ARCH_ABI}/libLive2DCubismCore.a)
 endif()
 
+message("Live2D Core: ${CORE_LIB_NAME}")
+
 set_target_properties(Live2DCubismCore
   PROPERTIES
     IMPORTED_LOCATION
