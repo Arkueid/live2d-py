@@ -327,6 +327,36 @@ static PyObject *PyLAppModel_SetScale(PyLAppModelObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *PyLAppModel_SetScaleX(PyLAppModelObject *self, PyObject *args)
+{
+    float scale;
+
+    if (PyArg_ParseTuple(args, "f", &scale) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float scale'");
+        return NULL;
+    }
+
+    self->model->SetScaleX(scale);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *PyLAppModel_SetScaleY(PyLAppModelObject *self, PyObject *args)
+{
+    float scale;
+
+    if (PyArg_ParseTuple(args, "f", &scale) < 0)
+    {
+        PyErr_SetString(PyExc_TypeError, "Missing param 'float scale'");
+        return NULL;
+    }
+
+    self->model->SetScaleY(scale);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *PyLAppModel_Rotate(PyLAppModelObject *self, PyObject *args)
 {
     float deg;
@@ -840,6 +870,8 @@ static PyMethodDef PyLAppModel_methods[] = {
     {"IsMotionFinished", (PyCFunction)PyLAppModel_IsMotionFinished, METH_VARARGS, ""},
     {"SetOffset", (PyCFunction)PyLAppModel_SetOffset, METH_VARARGS, ""},
     {"SetScale", (PyCFunction)PyLAppModel_SetScale, METH_VARARGS, ""},
+    {"SetScaleX", (PyCFunction)PyLAppModel_SetScaleX, METH_VARARGS, ""},
+    {"SetScaleY", (PyCFunction)PyLAppModel_SetScaleY, METH_VARARGS, ""},
     {"Rotate", (PyCFunction)PyLAppModel_Rotate, METH_VARARGS, ""},
     {"Update", (PyCFunction)PyLAppModel_Update, METH_VARARGS, ""},
 

@@ -69,8 +69,6 @@ LAppModel::LAppModel()
     _idParamBodyAngleX = CubismFramework::GetIdManager()->GetId(ParamBodyAngleX);
     _idParamEyeBallX = CubismFramework::GetIdManager()->GetId(ParamEyeBallX);
     _idParamEyeBallY = CubismFramework::GetIdManager()->GetId(ParamEyeBallY);
-
-
 }
 
 LAppModel::~LAppModel()
@@ -689,7 +687,7 @@ void LAppModel::SetExpression(const csmChar *expressionID)
     }
 }
 
-const char* LAppModel::SetRandomExpression()
+const char *LAppModel::SetRandomExpression()
 {
     const int size = _expressions.GetSize();
     if (size == 0)
@@ -1039,7 +1037,18 @@ void LAppModel::SetOffset(float dx, float dy)
 
 void LAppModel::SetScale(float scale)
 {
-    _matrixManager.SetScale(scale);
+    _matrixManager.SetScaleX(scale);
+    _matrixManager.SetScaleY(scale);
+}
+
+void LAppModel::SetScaleX(float sx)
+{
+    _matrixManager.SetScaleX(sx);
+}
+
+void LAppModel::SetScaleY(float sy)
+{
+    _matrixManager.SetScaleY(sy);
 }
 
 void LAppModel::Rotate(float deg)
@@ -1167,7 +1176,7 @@ void LAppModel::SaveParameters()
     }
 }
 
-void LAppModel::AddExpression(const char* expId)
+void LAppModel::AddExpression(const char *expId)
 {
     ACubismMotion *motion = _expressions[expId];
 
@@ -1183,7 +1192,7 @@ void LAppModel::AddExpression(const char* expId)
     }
 }
 
-void LAppModel::RemoveExpression(const char* expId)
+void LAppModel::RemoveExpression(const char *expId)
 {
     if (_expMgrs.find(expId) == _expMgrs.end())
     {
@@ -1196,7 +1205,7 @@ void LAppModel::RemoveExpression(const char* expId)
 
 void LAppModel::ResetExpressions()
 {
-    for (auto& [expId, mgr]: _expMgrs)
+    for (auto &[expId, mgr] : _expMgrs)
     {
         mgr->StopAllMotions();
     }

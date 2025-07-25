@@ -1,4 +1,4 @@
-name: Linux 📦
+name: Linux-arm64📦
 
 on:
   push:

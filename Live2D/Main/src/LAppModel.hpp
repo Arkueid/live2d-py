@@ -196,6 +196,10 @@ public:
 
     void SetScale(float scale);
 
+    void SetScaleX(float sx);
+
+    void SetScaleY(float sy);
+
     void Rotate(float deg);
 
     void StopAllMotions();

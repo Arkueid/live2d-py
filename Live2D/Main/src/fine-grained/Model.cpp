@@ -576,7 +576,18 @@ void Model::Rotate(float angle)
 
 void Model::SetScale(float scale)
 {
-    _matrixManager.SetScale(scale);
+    _matrixManager.SetScaleX(scale);
+    _matrixManager.SetScaleY(scale);
+}
+
+void Model::SetScaleX(float scale)
+{
+    _matrixManager.SetScaleX(scale);
+}
+
+void Model::SetScaleY(float scale)
+{
+    _matrixManager.SetScaleY(scale);
 }
 
 const float *Model::GetMvp()

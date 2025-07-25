@@ -98,6 +98,10 @@ public:
 
     void SetScale(float scale);
 
+    void SetScaleX(float scaleX);
+
+    void SetScaleY(float scaleY);
+
     const float* GetMvp();
 
     // motion

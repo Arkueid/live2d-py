@@ -1,7 +1,7 @@
 #include "MatrixManager.hpp"
 #include "LAppModel.hpp"
 
-MatrixManager::MatrixManager(): _offsetX(0.0f), _offsetY(0.0f), _scale(1.0f),
+MatrixManager::MatrixManager(): _offsetX(0.0f), _offsetY(0.0f), _scaleX(1.0f), _scaleY(1.0f),
                                 _ww(800),
                                 _wh(600)                          
 {
@@ -74,7 +74,7 @@ Csm::CubismMatrix44& MatrixManager::GetMvp()
     }
 
     _m.Multiply(_rotation, _m.GetArray(), _m.GetArray());
-    _m.ScaleRelative(_scale, _scale);
+    _m.ScaleRelative(_scaleX, _scaleY);
     _m.Translate(_offsetX, _offsetY);
 
     _p.MultiplyByMatrix(&_m);
@@ -87,9 +87,14 @@ void MatrixManager::SetOffset(float x, float y)
     _offsetY = y;
 }
 
-void MatrixManager::SetScale(float scale)
+void MatrixManager::SetScaleX(float sx)
 {
-    _scale = scale;
+    _scaleX = sx;
+}
+
+void MatrixManager::SetScaleY(float sy)
+{
+    _scaleY = sy;
 }
 
 void MatrixManager::Rotate(float deg)
@@ -106,8 +111,8 @@ void MatrixManager::InvertTransform(float* x, float* y)
     // 除 projection 以外的变换需要逆变换
 
     // 逆平移和缩放
-    float tx = (*x - _offsetX) / _scale;
-    float ty = (*y - _offsetY) / _scale;
+    float tx = (*x - _offsetX) / _scaleX;
+    float ty = (*y - _offsetY) / _scaleY;
 
     // 逆旋转
     *x = _rotation[0] * tx - ty * -_rotation[1];

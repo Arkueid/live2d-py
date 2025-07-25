@@ -384,6 +384,28 @@ static PyObject *PyModel_SetScale(PyModelObject *self, PyObject *args, PyObject 
 	self->model->SetScale(scale);
 	Py_RETURN_NONE;
 }
+static PyObject *PyModel_SetScaleX(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	float scale;
+	if (!PyArg_ParseTuple(args, "f", &scale))
+	{
+		PyErr_SetString(PyExc_TypeError, "argument must be float");
+		return NULL;
+	}
+	self->model->SetScaleX(scale);
+	Py_RETURN_NONE;
+}
+static PyObject *PyModel_SetScaleY(PyModelObject *self, PyObject *args, PyObject *kwargs)
+{
+	float scale;
+	if (!PyArg_ParseTuple(args, "f", &scale))
+	{
+		PyErr_SetString(PyExc_TypeError, "argument must be float");
+		return NULL;
+	}
+	self->model->SetScaleY(scale);
+	Py_RETURN_NONE;
+}
 static PyObject *PyModel_GetMvp(PyModelObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *mvp = PyTuple_New(16);
@@ -832,6 +854,8 @@ static PyMethodDef PyModel_Methods[] = {
 	{"SetOffset", (PyCFunction)PyModel_SetOffset, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"Rotate", (PyCFunction)PyModel_Rotate, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"SetScale", (PyCFunction)PyModel_SetScale, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"SetScaleX", (PyCFunction)PyModel_SetScaleX, METH_VARARGS | METH_KEYWORDS, nullptr},
+	{"SetScaleY", (PyCFunction)PyModel_SetScaleY, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetMvp", (PyCFunction)PyModel_GetMvp, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"StartMotion", (PyCFunction)PyModel_StartMotion, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"StartRandomMotion", (PyCFunction)PyModel_StartRandomMotion, METH_VARARGS | METH_KEYWORDS, nullptr},

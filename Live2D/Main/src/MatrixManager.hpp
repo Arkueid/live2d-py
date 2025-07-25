@@ -13,7 +13,8 @@ public:
     void ScreenToScene(float *x, float *y);
     Csm::CubismMatrix44 &GetMvp();
     void SetOffset(float x, float y);
-    void SetScale(float scale);
+    void SetScaleX(float sx);
+    void SetScaleY(float sy);
     void Rotate(float deg);
     void InvertTransform(float* x, float* y);
 private:
@@ -25,7 +26,8 @@ private:
 
     float _offsetX;
     float _offsetY;
-    float _scale;
+    float _scaleX;
+    float _scaleY;
     float _baseScale;
     int _ww;
     int _wh;
