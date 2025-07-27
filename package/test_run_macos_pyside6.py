@@ -13,9 +13,10 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QTimer
 
 import live2d.v3 as live2d
-# import live2d.v2 as live2d
-import resources
 
+# import live2d.v2 as live2d
+
+cd = os.path.split(__file__)[0]
 
 def callback():
     print("motion end")
@@ -46,9 +47,13 @@ class Win(QOpenGLWidget):
         self.model = live2d.LAppModel()
 
         if live2d.LIVE2D_VERSION == 3:
-            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"))
+            self.model.LoadModelJson(
+                os.path.join(cd, "../Resources", "v3/Haru/Haru.model3.json")
+            )
         else:
-            self.model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"))
+            self.model.LoadModelJson(
+                os.path.join(cd, "../Resources", "v2/shizuku/shizuku.model.json")
+            )
 
         # 以 fps = 120 的频率进行绘图
         self.startTimer(int(1000 / 120))
@@ -66,13 +71,17 @@ class Win(QOpenGLWidget):
         self.model.Draw()
 
         if not self.read:
-            self.savePng('screenshot.png')
+            self.savePng("screenshot.png")
 
             self.read = True
 
     def savePng(self, fName):
-        data = gl.glReadPixels(0, 0, self.width(), self.height(), gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)
-        data = np.frombuffer(data, dtype=np.uint8).reshape(self.height(), self.width(), 4)
+        data = gl.glReadPixels(
+            0, 0, self.width(), self.height(), gl.GL_RGBA, gl.GL_UNSIGNED_BYTE
+        )
+        data = np.frombuffer(data, dtype=np.uint8).reshape(
+            self.height(), self.width(), 4
+        )
         data = np.flipud(data)
         new_data = np.zeros_like(data)
         for rid, row in enumerate(data):
@@ -101,7 +110,7 @@ class Win(QOpenGLWidget):
                     color[1] = 0
                     color[2] = 0
                     color[3] = 255
-        img = Image.fromarray(new_data, 'RGBA')
+        img = Image.fromarray(new_data, "RGBA")
         img.save(fName)
 
     def timerEvent(self, a0: QTimerEvent | None) -> None:
@@ -109,7 +118,12 @@ class Win(QOpenGLWidget):
             return
 
         if self.a == 0:  # 测试一次播放动作和回调函数
-            self.model.StartMotion("TapBody", 0, live2d.MotionPriority.FORCE, onFinishMotionHandler=callback)
+            self.model.StartMotion(
+                "TapBody",
+                0,
+                live2d.MotionPriority.FORCE,
+                onFinishMotionHandler=callback,
+            )
             self.a += 1
 
         local_x, local_y = QCursor.pos().x() - self.x(), QCursor.pos().y() - self.y()
@@ -124,7 +138,14 @@ class Win(QOpenGLWidget):
 
     def isInL2DArea(self, click_x, click_y):
         h = self.height()
-        alpha = gl.glReadPixels(click_x * self.systemScale, (h - click_y) * self.systemScale, 1, 1, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)[3]
+        alpha = gl.glReadPixels(
+            click_x * self.systemScale,
+            (h - click_y) * self.systemScale,
+            1,
+            1,
+            gl.GL_RGBA,
+            gl.GL_UNSIGNED_BYTE,
+        )[3]
         return alpha > 0
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
@@ -163,7 +184,7 @@ if __name__ == "__main__":
     timer.setInterval(5000)
     timer.timeout.connect(lambda: win.close())
     timer.start()
-    
+
     app.exec()
 
     live2d.dispose()

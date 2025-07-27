@@ -54,6 +54,7 @@ venv-310
 venv-312
 
 package/test*.py
+!package/test_run_*.py
 
 .vscode
 /examples/live2d/

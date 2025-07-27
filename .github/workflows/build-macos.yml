@@ -38,7 +38,7 @@ jobs:
       - name: Test Run
         run: |
           pip install pyside6 pyopengl numpy pillow
-          python -u ./package/main_pyside6_test_run.py
+          python -u ./package/test_run_macos_pyside6.py
           mv screenshot.png macos-screenshot.png
 
       - name: Install twine
