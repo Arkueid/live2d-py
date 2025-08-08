@@ -83,12 +83,12 @@ class L2DBaseModel:
     def getExpressionManager(self):
         return self.expressionManager
 
-    def loadModelData(self, path):
+    def loadModelData(self, path, version: str, precision: bool):
         pm = Live2DFramework.getPlatformManager()
         if self.debugMode:
             pm.log("Load model : " + path)
 
-        self.live2DModel = pm.loadLive2DModel(path)
+        self.live2DModel = pm.loadLive2DModel(path, version, precision)
         self.live2DModel.saveParam()
 
         self.modelMatrix = L2DModelMatrix(self.live2DModel.getCanvasWidth(),

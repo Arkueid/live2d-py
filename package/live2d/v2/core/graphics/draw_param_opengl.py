@@ -1,4 +1,6 @@
-﻿from ..draw import Mesh
+﻿from scipy.constants import precision
+
+from ..draw import Mesh
 from ..live2d import Live2D
 from ..live2d_gl_wrapper import Live2DGLWrapper
 from .draw_param import DrawParam
@@ -14,7 +16,7 @@ class FrameBufferObject:
 
 class DrawParamOpenGL(DrawParam):
 
-    def __init__(self):
+    def __init__(self, version: str, disable_precision: bool):
         super().__init__()
         self.framebufferObject: FrameBufferObject | None = None
         self.shaderProgramOff = None
@@ -32,6 +34,86 @@ class DrawParamOpenGL(DrawParam):
         self.vertShaderOff = None
         self.fragShaderOff = None
         self.lastBlending = [0, 0, 0, 0]
+
+        precision = ""
+
+        if not disable_precision:
+            precision = "precision mediump float;"
+
+        self.aK = (version +
+              "attribute vec2 a_position;"
+              "attribute vec2 a_texCoord;"
+              "varying vec2 v_texCoord;"
+              "varying vec4 v_clipPos;"
+              "uniform mat4 u_mvpMatrix;"
+              "void main(){"
+              "    gl_Position = u_mvpMatrix * vec4(a_position, 0.0, 1.0);"
+              "    v_clipPos = gl_Position;"
+              "    v_texCoord = a_texCoord;"
+              "    v_texCoord.y = 1.0 - v_texCoord.y;"
+              "}")
+        self.aM = (version +
+              precision +
+              "varying vec2       v_texCoord;"
+              "varying vec4       v_clipPos;"
+              "uniform sampler2D  s_texture0;"
+              "uniform vec4       u_channelFlag;"
+              "uniform vec4       u_baseColor;"
+              "uniform bool       u_maskFlag;"
+              "uniform vec4       u_screenColor;"
+              "uniform vec4       u_multiplyColor;"
+              "void main(){"
+              "    vec4 smpColor;"
+              "    if(u_maskFlag){"
+              "        float isInside = "
+              "            step(u_baseColor.x, v_clipPos.x/v_clipPos.w)"
+              "          * step(u_baseColor.y, v_clipPos.y/v_clipPos.w)"
+              "          * step(v_clipPos.x/v_clipPos.w, u_baseColor.z)"
+              "          * step(v_clipPos.y/v_clipPos.w, u_baseColor.w);"
+              "        smpColor = u_channelFlag * texture2D(s_texture0, v_texCoord).a * isInside;"
+              "    }else{"
+              "        smpColor = texture2D(s_texture0 , v_texCoord);"
+              "        smpColor.rgb = smpColor.rgb * smpColor.a;"
+              "        smpColor.rgb = smpColor.rgb * u_multiplyColor.rgb;"
+              "        smpColor.rgb = smpColor.rgb + u_screenColor.rgb - (smpColor.rgb * u_screenColor.rgb);"
+              "        smpColor = smpColor * u_baseColor;"
+              "    }"
+              "    gl_FragColor = smpColor;}")
+        self.aL = (version +
+              "attribute vec2     a_position;"
+              "attribute vec2     a_texCoord;"
+              "varying vec2       v_texCoord;"
+              "varying vec4       v_clipPos;"
+              "uniform mat4       u_mvpMatrix;"
+              "uniform mat4       u_clipMatrix;"
+              "void main(){"
+              "    vec4 pos = vec4(a_position, 0, 1.0);"
+              "    gl_Position = u_mvpMatrix * pos;"
+              "    v_clipPos = u_clipMatrix * pos;"
+              "    v_texCoord = a_texCoord;"
+              "    v_texCoord.y = 1.0 - v_texCoord.y;"
+              "}"
+              )
+        self.aJ = (version +
+              precision +
+              "varying   vec2   v_texCoord;"
+              "varying   vec4   v_clipPos;"
+              "uniform sampler2D  s_texture0;"
+              "uniform sampler2D  s_texture1;"
+              "uniform vec4       u_channelFlag;"
+              "uniform vec4       u_baseColor;"
+              "uniform vec4       u_screenColor;"
+              "uniform vec4       u_multiplyColor;"
+              "void main(){"
+              "    vec4 col_formask = texture2D(s_texture0, v_texCoord);"
+              "    col_formask.rgb = col_formask.rgb * u_multiplyColor.rgb;"
+              "    col_formask.rgb = col_formask.rgb + u_screenColor.rgb - (col_formask.rgb * u_screenColor.rgb);"
+              "    col_formask = col_formask * u_baseColor;"
+              "    col_formask.rgb = col_formask.rgb * col_formask.a;"
+              "    vec4 clipMask = texture2D(s_texture1, v_clipPos.xy / v_clipPos.w) * u_channelFlag;"
+              "    float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;"
+              "    col_formask = col_formask * maskVal;"
+              "    gl_FragColor = col_formask;}")
 
     def getGL(self):
         return self.gl
@@ -260,96 +342,22 @@ class DrawParamOpenGL(DrawParam):
         if not self.shaderProgramOff:
             return False
 
-        aK = ("#version 120\n"
-              "attribute vec2 a_position;"
-              "attribute vec2 a_texCoord;"
-              "varying vec2 v_texCoord;"
-              "varying vec4 v_clipPos;"
-              "uniform mat4 u_mvpMatrix;"
-              "void main(){"
-              "    gl_Position = u_mvpMatrix * vec4(a_position, 0.0, 1.0);"
-              "    v_clipPos = gl_Position;"
-              "    v_texCoord = a_texCoord;"
-              "    v_texCoord.y = 1.0 - v_texCoord.y;"
-              "}")
-        aM = ("#version 120\n"
-              "precision mediump float;"
-              "varying vec2       v_texCoord;"
-              "varying vec4       v_clipPos;"
-              "uniform sampler2D  s_texture0;"
-              "uniform vec4       u_channelFlag;"
-              "uniform vec4       u_baseColor;"
-              "uniform bool       u_maskFlag;"
-              "uniform vec4       u_screenColor;"
-              "uniform vec4       u_multiplyColor;"
-              "void main(){"
-              "    vec4 smpColor;"
-              "    if(u_maskFlag){"
-              "        float isInside = "
-              "            step(u_baseColor.x, v_clipPos.x/v_clipPos.w)"
-              "          * step(u_baseColor.y, v_clipPos.y/v_clipPos.w)"
-              "          * step(v_clipPos.x/v_clipPos.w, u_baseColor.z)"
-              "          * step(v_clipPos.y/v_clipPos.w, u_baseColor.w);"
-              "        smpColor = u_channelFlag * texture2D(s_texture0, v_texCoord).a * isInside;"
-              "    }else{"
-              "        smpColor = texture2D(s_texture0 , v_texCoord);"
-              "        smpColor.rgb = smpColor.rgb * smpColor.a;"
-              "        smpColor.rgb = smpColor.rgb * u_multiplyColor.rgb;"
-              "        smpColor.rgb = smpColor.rgb + u_screenColor.rgb - (smpColor.rgb * u_screenColor.rgb);"
-              "        smpColor = smpColor * u_baseColor;"
-              "    }"
-              "    gl_FragColor = smpColor;}")
-        aL = ("#version 120\n"
-              "attribute vec2     a_position;"
-              "attribute vec2     a_texCoord;"
-              "varying vec2       v_texCoord;"
-              "varying vec4       v_clipPos;"
-              "uniform mat4       u_mvpMatrix;"
-              "uniform mat4       u_clipMatrix;"
-              "void main(){"
-              "    vec4 pos = vec4(a_position, 0, 1.0);"
-              "    gl_Position = u_mvpMatrix * pos;"
-              "    v_clipPos = u_clipMatrix * pos;"
-              "    v_texCoord = a_texCoord;"
-              "    v_texCoord.y = 1.0 - v_texCoord.y;"
-              "}"
-              )
-        aJ = ("#version 120\n"
-              "precision mediump float;"
-              "varying   vec2   v_texCoord;"
-              "varying   vec4   v_clipPos;"
-              "uniform sampler2D  s_texture0;"
-              "uniform sampler2D  s_texture1;"
-              "uniform vec4       u_channelFlag;"
-              "uniform vec4       u_baseColor;"
-              "uniform vec4       u_screenColor;"
-              "uniform vec4       u_multiplyColor;"
-              "void main(){"
-              "    vec4 col_formask = texture2D(s_texture0, v_texCoord);"
-              "    col_formask.rgb = col_formask.rgb * u_multiplyColor.rgb;"
-              "    col_formask.rgb = col_formask.rgb + u_screenColor.rgb - (col_formask.rgb * u_screenColor.rgb);"
-              "    col_formask = col_formask * u_baseColor;"
-              "    col_formask.rgb = col_formask.rgb * col_formask.a;"
-              "    vec4 clipMask = texture2D(s_texture1, v_clipPos.xy / v_clipPos.w) * u_channelFlag;"
-              "    float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;"
-              "    col_formask = col_formask * maskVal;"
-              "    gl_FragColor = col_formask;}")
-        self.vertShader = self.compileShader(aN.VERTEX_SHADER, aK)
+        self.vertShader = self.compileShader(aN.VERTEX_SHADER, self.aK)
         if not self.vertShader:
             print("Vertex shader compile li_!")
             return False
 
-        self.vertShaderOff = self.compileShader(aN.VERTEX_SHADER, aL)
+        self.vertShaderOff = self.compileShader(aN.VERTEX_SHADER, self.aL)
         if not self.vertShaderOff:
             print("OffVertex shader compile li_!")
             return False
 
-        self.fragShader = self.compileShader(aN.FRAGMENT_SHADER, aM)
+        self.fragShader = self.compileShader(aN.FRAGMENT_SHADER, self.aM)
         if not self.fragShader:
             print("Fragment shader compile li_!")
             return False
 
-        self.fragShaderOff = self.compileShader(aN.FRAGMENT_SHADER, aJ)
+        self.fragShaderOff = self.compileShader(aN.FRAGMENT_SHADER, self.aJ)
         if not self.fragShaderOff:
             print("OffFragment shader compile li_!")
             return False
