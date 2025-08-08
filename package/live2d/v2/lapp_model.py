@@ -30,7 +30,7 @@ class LAppModel(L2DBaseModel):
 
         self.__clearFlag = False
 
-    def LoadModelJson(self, modelSettingPath: str, version: str, disable_precision: bool):
+    def LoadModelJson(self, modelSettingPath: str, version: str = "#version 120\n", disable_precision: bool = False):
         self.setUpdating(True)
         self.setInitialized(False)
         self.modelHomeDir = os.path.dirname(modelSettingPath) + "/"
