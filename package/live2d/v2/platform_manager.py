@@ -12,9 +12,9 @@ class PlatformManager:
         with open(path, 'rb') as f:
             return f.read()
 
-    def loadLive2DModel(self, path) -> Live2DModelOpenGL:
+    def loadLive2DModel(self, path, version: str, disable_precision: bool) -> Live2DModelOpenGL:
         with open(path, 'rb') as f:
-            return Live2DModelOpenGL.loadModel(f.read())
+            return Live2DModelOpenGL.loadModel(f.read(), version, disable_precision)
 
     def loadTexture(self, live2DModel, no, path):
         image = Image.open(path)

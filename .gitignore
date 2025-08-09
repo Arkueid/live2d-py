@@ -58,3 +58,5 @@ package/test*.py
 
 .vscode
 /examples/live2d/
+
+.DS_Store

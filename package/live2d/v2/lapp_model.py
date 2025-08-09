@@ -30,7 +30,7 @@ class LAppModel(L2DBaseModel):
 
         self.__clearFlag = False
 
-    def LoadModelJson(self, modelSettingPath: str):
+    def LoadModelJson(self, modelSettingPath: str, version: str = "#version 120\n", disable_precision: bool = False):
         self.setUpdating(True)
         self.setInitialized(False)
         self.modelHomeDir = os.path.dirname(modelSettingPath) + "/"
@@ -40,7 +40,7 @@ class LAppModel(L2DBaseModel):
 
         path = self.modelHomeDir + self.modelSetting.getModelFile()
 
-        self.loadModelData(path)
+        self.loadModelData(path, version, disable_precision)
 
         for i in range(self.modelSetting.getTextureNum()):
             tex_paths = self.modelHomeDir + self.modelSetting.getTextureFile(i)
