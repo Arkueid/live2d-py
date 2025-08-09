@@ -1,0 +1,62 @@
+name: MacOS-x86_64 📦
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+    branches: [ macos-workflow, build-all ]
+
+
+jobs:
+  build-n-publish:
+    name: Build📦 for MacOS
+    runs-on: macos-13
+
+    strategy:
+      matrix:
+        python-version: [ '3.11.0', '3.12.0', '3.13' ] # versions under 3.11 are not supported on arm64
+      fail-fast: false
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade setuptools
+          python -m pip install wheel
+
+      - name: Build a binary wheel
+        run: |
+          python setup.py bdist_wheel
+          
+      - name: Test Run
+        run: |
+          pip install pyside6 pyopengl numpy pillow
+          python -u ./package/test_run_macos_pyside6.py
+          mv screenshot.png macos-screenshot.png
+
+      - name: Install twine
+        run: python -m pip install twine
+
+      - name: Publish distribution to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: twine upload dist/* --skip-existing
+
+      - name: Upload Wheel to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # tag_name: v0.4.3
+          files: |
+            dist/*.whl
+            macos-screenshot.png
+
+
+    
