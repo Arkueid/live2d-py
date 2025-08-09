@@ -1,6 +1,4 @@
-﻿from scipy.constants import precision
-
-from ..draw import Mesh
+﻿from ..draw import Mesh
 from ..live2d import Live2D
 from ..live2d_gl_wrapper import Live2DGLWrapper
 from .draw_param import DrawParam
