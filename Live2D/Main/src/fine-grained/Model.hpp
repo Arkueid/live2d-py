@@ -197,6 +197,10 @@ public:
 
     float GetPixelsPerUnit();
 
+    void SetAutoBlink(bool on);
+
+    void SetAutoBreath(bool on);
+
 private:
     void ReleaseMotions();
     void ReleaseExpressions();
@@ -246,4 +250,7 @@ private:
     std::vector<int> _motionCounts;
 
     std::vector<float> _savedParameterValues;
+
+    bool autoBreath;
+    bool autoBlink;
 };
