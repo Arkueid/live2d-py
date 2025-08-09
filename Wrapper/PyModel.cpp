@@ -821,6 +821,34 @@ static PyObject* PyModel_GetPixelsPerUnit(PyModelObject* self, PyObject* args, P
     return Py_BuildValue("f", self->model->GetPixelsPerUnit());
 }
 
+static PyObject* PyModel_SetAutoBreath(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+	bool on;
+	if (!PyArg_ParseTuple(args, "b", &on))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (bool)");
+		return NULL;
+	}
+
+	self->model->SetAutoBreath(on);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject* PyModel_SetAutoBlink(PyModelObject* self, PyObject* args, PyObject* kwargs)
+{
+	bool on;
+	if (!PyArg_ParseTuple(args, "b", &on))
+	{
+		PyErr_SetString(PyExc_TypeError, "arguments must be (bool)");
+		return NULL;
+	}
+
+	self->model->SetAutoBlink(on);
+
+	Py_RETURN_NONE;
+}
+
 static PyMethodDef PyModel_Methods[] = {
 	{"LoadModelJson", (PyCFunction)PyModel_LoadModelJson, METH_VARARGS | METH_KEYWORDS, nullptr},
 	{"GetModelHomeDir", (PyCFunction)PyModel_GetModelHomeDir, METH_VARARGS | METH_KEYWORDS, nullptr},
@@ -895,6 +923,9 @@ static PyMethodDef PyModel_Methods[] = {
 	{"GetCanvasSize", (PyCFunction)PyModel_GetCanvasSize, METH_VARARGS, ""},
     {"GetCanvasSizePixel", (PyCFunction)PyModel_GetCanvasSizePixel, METH_VARARGS, ""},
     {"GetPixelsPerUnit", (PyCFunction)PyModel_GetPixelsPerUnit, METH_VARARGS, ""},
+
+    {"SetAutoBreath", (PyCFunction)PyModel_SetAutoBreath, METH_VARARGS, ""},
+    {"SetAutoBlink", (PyCFunction)PyModel_SetAutoBlink, METH_VARARGS, ""},
 
 	{NULL}};
 static PyObject *PyModel_New(PyTypeObject *type, PyObject *args, PyObject *kwargs)

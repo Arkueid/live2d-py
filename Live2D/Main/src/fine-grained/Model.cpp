@@ -56,7 +56,7 @@ namespace
 
 Model::Model() : CubismUserModel(), _modelSetting(nullptr), _matrixManager(),
                  _parameterCount(0), _parameterDefaultValues(nullptr), _parameterValues(nullptr),
-                 _tmpOrderedDrawIndice(nullptr)
+                 _tmpOrderedDrawIndice(nullptr), autoBlink(true), autoBreath(true)
 {
     _mocConsistency = true;
 
@@ -109,18 +109,18 @@ void Model::Update(float deltaSecs)
     _dragY = _dragManager->GetY();
 
     bool motionUpdated = false;
-    _model->LoadParameters();
+    LoadParameters();
     if (!_motionManager->IsFinished())
     {
         motionUpdated = _motionManager->UpdateMotion(_model, deltaSecs);
     }
-    _model->SaveParameters();
+    SaveParameters();
 
     _opacity = _model->GetModelOpacity();
 
     if (!motionUpdated)
     {
-        if (_eyeBlink != NULL)
+        if (_eyeBlink != NULL && autoBlink)
         {
             _eyeBlink->UpdateParameters(_model, deltaSecs);
         }
@@ -140,7 +140,7 @@ void Model::Update(float deltaSecs)
     _model->AddParameterValue(_ParamEyeBallXi, _dragX);
     _model->AddParameterValue(_ParamEyeBallYi, _dragY);
 
-    if (_breath != NULL)
+    if (_breath != NULL && autoBreath)
     {
         _breath->UpdateParameters(_model, deltaSecs);
     }
@@ -1328,6 +1328,16 @@ void Model::GetCanvasSizePixel(float &w, float &h)
 float Model::GetPixelsPerUnit()
 {
     return _model->GetPixelsPerUnit();
+}
+
+void Model::SetAutoBlink(bool on)
+{
+    autoBlink = on;
+}
+
+void Model::SetAutoBreath(bool on)
+{
+    autoBreath = on;
 }
 
 void Model::ReleaseMotions()
