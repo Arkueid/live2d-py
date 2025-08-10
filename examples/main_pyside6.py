@@ -24,7 +24,7 @@ class Win(QOpenGLWidget):
         super().__init__()
         self.isInLA = False
         self.clickInLA = False
-        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.a = 0
         self.resize(400, 500)
@@ -136,7 +136,8 @@ class Win(QOpenGLWidget):
         x, y = event.scenePosition().x(), event.scenePosition().y()
         # if self.isInL2DArea(x, y):
         if self.isInLA:
-            self.model.Touch(x, y)
+            # self.model.Touch(x, y)
+            pass
             self.clickInLA = False
             print("released")
 
