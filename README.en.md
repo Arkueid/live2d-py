@@ -8,7 +8,10 @@
 <p align="center" style="font-family: 'Roboto', sans-serif; font-size: 1em; color: #555;">
     <img title="Windows Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-windows.yml/badge.svg">
     <img title="MacOS Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-macos.yml/badge.svg">
+    <img title="MacOS Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-macos-intel.yml/badge.svg">
     <img title="Linux Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-linux.yml/badge.svg">
+    <img title="Linux Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-linux-arm.yml/badge.svg">
+    <img title="Live2D Viewer Distro" src="https://github.com/Arkueid/live2d-py/actions/workflows/build-live2dviewer.yml/badge.svg">
     <br>
     <img title="Release Version" src="https://img.shields.io/github/v/release/Arkueid/live2d-py" alt="Docker Build Version" style="margin: 0 10px;">
     <img title="Python Version" src="https://img.shields.io/badge/python-3.8+-blue" alt="Python Version" style="margin: 0 10px;">
@@ -127,7 +130,7 @@ Source Code: [main_pyqt5_canvas_opacity.py](./examples/main_pyqt5_canvas_opacity
 ![opacity](./docs/opacity.gif)
 
 ## Contributions
-Special thanks to [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo], [Barracuda72], [GuangChen2333], [makabakadot], [thynetruly], [mastwet], [KyvYang] for their support and contributions to this project.
+Special thanks to the following users for their support and contributions to this project: [96bearli], [Ovizro], [AnyaCoder], [jahtim], [Honghe], [RobertMeow], [LUORANCHENG], [TinyKiecoo], [Barracuda72], [GuangChen2333], [makabakadot], [thynetruly], [mastwet], [KyvYang], @Mozilla88, @CooperWang0912, @minghf85
 
 [96bearli]: https://github.com/96bearli
 
