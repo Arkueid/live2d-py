@@ -1,4 +1,4 @@
-#include "L2DBaseModel.hpp"
+#include "BaseModel.hpp"
 #include "BinaryReader.hpp"
 #include "ModelImpl.hpp"
 #include "MeshContext.hpp"
@@ -6,27 +6,27 @@
 #include "AMotion.hpp"
 #include "Live2DMotion.hpp"
 #include "GLRenderer.hpp"
-#include "L2DExpressionMotion.hpp"
-#include "L2DEyeBlink.hpp"
-#include "L2DMotionManager.hpp"
-#include "L2DPhysics.hpp"
-#include "L2DPose.hpp"
+#include "ExpressionMotion.hpp"
+#include "EyeBlink.hpp"
+#include "MotionManager.hpp"
+#include "Physics.hpp"
+#include "Pose.hpp"
 
 namespace Live2D {
 namespace V2 {
 
-L2DBaseModel::L2DBaseModel()
+BaseModel::BaseModel()
     : mModelImpl(nullptr)
     , mModelContext(nullptr)
-    , mEyeBlink(std::make_unique<L2DEyeBlink>())
-    , mPhysics(std::make_unique<L2DPhysics>())
-    , mPose(std::make_unique<L2DPose>())
-    , mMainMotionMgr(std::make_unique<L2DMotionManager>())
-    , mExpressionMgr(std::make_unique<L2DMotionManager>()) {}
+    , mEyeBlink(std::make_unique<EyeBlink>())
+    , mPhysics(std::make_unique<Physics>())
+    , mPose(std::make_unique<Pose>())
+    , mMainMotionMgr(std::make_unique<MotionManager>())
+    , mExpressionMgr(std::make_unique<MotionManager>()) {}
 
-L2DBaseModel::~L2DBaseModel() = default;
+BaseModel::~BaseModel() = default;
 
-void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version) {
+void BaseModel::loadModelData(const std::vector<uint8_t>& data, int version) {
     BinaryReader br(data);
     br.readByte();
     br.readByte();
@@ -38,28 +38,28 @@ void L2DBaseModel::loadModelData(const std::vector<uint8_t>& data, int version) 
     mModelContext = std::make_unique<ModelContext>();
     mModelContext->init(mModelImpl.get());
     mModelMatrix =
-        L2DModelMatrix((float)mModelImpl->getCanvasWidth(), (float)mModelImpl->getCanvasHeight());
+        ModelMatrix((float)mModelImpl->getCanvasWidth(), (float)mModelImpl->getCanvasHeight());
     mModelMatrix.setWidth(2);
     mModelMatrix.setCenterPosition(0, 0);
 }
-AMotion* L2DBaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data) {
+AMotion* BaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data) {
     auto* m = Live2DMotion::load(data);
     mMotions[name].emplace_back(m);
     return m;
 }
-AMotion* L2DBaseModel::loadExpression(const std::string& name, const std::vector<uint8_t>& data) {
-    auto* m = L2DExpressionMotion::load(data);
+AMotion* BaseModel::loadExpression(const std::string& name, const std::vector<uint8_t>& data) {
+    auto* m = ExpressionMotion::load(data);
     mExpressions[name].reset(m);
     return m;
 }
-L2DPose* L2DBaseModel::loadPose(const std::vector<uint8_t>& data) {
-    mPose.reset(L2DPose::load(data));
+Pose* BaseModel::loadPose(const std::vector<uint8_t>& data) {
+    mPose.reset(Pose::load(data));
     return mPose.get();
 }
-void L2DBaseModel::loadPhysics(const std::vector<uint8_t>& data) {
-    mPhysics.reset(L2DPhysics::load(data));
+void BaseModel::loadPhysics(const std::vector<uint8_t>& data) {
+    mPhysics.reset(Physics::load(data));
 }
-bool L2DBaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
+bool BaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
     auto* mc = mModelContext.get();
     int drawIdx = mc->getDrawDataIndex(&Id::getID(drawID));
     if (drawIdx < 0)

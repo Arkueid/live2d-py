@@ -1,17 +1,17 @@
-#include "L2DEyeBlink.hpp"
+#include "EyeBlink.hpp"
 #include "Id.hpp"
 #include "ModelContext.hpp"
 #include "UtSystem.hpp"
 #include <cstdlib>
 namespace Live2D {
 namespace V2 {
-L2DEyeBlink::L2DEyeBlink() {}
-void L2DEyeBlink::setEyeMotion(int closeMs, int closedMs, int openMs) {
+EyeBlink::EyeBlink() {}
+void EyeBlink::setEyeMotion(int closeMs, int closedMs, int openMs) {
     mClosingMs = static_cast<float>(closeMs);
     mClosedMs = static_cast<float>(closedMs);
     mOpeningMs = static_cast<float>(openMs);
 }
-void L2DEyeBlink::updateParam(ModelContext* context, float deltaMs) {
+void EyeBlink::updateParam(ModelContext* context, float deltaMs) {
     mCurrentTime += deltaMs;
     float now = mCurrentTime;
 

@@ -1,7 +1,7 @@
 add_library(${V2_TARGET} STATIC
     Core/Id.cpp
     Core/BinaryReader.cpp
-    Core/Live2DObjectFactory.cpp
+    Core/ObjectFactory.cpp
     Core/ParamDefFloat.cpp
     Core/ParamDefSet.cpp
     Core/PartsData.cpp
@@ -19,23 +19,23 @@ add_library(${V2_TARGET} STATIC
     Core/WarpContext.cpp
     Core/IDrawData.cpp
     Core/Mesh.cpp
-    Core/GLRenderer.cpp
-    Core/ClippingManagerOpenGL.cpp
-    Core/ClipContext.cpp
     Core/UtInterpolate.cpp
     Core/UtSystem.cpp
-    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Core/VkRenderer.cpp>
-    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Core/ClippingManagerVulkan.cpp>
-    Framework/L2DMatrix44.cpp
-    Framework/L2DModelMatrix.cpp
-    Framework/L2DTargetPoint.cpp
-    Framework/L2DEyeBlink.cpp
-    Framework/L2DPose.cpp
-    Framework/L2DPhysics.cpp
+    Renderer/ClipContext.cpp
+    $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/GLRenderer.cpp>
+    $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/ClippingManagerOpenGL.cpp>
+    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/VkRenderer.cpp>
+    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/ClippingManagerVulkan.cpp>
+    Framework/Matrix44.cpp
+    Framework/ModelMatrix.cpp
+    Framework/TargetPoint.cpp
+    Framework/EyeBlink.cpp
+    Framework/Pose.cpp
+    Framework/Physics.cpp
     Framework/PhysicsHair.cpp
-    Framework/L2DExpressionMotion.cpp
-    Framework/L2DMotionManager.cpp
-    Framework/L2DBaseModel.cpp
+    Framework/ExpressionMotion.cpp
+    Framework/MotionManager.cpp
+    Framework/BaseModel.cpp
     Framework/MatrixManagerV2.cpp
     Framework/Live2DMotion.cpp
     Model.cpp

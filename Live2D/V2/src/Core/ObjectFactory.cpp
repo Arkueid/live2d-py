@@ -1,4 +1,4 @@
-#include "Live2DObjectFactory.hpp"
+#include "ObjectFactory.hpp"
 #include "Log.hpp"
 #include "AffineEnt.hpp"
 #include "Deformer.hpp"
@@ -20,7 +20,7 @@ namespace V2 {
 
 using namespace Live2D::Common::Log;
 
-std::unique_ptr<ISerializable> Live2DObjectFactory::create(int clsNo) {
+std::unique_ptr<ISerializable> ObjectFactory::create(int clsNo) {
     if (clsNo < 100) {
         switch (clsNo) {
             case 65:

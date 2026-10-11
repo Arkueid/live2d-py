@@ -1,4 +1,4 @@
-#include "L2DTargetPoint.hpp"
+#include "TargetPoint.hpp"
 #include <cmath>
 
 namespace Live2D {
@@ -14,11 +14,11 @@ constexpr float FRAME_TO_MAX_SPEED = TIME_TO_MAX_SPEED * FRAME_RATE;
 constexpr float EPSILON = 0.01f;
 }   // namespace
 
-void L2DTargetPoint::update(float deltaSec) {
+void TargetPoint::update(float deltaSec) {
     updateByWeight(deltaSec * FRAME_RATE);
 }
 
-void L2DTargetPoint::updateByWeight(float deltaTimeWeight) {
+void TargetPoint::updateByWeight(float deltaTimeWeight) {
     float dx = mTargetX - mX;
     float dy = mTargetY - mY;
     if (std::abs(dx) <= EPSILON && std::abs(dy) <= EPSILON)

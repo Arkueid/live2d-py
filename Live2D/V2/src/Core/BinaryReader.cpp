@@ -2,7 +2,7 @@
 #include "DEF.hpp"
 #include "ISerializable.hpp"
 #include "Id.hpp"
-#include "Live2DObjectFactory.hpp"
+#include "ObjectFactory.hpp"
 #include <cstring>
 
 namespace Live2D {
@@ -211,7 +211,7 @@ void* BinaryReader::readKnownTypeObject(int type) {
     }
     // Factory-created ISerializable subclasses (type >= 48)
     if (type >= 48) {
-        auto obj = Live2DObjectFactory::create(type);
+        auto obj = ObjectFactory::create(type);
         obj->read(*this);   // may throw — unique_ptr still owns
         ISerializable* rawPtr = obj.release();
         return rawPtr;   // ownership transferred to caller

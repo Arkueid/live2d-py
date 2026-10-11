@@ -3,9 +3,9 @@
 namespace Live2D {
 namespace V2 {
 
-class L2DTargetPoint {
+class TargetPoint {
 public:
-    L2DTargetPoint() = default;
+    TargetPoint() = default;
 
     void set(float x, float y) {
         mTargetX = x;

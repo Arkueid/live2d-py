@@ -14,9 +14,9 @@ struct MotionQueueEntry {
     float mFadeOutEndElapsedMs = -1;  // 淡出结束时刻的 mElapsedMs（-1 = 未调度）
     bool mFinished = false;           // true when fade-out 已完成
 };
-class L2DMotionManager {
+class MotionManager {
 public:
-    L2DMotionManager();
+    MotionManager();
     int startMotion(AMotion* motion, bool autoPriority);
     // 时间由外部传入（时钟只由 Model 管理）: dtMs 为本次时间步长（毫秒），内部累计 elapsed
     bool updateParam(ModelContext* context, float dtMs);

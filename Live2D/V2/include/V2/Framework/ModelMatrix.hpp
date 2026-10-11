@@ -4,10 +4,10 @@
 namespace Live2D {
 namespace V2 {
 
-class L2DModelMatrix {
+class ModelMatrix {
 public:
-    L2DModelMatrix() { identity(); }
-    L2DModelMatrix(float w, float h);
+    ModelMatrix() { identity(); }
+    ModelMatrix(float w, float h);
 
     void identity();
     void setWidth(float w);

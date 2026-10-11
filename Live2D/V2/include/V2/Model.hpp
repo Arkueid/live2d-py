@@ -1,6 +1,6 @@
 #pragma once
-#include "L2DBaseModel.hpp"
-#include "L2DTargetPoint.hpp"
+#include "BaseModel.hpp"
+#include "TargetPoint.hpp"
 #include "MatrixManagerV2.hpp"
 #include "IRenderer.hpp"
 #include <IModel.hpp>
@@ -12,7 +12,7 @@
 
 namespace Live2D {
 namespace V2 {
-class Model : public L2DBaseModel {
+class Model : public BaseModel {
 public:
     using StartCallback = std::function<void(const std::string&, int)>;
     using FinishCallback = std::function<void(const std::string&, int)>;
@@ -151,7 +151,7 @@ private:
     void LoadModelJsonImpl(const std::string& jsonText, const std::string& homeDir,
                            bool createRenderer);
 
-    L2DTargetPoint mDragMgr;
+    TargetPoint mDragMgr;
     MatrixManagerV2 mMatrixManager;
     // Model 是唯一读墙钟的地方，且只做一件事: 墙钟路径每帧算一次 dt
     //（delta 路径直接用传入值）。子系统全部收 dt、内部累计 elapsed。

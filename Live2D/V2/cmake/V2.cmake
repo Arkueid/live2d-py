@@ -8,6 +8,7 @@ target_include_directories(${V2_TARGET}
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2/Core
     PUBLIC ${LIVE2D_ROOT}/V2/include/V2/Framework
+    PUBLIC ${LIVE2D_ROOT}/V2/include/V2/Renderer
 )
 
 if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")

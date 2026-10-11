@@ -1,7 +1,7 @@
-#include "L2DExpressionMotion.hpp"
+#include "ExpressionMotion.hpp"
 #include "Id.hpp"
 #include "ModelContext.hpp"
-#include "L2DExpressionParam.hpp"
+#include "ExpressionParam.hpp"
 #include "nlohmann/json.hpp"
 #include <string>
 
@@ -10,9 +10,9 @@ namespace V2 {
 
 using json = nlohmann::json;
 
-L2DExpressionMotion::L2DExpressionMotion() = default;
+ExpressionMotion::ExpressionMotion() = default;
 
-void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight) {
+void ExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight) {
     (void)timeSec;
     if (mParams.empty())
         return;
@@ -41,8 +41,8 @@ void L2DExpressionMotion::updateParam(ModelContext* context, float timeSec, floa
     }
 }
 
-L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data) {
-    auto* exp = new L2DExpressionMotion();
+ExpressionMotion* ExpressionMotion::load(const std::vector<uint8_t>& data) {
+    auto* exp = new ExpressionMotion();
     if (data.empty())
         return exp;
     // Python: pm.jsonParseFromBytes == json.loads (l2d_expression_motion.py:31-66)
@@ -61,7 +61,7 @@ L2DExpressionMotion* L2DExpressionMotion::load(const std::vector<uint8_t>& data)
     for (const auto& p : *params) {
         if (!p.is_object())
             continue;
-        L2DExpressionParam out;
+        ExpressionParam out;
         out.mId = p.value("id", std::string());
         out.mValue = p.value("val", 0.0f);   // required in Python
         std::string calc = p.value("calc", std::string("add"));

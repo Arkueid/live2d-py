@@ -3,7 +3,7 @@
 
 namespace Live2D {
 namespace V2 {
-class L2DModelMatrix;
+class ModelMatrix;
 
 class MatrixManagerV2 {
 public:
@@ -15,7 +15,7 @@ public:
     void setScaleY(float sy);
     void setOffset(float dx, float dy);
     void rotate(float deg);
-    std::array<float, 16> getMvp(L2DModelMatrix* modelMatrix) const;
+    std::array<float, 16> getMvp(ModelMatrix* modelMatrix) const;
 
     int getWidth() const { return mWidth; }
     int getHeight() const { return mHeight; }

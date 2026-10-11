@@ -1,10 +1,10 @@
-#include "L2DMotionManager.hpp"
+#include "MotionManager.hpp"
 #include "UtSystem.hpp"
 #include <cmath>
 namespace Live2D {
 namespace V2 {
-L2DMotionManager::L2DMotionManager() = default;
-bool L2DMotionManager::reserveMotion(int priority) {
+MotionManager::MotionManager() = default;
+bool MotionManager::reserveMotion(int priority) {
     if (priority < mReservePriority)
         return false;
     if (priority < mCurrentPriority)
@@ -12,7 +12,7 @@ bool L2DMotionManager::reserveMotion(int priority) {
     mReservePriority = priority;
     return true;
 }
-int L2DMotionManager::startMotion(AMotion* motion, bool autoPriority) {
+int MotionManager::startMotion(AMotion* motion, bool autoPriority) {
     // Fade out existing motions, matching Python v2: shorter end time wins
     for (auto& e : mMotions) {
         if (e.mFadeOut > 0) {
@@ -25,7 +25,7 @@ int L2DMotionManager::startMotion(AMotion* motion, bool autoPriority) {
     mMotions.push_back({motion, motion->mFadeInSec, motion->mFadeOutSec});
     return (int)mMotions.size() - 1;
 }
-int L2DMotionManager::startMotionPrio(AMotion* motion, int priority) {
+int MotionManager::startMotionPrio(AMotion* motion, int priority) {
     if (priority == mReservePriority)
         mReservePriority = 0;
     mCurrentPriority = priority;
@@ -40,7 +40,7 @@ static float easeSine(float x) {
     return 0.5f - 0.5f * cosf(x * 3.14159265f);
 }
 
-bool L2DMotionManager::updateParam(ModelContext* context, float dtMs) {
+bool MotionManager::updateParam(ModelContext* context, float dtMs) {
     bool updated = false;
     for (size_t i = 0; i < mMotions.size();) {
         auto& e = mMotions[i];
@@ -87,10 +87,10 @@ bool L2DMotionManager::updateParam(ModelContext* context, float dtMs) {
         mCurrentPriority = 0;
     return updated;
 }
-bool L2DMotionManager::isFinished() const {
+bool MotionManager::isFinished() const {
     return mMotions.empty();
 }
-void L2DMotionManager::stopAllMotions() {
+void MotionManager::stopAllMotions() {
     mMotions.clear();
 }
 }   // namespace V2

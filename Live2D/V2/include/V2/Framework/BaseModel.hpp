@@ -1,6 +1,6 @@
 #pragma once
 #include "ModelImpl.hpp"
-#include "L2DModelMatrix.hpp"
+#include "ModelMatrix.hpp"
 #include "ModelContext.hpp"
 #include <IModel.hpp>
 #include <memory>
@@ -9,25 +9,25 @@
 namespace Live2D {
 namespace V2 {
 class Live2DModelOpenGL;
-class L2DMotionManager;
-class L2DEyeBlink;
-class L2DPose;
-class L2DPhysics;
+class MotionManager;
+class EyeBlink;
+class Pose;
+class Physics;
 class AMotion;
-// 统一模型接口: Model -> L2DBaseModel -> IModel 单继承链
-class L2DBaseModel : public IModel {
+// 统一模型接口: Model -> BaseModel -> IModel 单继承链
+class BaseModel : public IModel {
 public:
-    L2DBaseModel();
-    ~L2DBaseModel() override;
+    BaseModel();
+    ~BaseModel() override;
     void loadModelData(const std::vector<uint8_t>& data, int version);
     AMotion* loadMotion(const std::string& name, const std::vector<uint8_t>& data);
     AMotion* loadExpression(const std::string& name, const std::vector<uint8_t>& data);
-    L2DPose* loadPose(const std::vector<uint8_t>& data);
+    Pose* loadPose(const std::vector<uint8_t>& data);
     void loadPhysics(const std::vector<uint8_t>& data);
     bool hitTestSimple(const std::string& drawID, float x, float y);
-    L2DModelMatrix& getModelMatrix() { return mModelMatrix; }
-    L2DMotionManager* getMainMotionManager() const { return mMainMotionMgr.get(); }
-    L2DMotionManager* getExpressionManager() const { return mExpressionMgr.get(); }
+    ModelMatrix& getModelMatrix() { return mModelMatrix; }
+    MotionManager* getMainMotionManager() const { return mMainMotionMgr.get(); }
+    MotionManager* getExpressionManager() const { return mExpressionMgr.get(); }
     void setAlpha(float a) { mAlpha = (a < 0 ? 0 : (a > 1 ? 1 : a)); }
     float getAlpha() const { return mAlpha; }
     void setAccel(float x, float y, float z) {
@@ -45,12 +45,12 @@ public:
     void setUpdating(bool v) { mUpdating = v; }
 
 protected:
-    L2DModelMatrix mModelMatrix;
-    std::unique_ptr<L2DEyeBlink> mEyeBlink;
-    std::unique_ptr<L2DPhysics> mPhysics;
-    std::unique_ptr<L2DPose> mPose;
-    std::unique_ptr<L2DMotionManager> mMainMotionMgr;
-    std::unique_ptr<L2DMotionManager> mExpressionMgr;
+    ModelMatrix mModelMatrix;
+    std::unique_ptr<EyeBlink> mEyeBlink;
+    std::unique_ptr<Physics> mPhysics;
+    std::unique_ptr<Pose> mPose;
+    std::unique_ptr<MotionManager> mMainMotionMgr;
+    std::unique_ptr<MotionManager> mExpressionMgr;
     std::unordered_map<std::string, std::vector<std::unique_ptr<AMotion>>> mMotions;
     std::unordered_map<std::string, std::unique_ptr<AMotion>> mExpressions;
     float mAlpha = 1.0f, mAccelX = 0, mAccelY = 0, mAccelZ = 0, mDragX = 0, mDragY = 0;

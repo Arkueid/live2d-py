@@ -3,9 +3,9 @@
 namespace Live2D {
 namespace V2 {
 class ModelContext;
-class L2DEyeBlink {
+class EyeBlink {
 public:
-    L2DEyeBlink();
+    EyeBlink();
     void setInterval(int ms) { mBlinkIntervalMs = ms; }
     void setEyeMotion(int closeMs, int closedMs, int openMs);
     // 时间由外部传入（时钟只由 Model 管理）: deltaMs 为本次时间步长（毫秒），内部累计 elapsed

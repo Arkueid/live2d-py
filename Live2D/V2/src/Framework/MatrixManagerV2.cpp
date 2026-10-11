@@ -1,5 +1,5 @@
 #include "MatrixManagerV2.hpp"
-#include "L2DModelMatrix.hpp"
+#include "ModelMatrix.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -41,7 +41,7 @@ static void mul(float r[16], const float a[16], const float b[16]) {
     std::memcpy(r, t, sizeof(t));
 }
 
-std::array<float, 16> MatrixManagerV2::getMvp(L2DModelMatrix* modelMatrix) const {
+std::array<float, 16> MatrixManagerV2::getMvp(ModelMatrix* modelMatrix) const {
     // Match Python v2 MatrixManagerV2.getMvp exactly
 
     // 1. Model matrix: copy and apply setWidth(2.0)

@@ -1,4 +1,4 @@
-#include "L2DPhysics.hpp"
+#include "Physics.hpp"
 #include "UtSystem.hpp"
 #include "nlohmann/json.hpp"
 #include <cmath>
@@ -9,16 +9,16 @@ namespace V2 {
 
 using json = nlohmann::json;
 
-L2DPhysics::L2DPhysics() = default;
+Physics::Physics() = default;
 
-void L2DPhysics::updateParam(ModelContext* context, long long dtMs) {
+void Physics::updateParam(ModelContext* context, long long dtMs) {
     mElapsedMs += dtMs;
     for (auto& ph : mPhysicsList)
         ph->update(context, mElapsedMs);
 }
 
-L2DPhysics* L2DPhysics::load(const std::vector<uint8_t>& data) {
-    auto* ret = new L2DPhysics();
+Physics* Physics::load(const std::vector<uint8_t>& data) {
+    auto* ret = new Physics();
     if (data.empty())
         return ret;
     // Python: pm.jsonParseFromBytes == json.loads (l2d_physics.py:17-69)

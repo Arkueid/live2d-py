@@ -5,11 +5,11 @@
 #include "PartsDataContext.hpp"
 #include "Mesh.hpp"
 #include "MeshContext.hpp"
-#include "L2DExpressionMotion.hpp"
-#include "L2DEyeBlink.hpp"
-#include "L2DMotionManager.hpp"
-#include "L2DPhysics.hpp"
-#include "L2DPose.hpp"
+#include "ExpressionMotion.hpp"
+#include "EyeBlink.hpp"
+#include "MotionManager.hpp"
+#include "Physics.hpp"
+#include "Pose.hpp"
 #include "GLRenderer.hpp"
 #ifdef CSM_TARGET_VULKAN
 #include "VkRenderer.hpp"
@@ -160,7 +160,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         auto poseData = readFile(posePath);
         if (!poseData.empty()) {
             LOGI("Load pose: %s", poseFile.c_str());
-            mPose.reset(L2DPose::load(poseData));
+            mPose.reset(Pose::load(poseData));
             // Initialize part/param indices once (PartData::initIndex uses the
             // "VISIBLE:" prefix; a bare-id pre-pass here used to append phantom
             // parameters via getParamIndex's extend-on-miss).
@@ -203,7 +203,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
             auto expData = readFile(expPath);
             auto expName = expEntry["name"].get<std::string>();
             if (!expData.empty()) {
-                auto* expr = L2DExpressionMotion::load(expData);
+                auto* expr = ExpressionMotion::load(expData);
                 LOGD("Load expression: %s", expName.c_str());
                 mExpressions[expName].reset(expr);
                 mExpressionFiles[expName] = expFile;
@@ -1189,7 +1189,7 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
         LOGE("Failed to read expression file: %s", expressionJsonPath);
         return;
     }
-    auto* expr = L2DExpressionMotion::load(expData);
+    auto* expr = ExpressionMotion::load(expData);
     if (!expr) {
         LOGE("Failed to load expression: %s", expressionJsonPath);
         return;

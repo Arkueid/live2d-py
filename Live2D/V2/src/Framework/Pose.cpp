@@ -1,8 +1,8 @@
-#include "L2DPose.hpp"
+#include "Pose.hpp"
 #include "Id.hpp"
 #include "ModelContext.hpp"
 #include "UtSystem.hpp"
-#include "L2DPartsParam.hpp"
+#include "PartsParam.hpp"
 #include "nlohmann/json.hpp"
 #include <algorithm>
 #include <cstring>
@@ -13,7 +13,7 @@ namespace V2 {
 
 using json = nlohmann::json;
 
-L2DPose::L2DPose() = default;
+Pose::Pose() = default;
 
 void PartData::initIndex(ModelContext* context) {
     std::string paramId = "VISIBLE:" + id;
@@ -89,7 +89,7 @@ static void copyOpacityOtherParts(ModelContext* context, PosePartGroup& group) {
     }
 }
 
-void L2DPose::initParam(ModelContext* context) {
+void Pose::initParam(ModelContext* context) {
     // Python: initParam runs once per model instance (l2d_pose.py:27-42),
     // not per frame — the per-frame opacity hard-set was wiping the fade.
     for (auto& g : mMGroups) {
@@ -104,15 +104,15 @@ void L2DPose::initParam(ModelContext* context) {
     }
 }
 
-void L2DPose::updateParam(ModelContext* context, float dtSec) {
+void Pose::updateParam(ModelContext* context, float dtSec) {
     for (auto& g : mMGroups) {
         normalizeGroup(context, g, dtSec);
         copyOpacityOtherParts(context, g);
     }
 }
 
-L2DPose* L2DPose::load(const std::vector<uint8_t>& data) {
-    auto* pose = new L2DPose();
+Pose* Pose::load(const std::vector<uint8_t>& data) {
+    auto* pose = new Pose();
     if (data.empty())
         return pose;
     // Python: pm.jsonParseFromBytes == json.loads (l2d_pose.py:106-132)

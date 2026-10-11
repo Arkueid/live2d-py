@@ -6,12 +6,12 @@
 namespace Live2D {
 namespace V2 {
 class ModelContext;
-class L2DPhysics {
+class Physics {
 public:
-    L2DPhysics();
+    Physics();
     // 时间由外部传入（时钟只由 Model 管理）: dtMs 为本次时间步长（毫秒），内部累计 elapsed
     void updateParam(ModelContext* context, long long dtMs);
-    static L2DPhysics* load(const std::vector<uint8_t>& data);
+    static Physics* load(const std::vector<uint8_t>& data);
     std::vector<std::unique_ptr<PhysicsHair>> mPhysicsList;
 
 private:

@@ -47,7 +47,7 @@ void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weigh
 
         if (m.mParamId == "VISIBLE") {
             // Match Python: set the "VISIBLE:xxx" parameter so the pose system
-            // (L2DPose::updateParam) can read it and apply smooth fade transitions.
+            // (Pose::updateParam) can read it and apply smooth fade transitions.
             std::string paramId = "VISIBLE:" + m.mSecondaryId;
             int pi = context->getParamIndex(&Id::getID(paramId));
             if (pi >= 0)
