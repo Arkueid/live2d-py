@@ -53,6 +53,15 @@ include(V3/cmake/V3.cmake)
 include(V2/cmake/V2.cmake)
 
 
-add_library(${LIVE2D_TARGET} INTERFACE)
-target_link_libraries(${LIVE2D_TARGET} INTERFACE Live2D::V2 Live2D::V3 $<$<STREQUAL:${GR_BACKEND},Vulkan>:Live2D::Vulkan>)
+# 顶层 Live2D 库：聚合 V2/V3，并承载统一入口（Init 初始化 / CreateModel 工厂）。
+# 这些入口依赖 V2+V3，放在此处而非 Common，以保持 Common 为不依赖 SDK 的纯公共层。
+add_library(${LIVE2D_TARGET} STATIC
+    ${LIVE2D_ROOT}/Init.cpp
+)
+target_include_directories(${LIVE2D_TARGET} PUBLIC ${LIVE2D_ROOT})
+target_link_libraries(${LIVE2D_TARGET} PUBLIC
+    Live2D::V2
+    Live2D::V3
+    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Live2D::Vulkan>
+)
 add_library(Live2D::Live2D ALIAS ${LIVE2D_TARGET})

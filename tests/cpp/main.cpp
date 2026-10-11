@@ -23,9 +23,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include <CubismFramework.hpp>
-#include <LAppAllocator.hpp>
-#include <LAppPal.hpp>
+#include <Init.hpp>
 
 // GLFW_INCLUDE_NONE — glad (GL/glew.h) provides all GL symbols
 #define GLFW_INCLUDE_NONE
@@ -47,22 +45,6 @@
 
 using namespace Live2D::Common::Log;
 using namespace Live2D::V3;
-
-static LAppAllocator sCubismAllocator;
-static Csm::CubismFramework::Option sCubismOption;
-static bool sInitialized = false;
-static bool sGLInitialized = false;
-
-void init(const char* path) {
-    LAppPal::InitShaderDir(path);
-    sCubismOption.LogFunction = LAppPal::PrintLn;
-    sCubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Warning;
-    sCubismOption.LoadFileFunction = LAppPal::LoadFileAsBytes;
-    sCubismOption.ReleaseBytesFunction = LAppPal::ReleaseBytes;
-
-    Csm::CubismFramework::StartUp(&sCubismAllocator, &sCubismOption);
-    Csm::CubismFramework::Initialize();
-}
 
 // 模型短名 → 仓库内路径（相对仓库根，启动时解析为绝对路径）
 static const std::pair<const char*, const char*> kModelTable[] = {
@@ -179,7 +161,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    init("D:/forDesktop/live2d-py/package/live2d/");
+    Live2D::Init("D:/forDesktop/live2d-py/package/live2d/");
     printf("Model path: %s\n", modelPath.c_str());
 
     // --- Headless smoke test: exercise unified IModel APIs without GL --------

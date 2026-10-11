@@ -1,4 +1,4 @@
-﻿#include <GL/glew.h>
+#include <GL/glew.h>
 #include <QApplication>
 #include <QDir>
 #include <QLibraryInfo>
@@ -8,10 +8,7 @@
 
 #include "MainWindow.hpp"
 
-#include <CubismFramework.hpp>
-#include <V3/LAppAllocator.hpp>
-#include <V3/LAppPal.hpp>
-
+#include <Init.hpp>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -20,8 +17,6 @@
 #ifdef DEBUG_ENABLE_CALLSTACK
 #include <Debug.hpp>
 #endif
-
-using namespace Live2D::V3;
 
 int main(int argc, char* argv[])
 {
@@ -33,20 +28,10 @@ int main(int argc, char* argv[])
     SetConsoleOutputCP(CP_UTF8);
 #endif
 
-    LAppAllocator allocator;
-    Csm::CubismFramework::Option option;
-
-    option.LogFunction = LAppPal::PrintLn;
-    option.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Verbose;
-    option.LoadFileFunction = LAppPal::LoadFileAsBytes;
-    option.ReleaseBytesFunction = LAppPal::ReleaseBytes;
-
-    Csm::CubismFramework::StartUp(&allocator, &option);
-    Csm::CubismFramework::Initialize();
+    // LogLevel_Verbose = 0
+    Live2D::Init(QDir::current().absolutePath().toStdString().c_str(), 0);
 
     QApplication app(argc, argv);
-
-    LAppPal::InitShaderDir(QDir::current().absolutePath().toStdString());
 
     // Set up translations
     QTranslator translator;
@@ -70,7 +55,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    QObject::connect(&app, &QApplication::aboutToQuit, []() { Csm::CubismFramework::Dispose(); });
+    QObject::connect(&app, &QApplication::aboutToQuit, []() { Live2D::Dispose(); });
 
     MainWindow w;
     w.show();

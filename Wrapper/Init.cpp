@@ -1,8 +1,6 @@
 #include <GL/glew.h>
 
-#include <CubismFramework.hpp>
-#include <LAppAllocator.hpp>
-#include <LAppPal.hpp>
+#include <Init.hpp>
 #include <Log.hpp>
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
 #include <cstdlib>
@@ -42,38 +40,21 @@ static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GL
 }
 #endif
 
-static V3::LAppAllocator sCubismAllocator;
-static Csm::CubismFramework::Option sCubismOption;
-static bool sInitialized = false;
 static bool sGLInitialized = false;
 
 static PyObject* live2d_init_internal(PyObject* self, PyObject* args) {
-    if (sInitialized) {
-        LOGE("live2d.init double called");
-        Py_RETURN_NONE;
-    }
-
     const char* path;
     if (PyArg_ParseTuple(args, "s", &path) < 0) {
         PyErr_SetString(PyExc_TypeError, "Invalid params (str)");
         return NULL;
     }
 
-    V3::LAppPal::InitShaderDir(path);
-    sCubismOption.LogFunction = V3::LAppPal::PrintLn;
-    sCubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Warning;
-    sCubismOption.LoadFileFunction = V3::LAppPal::LoadFileAsBytes;
-    sCubismOption.ReleaseBytesFunction = V3::LAppPal::ReleaseBytes;
-
-    Csm::CubismFramework::StartUp(&sCubismAllocator, &sCubismOption);
-    Csm::CubismFramework::Initialize();
-
-    sInitialized = true;
+    Live2D::Init(path);
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_dispose() {
-    Csm::CubismFramework::Dispose();
+    Live2D::Dispose();
     Py_RETURN_NONE;
 }
 
