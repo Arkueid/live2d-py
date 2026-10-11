@@ -327,9 +327,14 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     int winW = 800, winH = 800;
-    const std::string winTitle =
-        "Live2D Test — " + std::filesystem::u8path(modelPath).filename().string();
-    GLFWwindow* window = glfwCreateWindow(winW, winH, winTitle.c_str(), nullptr, nullptr);
+#ifdef CSM_TARGET_VULKAN
+    const char* backendName = "Vulkan";
+#else
+    const char* backendName = "OpenGL";
+#endif
+    const std::string winTitleBase = std::string("Live2D Test — ") + backendName + " — " +
+                                     std::filesystem::u8path(modelPath).filename().string();
+    GLFWwindow* window = glfwCreateWindow(winW, winH, winTitleBase.c_str(), nullptr, nullptr);
     if (!window) {
         fprintf(stderr, "ERROR: glfwCreateWindow() failed\n");
         glfwTerminate();
@@ -458,6 +463,8 @@ int main(int argc, char* argv[]) {
 
         printf("Running... (press ESC to exit)\n");
         int frameCount = 0;
+        int fpsFrames = 0;
+        auto fpsWindowStart = std::chrono::steady_clock::now();
         while (!glfwWindowShouldClose(window)) {
             model->Update();
 #ifndef CSM_TARGET_VULKAN
@@ -467,12 +474,24 @@ int main(int argc, char* argv[]) {
 #endif
             model->Draw();
             frameCount++;
+            fpsFrames++;
 #ifndef CSM_TARGET_VULKAN
             glfwSwapBuffers(window);
 #endif
             glfwPollEvents();
             if (model->IsMotionFinished()) {
                 model->StartRandomMotion("", 3);
+            }
+
+            // 每 0.5s 刷新一次标题栏帧率
+            const auto now = std::chrono::steady_clock::now();
+            const float fpsElapsed = std::chrono::duration<float>(now - fpsWindowStart).count();
+            if (fpsElapsed >= 0.5f) {
+                const std::string title =
+                    winTitleBase + " — " + std::to_string((int)(fpsFrames / fpsElapsed + 0.5f)) + " FPS";
+                glfwSetWindowTitle(window, title.c_str());
+                fpsWindowStart = now;
+                fpsFrames = 0;
             }
         }
         printf("Frames rendered: %d\n", frameCount);
