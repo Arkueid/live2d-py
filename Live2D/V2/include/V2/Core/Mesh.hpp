@@ -8,7 +8,7 @@ namespace V2 {
 
 class PivotManager;
 class MeshContext;
-class GLRenderer;
+class IRenderer;
 
 class Mesh final : public IDrawData {
 public:
@@ -26,7 +26,7 @@ public:
 
     MeshContext* init(ModelContext* modelContext);
     void setupInterpolate(ModelContext* modelContext, MeshContext* meshContext);
-    void draw(GLRenderer* dp, ModelContext* mctx, MeshContext* dctx);
+    void draw(IRenderer* dp, ModelContext* mctx, MeshContext* dctx);
 
     void setTextureNo(int texNo) { mTextureNo = texNo; }
     int getTextureNo() const { return mTextureNo; }

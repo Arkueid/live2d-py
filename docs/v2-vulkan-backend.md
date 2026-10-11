@@ -2,9 +2,9 @@
 
 ## Context
 
-V3 的 Vulkan 后端已在 V2Test 上跑通（`Model::Draw` 自包含完成 acquire→draw→present）。V2 库（Cubism 2.x 移植版，`Live2D::V2`）目前只有 OpenGL 渲染（`GLRenderer` + GLSL 1.20 + FBO 裁剪遮罩），Python Wrapper 加载 v2 模型（kasumi、haru 等）时无法走 Vulkan。
+V3 的 Vulkan 后端已在 Live2DTest 上跑通（`Model::Draw` 自包含完成 acquire→draw→present）。V2 库（Cubism 2.x 移植版，`Live2D::V2`）目前只有 OpenGL 渲染（`GLRenderer` + GLSL 1.20 + FBO 裁剪遮罩），Python Wrapper 加载 v2 模型（kasumi、haru 等）时无法走 Vulkan。
 
-目标：为 V2 增加与 V3 对等的 Vulkan 后端，并在 V2Test 上用 v2 模型验证。
+目标：为 V2 增加与 V3 对等的 Vulkan 后端，并在 Live2DTest 上用 v2 模型验证。
 
 **用户决策**：新建独立 Vulkan 支持库（类似 glad 的地位），V2/V3/tests 共同链接，不拷贝、不入 Common。
 **硬约束**：`Live2D/V3/Framework` 与 Core（官方 SDK，git-ignore）一行不能改。
@@ -75,7 +75,7 @@ V3 的 Vulkan 后端已在 V2Test 上跑通（`Model::Draw` 自包含完成 acqu
 
 * `tests/v2/CMakeLists.txt`：POST\_BUILD 拷贝 `$<TARGET_PROPERTY:V2,LIVE2D_SHADER_DIR>` → exe 旁 `V2Shaders/`；VkRenderer 按 CWD 相对路径 `V2Shaders/*.spv` 加载（与 FrameworkShaders 约定一致，main.cpp 已 chdir 到 exe 目录）。
 
-### 6. V2Test 验证
+### 6. Live2DTest 验证
 
 * `tests/v2/main.cpp`：加模型版本嗅探（简化 `Wrapper/PyModel.cpp` L30–77 `CheckVersion`）：路径指向 v2 json → 实例化 `Live2D::V2::Model`，v3 → 现状；共用同一 GLFW 窗口与同一个 VulkanManager 单例；无参数默认行为不变（v3 llny 回归）。
 
@@ -100,8 +100,8 @@ V3 的 Vulkan 后端已在 V2Test 上跑通（`Model::Draw` 自包含完成 acqu
 
 ## 验证
 
-1. VS dev shell 构建：`cmake --build build --target V2Test -j 16`（ninja 自动重配）。
-2. v2 模型窗口渲染：`.\build\tests\v2\V2Test.exe Resources\v2\haru\haru.model.json` → haru 正常显示、动作/呼吸正常、ESC 退出无 validation 报错。
-3. v3 回归：`.\build\tests\v2\V2Test.exe`（默认 llny）渲染不破坏。
-4. 无头回归：`V2Test.exe --smoke` 全绿（v2/v3 路径均不初始化 Vulkan 时不崩）。
+1. VS dev shell 构建：`cmake --build build --target Live2DTest -j 16`（ninja 自动重配）。
+2. v2 模型窗口渲染：`.\build\tests\v2\Live2DTest.exe Resources\v2\haru\haru.model.json` → haru 正常显示、动作/呼吸正常、ESC 退出无 validation 报错。
+3. v3 回归：`.\build\tests\v2\Live2DTest.exe`（默认 llny）渲染不破坏。
+4. 无头回归：`Live2DTest.exe --smoke` 全绿（v2/v3 路径均不初始化 Vulkan 时不崩）。
 

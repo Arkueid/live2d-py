@@ -1,4 +1,4 @@
-﻿#include "V3/Model.hpp"
+#include "V3/Model.hpp"
 #include "IModel.hpp"
 #include "Motion/ACubismMotion.hpp"
 
@@ -1054,6 +1054,9 @@ void Model::Draw() {
 #ifndef CSM_TARGET_VULKAN
     Rendering::CubismRenderer_OpenGLES2* renderer =
         mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
+    if (renderer == nullptr) {
+        return;
+    }
 
     renderer->SetMvpMatrix(&matrix);
 

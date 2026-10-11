@@ -1,10 +1,8 @@
-﻿#include "SwapchainManager.hpp"
-#include <Log.hpp>
-
-using namespace Csm;
+#include "SwapchainManager.hpp"
+#include "Log.hpp"
 
 SwapchainManager::SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device,
-                                   VkSurfaceKHR surface, Csm::csmUint32 graphicsFamily, Csm::csmUint32 presentFamily)
+                                   VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily)
 {
     CreateSwapchain(_window, physicalDevice, device, surface, graphicsFamily, presentFamily);
 }
@@ -15,30 +13,30 @@ SwapchainManager::SwapchainSupportDetails SwapchainManager::QuerySwapchainSuppor
     SwapchainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &details.capabilities);
 
-    csmUint32 formatCount;
+    uint32_t formatCount;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
     if (formatCount != 0)
     {
-        details.formats.Resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, details.formats.GetPtr());
+        details.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, details.formats.data());
     }
 
-    csmUint32 presentModeCount;
+    uint32_t presentModeCount;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
 
     if (presentModeCount != 0)
     {
-        details.presentModes.Resize(presentModeCount);
+        details.presentModes.resize(presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount,
-                                                  details.presentModes.GetPtr());
+                                                  details.presentModes.data());
     }
 
     return details;
 }
 
-VkSurfaceFormatKHR SwapchainManager::ChooseSwapSurfaceFormat(const csmVector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR SwapchainManager::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
-    for (csmUint32 i = 0; i < availableFormats.GetSize(); i++)
+    for (uint32_t i = 0; i < availableFormats.size(); i++)
     {
         if (availableFormats[i].format == swapchainFormat && availableFormats[i].colorSpace ==
             VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -50,9 +48,9 @@ VkSurfaceFormatKHR SwapchainManager::ChooseSwapSurfaceFormat(const csmVector<VkS
     return availableFormats[0];
 }
 
-VkPresentModeKHR SwapchainManager::ChooseSwapPresentMode(const csmVector<VkPresentModeKHR>& availablePresentModes)
+VkPresentModeKHR SwapchainManager::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
-    for (csmUint32 i = 0; i < availablePresentModes.GetSize(); i++)
+    for (uint32_t i = 0; i < availablePresentModes.size(); i++)
     {
         if (availablePresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
         {
@@ -71,12 +69,12 @@ VkExtent2D SwapchainManager::ChooseSwapExtent(void* window, const VkSurfaceCapab
     else
     {
         //for Retina display
-        int width, height;
+        int width = 0, height = 0;
         // glfwGetFramebufferSize(window, &width, &height);
 
         VkExtent2D actualExtent = {
-            static_cast<csmUint32>(width),
-            static_cast<csmUint32>(height)
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
         };
 
         if (actualExtent.width < capabilities.minImageExtent.width)
@@ -102,8 +100,8 @@ VkExtent2D SwapchainManager::ChooseSwapExtent(void* window, const VkSurfaceCapab
 }
 
 void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDevice, VkDevice device,
-                                       VkSurfaceKHR surface, Csm::csmUint32 graphicsFamily,
-                                       Csm::csmUint32 presentFamily)
+                                       VkSurfaceKHR surface, uint32_t graphicsFamily,
+                                       uint32_t presentFamily)
 {
     SwapchainSupportDetails swapChainSupport = QuerySwapchainSupport(physicalDevice, surface);
     VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -130,7 +128,7 @@ void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDe
     {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createInfo.queueFamilyIndexCount = 2;
-        Csm::csmUint32 queueFamilyIndices[2] = {graphicsFamily, presentFamily};
+        uint32_t queueFamilyIndices[2] = {graphicsFamily, presentFamily};
         createInfo.pQueueFamilyIndices = queueFamilyIndices;
     }
     else
@@ -151,11 +149,11 @@ void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDe
 
     // swapchain imageを取得する
     vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
-    images.Resize(imageCount);
-    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.GetPtr());
+    images.resize(imageCount);
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data());
 
-    imageViews.Resize(imageCount);
-    for (csmUint32 i = 0; i < imageCount; i++)
+    imageViews.resize(imageCount);
+    for (uint32_t i = 0; i < imageCount; i++)
     {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -179,7 +177,7 @@ void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDe
     }
 }
 
-VkResult SwapchainManager::QueuePresent(VkQueue& queue, csmUint32 imageIndex)
+VkResult SwapchainManager::QueuePresent(VkQueue& queue, uint32_t imageIndex)
 {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -193,7 +191,7 @@ VkResult SwapchainManager::QueuePresent(VkQueue& queue, csmUint32 imageIndex)
 
 void SwapchainManager::ChangeLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue)
 {
-    for (csmInt32 i = 0; i < imageCount; i++)
+    for (uint32_t i = 0; i < imageCount; i++)
     {
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -249,23 +247,18 @@ void SwapchainManager::ChangeLayout(VkDevice device, VkCommandPool commandPool, 
         vkQueueWaitIdle(queue);
         vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
     }
-
-
-    VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-
 }
 
 void SwapchainManager::Cleanup(VkDevice device)
 {
     if (swapchain != VK_NULL_HANDLE)
     {
-        for (csmUint32 i = 0; i < imageViews.GetSize(); i++)
+        for (uint32_t i = 0; i < imageViews.size(); i++)
         {
             vkDestroyImageView(device, imageViews[i], nullptr);
         }
-        images.Clear();
-        imageViews.Clear();
+        images.clear();
+        imageViews.clear();
         vkDestroySwapchainKHR(device, swapchain, nullptr);
     }
 }

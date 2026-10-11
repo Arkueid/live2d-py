@@ -2,7 +2,7 @@
 #include "L2DBaseModel.hpp"
 #include "L2DTargetPoint.hpp"
 #include "MatrixManagerV2.hpp"
-#include "GLRenderer.hpp"
+#include "IRenderer.hpp"
 #include <IModel.hpp>
 #include <functional>
 #include <memory>
@@ -173,7 +173,7 @@ private:
     std::unordered_map<std::string, std::vector<MotionInfo>> mMotionInfos;
     std::unordered_map<std::string, std::string> mExpressionFiles;
     int mCurrentMotionNo = 0;
-    std::unique_ptr<GLRenderer> mRenderer;
+    std::unique_ptr<IRenderer> mRenderer;
     float mMvpCache[16] = {};
     std::vector<float> mDrawableVertexCache;
     std::vector<unsigned short> mDrawableIndexCache;

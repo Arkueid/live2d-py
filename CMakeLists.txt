@@ -29,6 +29,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # ---- import config ----
 include(cmake/Config.cmake)
+# 本地覆盖（不入库，见 .gitignore）：存在时优先级最高
+include(cmake/Config.local.cmake OPTIONAL)
 include(cmake/VersionCheck.cmake)
 
 # ---- Cubism Native SDK ----

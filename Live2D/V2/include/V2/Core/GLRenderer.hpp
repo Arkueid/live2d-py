@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ClippingManagerOpenGL.hpp"
+#include "IRenderer.hpp"
 #ifdef __ANDROID__
 #include <GLES/gl.h>
 #else
@@ -16,7 +17,7 @@ namespace V2 {
 
 class ModelContext;
 
-class GLRenderer {
+class GLRenderer : public IRenderer {
 public:
     static constexpr int NORMAL_SHADER = 0;
     static constexpr int MASK_SHADER = 1;
@@ -25,36 +26,35 @@ public:
     static constexpr int COLOR_COMPOSITION_MULTIPLY = 2;
 
     GLRenderer(ModelContext* modelContext, int textureCount);
-    ~GLRenderer();
+    ~GLRenderer() override;
 
     void setupDraw(ModelContext* modelContext);
     void endDraw();
 
-    void preDraw(ModelContext* modelContext);
-    void draw(ModelContext* modelContext);
+    void preDraw(ModelContext* modelContext) override;
+    void draw(ModelContext* modelContext) override;
 
-    void setClipDrawMode(bool on) { mClipDrawMode = on; }
-    void setClipMaskMode(bool on) { mClipMaskMode = on; }
-    bool mClipMaskMode = false;   // Mask RENDER pass (writes to FBO)
-    bool mClipDrawMode = false;   // Clipped DRAW pass (uses mask)
-    int mClipChannel = 0;
-    void setCulling(bool cull) { mCulling = cull; }
+    bool isVulkan() const override { return false; }
+    void setClipDrawMode(bool on) override { mClipDrawMode = on; }
+    void setClipMaskMode(bool on) override { mClipMaskMode = on; }
+    void setClipChannel(int channel) override { mClipChannel = channel; }
+    void setCulling(bool cull) override { mCulling = cull; }
     static void clearBuffer(float r, float g, float b, float a);
 
     void drawTexture(int texNo, const std::array<float, 4>& screenColor,
                      const std::vector<int16_t>& indices, const std::vector<float>& vertices,
                      const std::vector<float>& uvs, float opacity, int compositionType,
-                     const std::array<float, 4>& multiplyColor);
+                     const std::array<float, 4>& multiplyColor) override;
 
     int createFramebuffer();
     void bindFramebuffer(int fb = -1);
     void setTexture(int no, GLuint texId);
     GLuint getTexture(int no) const;
 
-    void setMatrix(const float m[16]);
-    void setClipMatrix(const float m[16]);
+    void setMatrix(const float m[16]) override;
+    void setClipMatrix(const float m[16]) override;
 
-    void resize(int w, int h);
+    void resize(int w, int h) override;
 
 private:
     void init(ModelContext* modelContext);
@@ -77,6 +77,9 @@ private:
     std::array<float, 16> mMatrix4x4{};
     std::array<float, 16> mClipMatrix{};
     bool mCulling = true;
+    bool mClipMaskMode = false;   // Mask RENDER pass (writes to FBO)
+    bool mClipDrawMode = false;   // Clipped DRAW pass (uses mask)
+    int mClipChannel = 0;
 
     std::vector<GLuint> mTextures;
     GLuint mCurrentFBO = 0;

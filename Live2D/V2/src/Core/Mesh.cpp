@@ -8,7 +8,7 @@
 #include "Deformer.hpp"
 #include "DeformerContext.hpp"
 #include "ClipContext.hpp"
-#include "GLRenderer.hpp"
+#include "IRenderer.hpp"
 #include "ModelContext.hpp"
 #include "UtInterpolate.hpp"
 #include "MeshContext.hpp"
@@ -151,7 +151,7 @@ void Mesh::setupTransform(ModelContext* mc, IDrawContext* dc) {
 }
 
 int sDrawCounts[3] = {0, 0, 0};
-void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx) {
+void Mesh::draw(IRenderer* renderer, ModelContext* mctx, MeshContext* dctx) {
     if (dctx->mParamOutside)
         return;
     if (mColorCompositionType >= 0 && mColorCompositionType < 3)
@@ -164,7 +164,7 @@ void Mesh::draw(GLRenderer* renderer, ModelContext* mctx, MeshContext* dctx) {
         !dctx->mTransformedPoints.empty() ? dctx->mTransformedPoints : dctx->mInterpolatedPoints;
     if (dctx->mClipBufPre_clipContext) {
         auto* cc = static_cast<ClipContext*>(dctx->mClipBufPre_clipContext);
-        renderer->mClipChannel = cc->mLayoutChannelNo;
+        renderer->setClipChannel(cc->mLayoutChannelNo);
         renderer->setClipMatrix(cc->mMatrixForDraw.data());
     }
     renderer->setClipDrawMode(dctx->mClipBufPre_clipContext != nullptr);

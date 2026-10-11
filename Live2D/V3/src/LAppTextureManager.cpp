@@ -7,10 +7,9 @@
 
 #include "LAppTextureManager.hpp"
 #include "Log.hpp"
+#include "LAppPal.hpp"
 #ifdef CSM_TARGET_VULKAN
 #include "VulkanManager.hpp"
-#else
-#include "LAppPal.hpp"
 #endif
 #define STBI_NO_STDIO
 #define STBI_ONLY_PNG

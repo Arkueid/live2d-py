@@ -7,7 +7,8 @@
 
 #pragma once
 #include <vulkan/vulkan.h>
-#include "Type/csmMap.hpp"
+#include <cstdint>
+#include <vector>
 #include "SwapchainManager.hpp"
 
  /**
@@ -20,8 +21,8 @@ public:
     struct QueueFamilyIndices
     {
         // 描画用と表示用のキューファミリは必ずしも一致するとは限らないので分ける
-        Csm::csmInt32 graphicsFamily = -1; // 描画コマンドに使用するキューファミリ
-        Csm::csmInt32 presentFamily = -1; // 表示に使用するキューファミリ
+        int32_t graphicsFamily = -1; // 描画コマンドに使用するキューファミリ
+        int32_t presentFamily = -1; // 表示に使用するキューファミリ
 
         // 対応するキューファミリがあるか
         bool isComplete()
@@ -61,7 +62,7 @@ public:
      * @brief   インスタンス拡張を外部から注入する（Initialize 前に呼ぶ）
      *          glfwGetRequiredInstanceExtensions 等の結果を渡す
      */
-    void SetInstanceExtensions(const char** extensions, Csm::csmUint32 count);
+    void SetInstanceExtensions(const char** extensions, uint32_t count);
 
     /**
      * @brief   サーフェス作成フック
@@ -85,7 +86,7 @@ public:
      *
      * @return  必要な拡張の配列
      */
-    Csm::csmVector<const char*> GetRequiredExtensions();
+    std::vector<const char*> GetRequiredExtensions();
 
     /**
      * @brief   デバッグメッセージを有効にする
@@ -169,7 +170,6 @@ public:
      * @brief   コマンドを提出する
      *
      * @param[in]   commandBuffer     ->  コマンドバッファ
-     * @param[in]   isDraw            ->  描画コマンドか
      * @param[in]   isFirstDraw       ->  最初の描画コマンドか
      */
     void SubmitCommand(VkCommandBuffer commandBuffer, bool isFirstDraw = false);
@@ -207,8 +207,8 @@ public:
     VkPhysicalDevice GetPhysicalDevice() { return _physicalDevice; }
 
     /**
-     * @brief   モデル描画用コマンドバッファを取得する
-     * @return  コマンドバッファの配列
+     * @brief   描画キューを取得する
+     * @return  描画キュー
      */
     VkQueue GetGraphicQueue() { return _graphicQueue; }
 
@@ -263,15 +263,15 @@ public:
     VkImage GetSwapchainImage() { return GetSwapchainManager()->GetImages()[_imageIndex]; }
 
     /**
-     * @brief    スワップチェーンイメージを取得する
+     * @brief    スワップチェーンイメージビューを取得する
      *
-     * @return  スワップチェーンイメージ
+     * @return  スワップチェーンイメージビュー
      */
     VkImageView GetSwapchainImageView() { return GetSwapchainManager()->GetImageViews()[_imageIndex]; }
 
 private:
     void* _window;                                        // ウィンドウ
-    Csm::csmVector<const char*> _instanceExtensions;      // 外部から注入されたインスタンス拡張
+    std::vector<const char*> _instanceExtensions;         // 外部から注入されたインスタンス拡張
     CreateSurfaceFunc _createSurfaceFunc = nullptr;       // サーフェス作成フック
     VkInstance _instance;                                       // ライブラリを初期化するインスタンス
     VkSurfaceKHR _surface;                                      // ウィンドウシステムに描画ために必要なサーフェス
@@ -284,7 +284,7 @@ private:
     SwapchainManager* _swapchainManager;                        // スワップチェーンの管理を行うスワップチェーンマネージャー
     bool _isSwapchainInvalid = false;                           // ウィンドウサイズが変更されたかのフラグ
     VkDebugUtilsMessengerEXT _debugMessenger;                   // デバッグメッセージを出力するオブジェクト
-    Csm::csmUint32 _imageIndex = 0;                             // 現在のイメージインデックス
+    uint32_t _imageIndex = 0;                                   // 現在のイメージインデックス
     VkFormat _depthFormat;                                      // 深度フォーマット
     const VkFormat _surfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;   // イメージフォーマット
     bool _framebufferResized = false;                           // フレームバッファのサイズが変わったか

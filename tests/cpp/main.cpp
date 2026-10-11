@@ -1,23 +1,30 @@
 /**
- * v2 (v2cpp) test — loads kasumi model and runs update/draw loop.
+ * live2d-py C++ unified test — loads a v2/v3 model (auto-detected via IModel)
+ * and runs the update/draw loop on the configured graphics backend.
  *
  * Build:
- *   cmake -DV2CPP_TEST=ON -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -S . -B build \
- *         -G "Visual Studio 18 2026" -T host=x64 -A x64
- *   cmake --build build --config Release --target V2Test -j 24
+ *   cmake -DLIVE2D_CPP_TEST=ON -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -S . -B build
+ *   cmake --build build --config Release --target Live2DTest -j 24
  *
  * Run (from repo root):
- *   .\build\tests\v2\Release\V2Test.exe [model.json path]
+ *   .\build\tests\cpp\Live2DTest.exe [--smoke] [model.json path]
  *
- * Default model: Resources/v2/kasumi2/kasumi2.model.json
+ * Default model: Resources/v3/llny/llny.model3.json
  */
 
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <memory>
 #include <string>
 #include <thread>
+#include <iterator>
+#include <vector>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <CubismFramework.hpp>
 #include <LAppAllocator.hpp>
 #include <LAppPal.hpp>
@@ -35,6 +42,8 @@
 #endif
 
 #include <V3/Model.hpp>
+#include <V2/Model.hpp>
+#include <IModel.hpp>
 #include "Log.hpp"
 
 using namespace Live2D::Common::Log;
@@ -44,6 +53,24 @@ static LAppAllocator sCubismAllocator;
 static Csm::CubismFramework::Option sCubismOption;
 static bool sInitialized = false;
 static bool sGLInitialized = false;
+
+// 模型版本嗅探（简化自 Wrapper/PyModel.cpp CheckVersion）：
+// 含 "FileReferences" → v3，否则按 v2 处理
+static bool isV2ModelJson(const std::string& path) {
+    // 与库内 readFile 一致按 UTF-8 解释路径（u8path），否则中文路径打不开
+    std::ifstream file(std::filesystem::u8path(path), std::ios::binary);
+    if (!file.is_open())
+        return false;
+    std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    return text.find("\"FileReferences\"") == std::string::npos;
+}
+
+// 按版本实例化统一接口
+static std::unique_ptr<Live2D::IModel> createModel(const std::string& path) {
+    if (isV2ModelJson(path))
+        return std::make_unique<Live2D::V2::Model>();
+    return std::make_unique<Live2D::V3::Model>();
+}
 
 void init(const char* path) {
     LAppPal::InitShaderDir(path);
@@ -74,6 +101,35 @@ static void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int actio
 // ============================================================================
 
 int main(int argc, char* argv[]) {
+    // 窗口模式下 stdout 全缓冲会吞掉崩溃前的日志——强制无缓冲便于调试
+    setvbuf(stdout, nullptr, _IONBF, 0);
+#ifdef _WIN32
+    // Windows 的 main() argv 是 ANSI(GBK) 编码，而库的 readFile 按 UTF-8 解释路径
+    // （std::filesystem::u8path）。中文路径（如 托尔）的 GBK 字节不是合法 UTF-8，
+    // 直接传给 u8path 会抛异常导致 terminate。重新按宽字符取命令行并转 UTF-8。
+    std::vector<std::string> u8argStorage;
+    std::vector<char*> u8argv;
+    {
+        int wargc = 0;
+        LPWSTR* wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
+        if (wargv) {
+            for (int i = 0; i < wargc; i++) {
+                int len = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, nullptr, 0,
+                                              nullptr, nullptr);
+                std::string s(len > 0 ? len - 1 : 0, '\0');
+                if (len > 1)
+                    WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, s.data(), len,
+                                        nullptr, nullptr);
+                u8argStorage.push_back(std::move(s));
+            }
+            LocalFree(wargv);
+            for (auto& s : u8argStorage)
+                u8argv.push_back(s.data());
+            argc = (int)u8argv.size();
+            argv = u8argv.data();
+        }
+    }
+#endif
     // --- Resolve model path --------------------------------------------------
     bool smoke = false;
     int pathArg = 1;
@@ -121,121 +177,128 @@ int main(int argc, char* argv[]) {
         }                                                                     \
     } while (0)
 
-        Model model;
-        model.LoadModelJson(modelPath.c_str(), false);
-        printf("[smoke] loaded: params=%d parts=%d\n",
-               model.GetParameterCount(),
-               model.GetPartCount());
-        CHECK(model.GetParameterCount() > 0);
-        CHECK(model.GetPartCount() > 0);
+        std::unique_ptr<Live2D::IModel> model = createModel(modelPath);
+        model->LoadModelJson(modelPath.c_str(), false);
+        printf("[smoke] loaded (%s): params=%d parts=%d\n",
+               model->IsV2() ? "v2" : "v3",
+               model->GetParameterCount(),
+               model->GetPartCount());
+        CHECK(model->GetParameterCount() > 0);
+        CHECK(model->GetPartCount() > 0);
 
         // granular updates
-        CHECK(model.UpdateMotion(0.016f) == true || model.UpdateMotion(0.016f) == false);
-        model.UpdateDrag(0.016f);
-        model.UpdateBreath(0.016f);
-        model.UpdateBlink(0.016f);
-        model.UpdateExpression(0.016f);
-        model.UpdatePhysics(0.016f);
-        model.UpdatePose(0.016f);
+        CHECK(model->UpdateMotion(0.016f) == true || model->UpdateMotion(0.016f) == false);
+        model->UpdateDrag(0.016f);
+        model->UpdateBreath(0.016f);
+        model->UpdateBlink(0.016f);
+        model->UpdateExpression(0.016f);
+        model->UpdatePhysics(0.016f);
+        model->UpdatePose(0.016f);
 
         // save/load/reset parameters
-        model.SetAndSaveParameterValue("PARAM_ANGLE_X", 5.0f, 1.0f);
-        model.SetAndSaveParameterValue(0, 1.0f, 1.0f);
-        model.AddAndSaveParameterValue("PARAM_ANGLE_X", 1.0f);
-        model.AddAndSaveParameterValue(0, 1.0f);
-        model.LoadParameters();
-        model.SaveParameters();
-        model.ResetAllParameters();
-        CHECK(model.GetParameterValue(0) == model.GetParameterDefaultValue(0));
+        model->SetAndSaveParameterValue("PARAM_ANGLE_X", 5.0f, 1.0f);
+        model->SetAndSaveParameterValue(0, 1.0f, 1.0f);
+        model->AddAndSaveParameterValue("PARAM_ANGLE_X", 1.0f);
+        model->AddAndSaveParameterValue(0, 1.0f);
+        model->LoadParameters();
+        model->SaveParameters();
+        model->ResetAllParameters();
+        CHECK(model->GetParameterValue(0) == model->GetParameterDefaultValue(0));
 
         // per-axis scale + mvp
-        model.Resize(800, 800);
-        model.SetScaleX(1.2f);
-        model.SetScaleY(1.1f);
-        model.SetScale(1.0f);
-        CHECK(model.GetMvp() != nullptr);
+        model->Resize(800, 800);
+        model->SetScaleX(1.2f);
+        model->SetScaleY(1.1f);
+        model->SetScale(1.0f);
+        CHECK(model->GetMvp() != nullptr);
 
         // update + draw (deformer chain) so drawable vertices are available
-        model.Update();
-        model.Draw();
+        model->Update();
+        model->Draw();
 
-        // motion groups
-        CHECK(model.GetMotionGroupCount() > 0);
-        std::vector<std::string> gGroups;
-        int gCounts = 0;
-        model.GetMotions(
-            &gGroups, [](void* c, const char* group, int no, const char* file, const char* sound) {
-                auto* groups = (std::vector<std::string>*)c;
-                if (no == 0)
-                    groups->push_back(group);
-            });
-        CHECK(!gGroups.empty());
-        std::string firstGroup = gGroups[0];
-        printf("[smoke] motion groups=%d first=%s count=%d\n",
-               model.GetMotionGroupCount(),
-               firstGroup.c_str(),
-               model.GetMotionCount(firstGroup.c_str()));
-        CHECK(model.GetMotionCount(firstGroup.c_str()) > 0);
+        // motion groups（模型可能不含 motions，如 llny —— 此时跳过）
+        if (model->GetMotionGroupCount() > 0) {
+            std::vector<std::string> gGroups;
+            int gCounts = 0;
+            model->GetMotions(
+                &gGroups, [](void* c, const char* group, int no, const char* file, const char* sound) {
+                    auto* groups = (std::vector<std::string>*)c;
+                    if (no == 0)
+                        groups->push_back(group);
+                });
+            CHECK(!gGroups.empty());
+            if (!gGroups.empty()) {
+                std::string firstGroup = gGroups[0];
+                printf("[smoke] motion groups=%d first=%s count=%d\n",
+                       model->GetMotionGroupCount(),
+                       firstGroup.c_str(),
+                       model->GetMotionCount(firstGroup.c_str()));
+                CHECK(model->GetMotionCount(firstGroup.c_str()) > 0);
+
+                // extra motion (re-using the file of the first group)
+                std::string extraMotionPath;
+                model->GetMotions(
+                    &extraMotionPath,
+                    [](void* c, const char* group, int no, const char* file, const char* sound) {
+                        auto* out = (std::string*)c;
+                        if (out->empty())
+                            *out = file;
+                    });
+                std::string extraMotionFull = std::string(model->GetModelHomeDir()) + extraMotionPath;
+                int extraNo = model->LoadExtraMotion(firstGroup.c_str(), extraMotionFull.c_str());
+                printf("[smoke] LoadExtraMotion -> no=%d\n", extraNo);
+                CHECK(extraNo >= 0);
+                CHECK(model->GetMotionCount(firstGroup.c_str()) >= 1);
+            }
+        } else {
+            printf("[smoke] no motion groups in model — skipped\n");
+        }
 
         // hit tests
         std::vector<std::string> hitParts;
-        model.HitPart(
+        model->HitPart(
             400,
             300,
             &hitParts,
             [](void* c, const char* id) { ((std::vector<std::string>*)c)->push_back(id); },
             false);
         printf("[smoke] HitPart: %zu hits\n", hitParts.size());
-        CHECK(model.IsPartHit(0, 400, 300) == true || model.IsPartHit(0, 400, 300) == false);
-        CHECK(model.IsDrawableHit(0, 400, 300) == true ||
-              model.IsDrawableHit(0, 400, 300) == false);
+        CHECK(model->IsPartHit(0, 400, 300) == true || model->IsPartHit(0, 400, 300) == false);
+        CHECK(model->IsDrawableHit(0, 400, 300) == true ||
+              model->IsDrawableHit(0, 400, 300) == false);
 
         // drawables
-        int drawableCount = model.GetDrawableCount();
+        int drawableCount = model->GetDrawableCount();
         printf("[smoke] drawables=%d\n", drawableCount);
         CHECK(drawableCount > 0);
         std::vector<std::string> drawableIds;
-        model.GetDrawableIds(&drawableIds, [](void* c, const char* id) {
+        model->GetDrawableIds(&drawableIds, [](void* c, const char* id) {
             ((std::vector<std::string>*)c)->push_back(id);
         });
         CHECK(!drawableIds.empty());
-        CHECK(model.GetDrawableVertexCount(0) > 0);
-        CHECK(model.GetDrawableVertexIndexCount(0) > 0);
-        CHECK(model.GetDrawableVertices(0) != nullptr);
-        CHECK(model.GetDrawableIndices(0) != nullptr);
-        model.SetDrawableMultiColor(0, 0.5f, 0.5f, 0.5f, 1.0f);
-        model.SetDrawableScreenColor(0, 0.5f, 0.5f, 0.5f, 1.0f);
+        CHECK(model->GetDrawableVertexCount(0) > 0);
+        CHECK(model->GetDrawableVertexIndexCount(0) > 0);
+        CHECK(model->GetDrawableVertices(0) != nullptr);
+        CHECK(model->GetDrawableIndices(0) != nullptr);
+        model->SetDrawableMultiColor(0, 0.5f, 0.5f, 0.5f, 1.0f);
+        model->SetDrawableScreenColor(0, 0.5f, 0.5f, 0.5f, 1.0f);
 
-        // expressions
+        // expressions（模型可能不含 expressions —— 此时跳过）
         std::vector<std::pair<std::string, std::string>> exprs;
-        model.GetExpressions(&exprs, [](void* c, const char* id, const char* file) {
+        model->GetExpressions(&exprs, [](void* c, const char* id, const char* file) {
             ((std::vector<std::pair<std::string, std::string>>*)c)->push_back({id, file});
         });
         printf("[smoke] expressions=%zu\n", exprs.size());
-        CHECK(!exprs.empty());
-        model.AddExpression(exprs[0].first.c_str());
-        model.RemoveExpression(exprs[0].first.c_str());
-        model.ResetExpressions();
-        model.LoadExtraExpression("smoke_extra", exprs[0].second.c_str());
-        CHECK(model.GetExpressionCount() > 0);
-
-        // extra motion (re-using the file of the first group)
-        std::string extraMotionPath;
-        model.GetMotions(
-            &extraMotionPath,
-            [](void* c, const char* group, int no, const char* file, const char* sound) {
-                auto* out = (std::string*)c;
-                if (out->empty())
-                    *out = file;
-            });
-        std::string extraMotionFull = std::string(model.GetModelHomeDir()) + extraMotionPath;
-        int extraNo = model.LoadExtraMotion(firstGroup.c_str(), extraMotionFull.c_str());
-        printf("[smoke] LoadExtraMotion -> no=%d\n", extraNo);
-        CHECK(extraNo >= 0);
-        CHECK(model.GetMotionCount(firstGroup.c_str()) >= 1);
+        if (!exprs.empty()) {
+            model->AddExpression(exprs[0].first.c_str());
+            model->RemoveExpression(exprs[0].first.c_str());
+            model->ResetExpressions();
+            model->LoadExtraExpression("smoke_extra", exprs[0].second.c_str());
+            CHECK(model->GetExpressionCount() > 0);
+        }
 
         // moc consistency: v2 .moc 无此概念，恒为 false
-        CHECK(model.HasMocConsistencyFromFile("kasumi2.moc") == false);
+        CHECK(model->HasMocConsistencyFromFile("kasumi2.moc") == false);
 
         if (fails == 0) {
             printf("[smoke] ALL OK\n");
@@ -264,7 +327,9 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     int winW = 800, winH = 800;
-    GLFWwindow* window = glfwCreateWindow(winW, winH, "v2cpp Test — kasumi", nullptr, nullptr);
+    const std::string winTitle =
+        "Live2D Test — " + std::filesystem::u8path(modelPath).filename().string();
+    GLFWwindow* window = glfwCreateWindow(winW, winH, winTitle.c_str(), nullptr, nullptr);
     if (!window) {
         fprintf(stderr, "ERROR: glfwCreateWindow() failed\n");
         glfwTerminate();
@@ -347,39 +412,46 @@ int main(int argc, char* argv[]) {
     SetLive2DLogLevel(LV_INFO);
 
     {
-        Model model;
-        model.LoadModelJson(modelPath.c_str());
+        std::unique_ptr<Live2D::IModel> model = createModel(modelPath);
+        model->LoadModelJson(modelPath.c_str());
 
         float cw, ch;
-        model.GetCanvasSize(cw, ch);
-        printf("Model loaded successfully!\n");
+        model->GetCanvasSize(cw, ch);
+        printf("Model loaded successfully! (%s / %s)\n",
+               model->IsV2() ? "v2" : "v3",
+#ifdef CSM_TARGET_VULKAN
+               "Vulkan"
+#else
+               "OpenGL"
+#endif
+        );
         printf("  Canvas: %.0f x %.0f\n", cw, ch);
-        printf("  Parameters: %d\n", model.GetParameterCount());
-        printf("  Parts: %d\n", model.GetPartCount());
+        printf("  Parameters: %d\n", model->GetParameterCount());
+        printf("  Parts: %d\n", model->GetPartCount());
 
-        int nParams = model.GetParameterCount();
+        int nParams = model->GetParameterCount();
         int showParams = nParams < 15 ? nParams : 15;
         printf("  First %d parameters:\n", showParams);
         for (int i = 0; i < showParams; i++) {
             printf("    [%d] %-31s  val=%.3f  min=%.2f  max=%.2f  def=%.2f\n",
                    i,
-                   model.GetParameterId(i),
-                   model.GetParameterValue(i),
-                   model.GetParameterMinimumValue(i),
-                   model.GetParameterMaximumValue(i),
-                   model.GetParameterDefaultValue(i));
+                   model->GetParameterId(i),
+                   model->GetParameterValue(i),
+                   model->GetParameterMinimumValue(i),
+                   model->GetParameterMaximumValue(i),
+                   model->GetParameterDefaultValue(i));
         }
         if (nParams > 15)
             printf("    ... (%d more)\n", nParams - 15);
 
-        int nParts = model.GetPartCount();
+        int nParts = model->GetPartCount();
         printf("  Parts:\n");
         for (int i = 0; i < nParts; i++) {
-            printf("    [%d] %s\n", i, model.GetPartId(i));
+            printf("    [%d] %s\n", i, model->GetPartId(i));
         }
 
-        model.Resize(winW, winH);
-        model.StartRandomMotion("", 3);
+        model->Resize(winW, winH);
+        model->StartRandomMotion("", 3);
         printf("\nStarted random idle motion.\n");
 
         // std::this_thread::sleep_for(1s);  // model loaded, before render
@@ -387,26 +459,26 @@ int main(int argc, char* argv[]) {
         printf("Running... (press ESC to exit)\n");
         int frameCount = 0;
         while (!glfwWindowShouldClose(window)) {
-            model.Update();
+            model->Update();
 #ifndef CSM_TARGET_VULKAN
             glViewport(0, 0, winW, winH);
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 #endif
-            model.Draw();
+            model->Draw();
             frameCount++;
 #ifndef CSM_TARGET_VULKAN
             glfwSwapBuffers(window);
 #endif
             glfwPollEvents();
-            if (model.IsMotionFinished()) {
-                if (model.IsV2())
-                    model.StartRandomMotion("", 3);
+            if (model->IsMotionFinished()) {
+                model->StartRandomMotion("", 3);
             }
         }
         printf("Frames rendered: %d\n", frameCount);
 
         // std::this_thread::sleep_for(1s);  // render ended, before destruction
+        model->DestroyRenderer();
     }   // model destroyed — GL context still alive for glDeleteTextures
     // std::this_thread::sleep_for(1s);       // after destruction baseline
 

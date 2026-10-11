@@ -24,6 +24,8 @@ add_library(${V2_TARGET} STATIC
     Core/ClipContext.cpp
     Core/UtInterpolate.cpp
     Core/UtSystem.cpp
+    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Core/VkRenderer.cpp>
+    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Core/ClippingManagerVulkan.cpp>
     Framework/L2DMatrix44.cpp
     Framework/L2DModelMatrix.cpp
     Framework/L2DTargetPoint.cpp

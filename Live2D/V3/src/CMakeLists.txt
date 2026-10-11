@@ -7,9 +7,4 @@ add_library(${V3_TARGET} STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManagerV3.cpp
 )
 
-if(${GR_BACKEND} MATCHES "Vulkan")
-  target_sources(${V3_TARGET} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/SwapchainManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/VulkanManager.cpp
-  )
-endif()
+# VulkanManager / SwapchainManager 已迁移至 Live2D/Vulkan（Live2D::Vulkan），由 V3.cmake 链接

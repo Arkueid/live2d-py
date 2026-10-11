@@ -48,6 +48,10 @@ target_link_libraries(${V3_TARGET} PUBLIC
   Common
   ${OPENGL_LIBRARIES}
 )
+if (${GR_BACKEND} MATCHES "Vulkan")
+  # VulkanManager / SwapchainManager / VkUtil（原 V3 内文件已迁移至此库）
+  target_link_libraries(${V3_TARGET} PUBLIC Live2D::Vulkan)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(${V3_TARGET} PUBLIC stdc++fs)
 endif()

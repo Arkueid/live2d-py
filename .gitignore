@@ -1,4 +1,8 @@
 build
+build-gl
+
+# 本地 CMake 配置覆盖（见 cmake/Config.cmake 头部说明）
+cmake/Config.local.cmake
 
 live2d-desktop
 config.v2.json

@@ -11,6 +11,11 @@
 #include "L2DPhysics.hpp"
 #include "L2DPose.hpp"
 #include "GLRenderer.hpp"
+#ifdef CSM_TARGET_VULKAN
+#include "VkRenderer.hpp"
+#include "VulkanManager.hpp"
+#include "VkUtil.hpp"
+#endif
 #include "Log.hpp"
 #include "ModelContext.hpp"
 #include "Live2DMotion.hpp"
@@ -413,6 +418,86 @@ void Model::Draw() {
         return;
     }
     mRenderer->setMatrix(mvp.data());
+#ifdef CSM_TARGET_VULKAN
+    if (mRenderer->isVulkan()) {
+        // Vulkan 帧流程（镜像 V3::Model::Draw）：
+        // acquire → clear pass → mask pass → main pass → present barrier
+        VulkanManager* vkMgr = VulkanManager::GetInstance();
+        if (!vkMgr->IsInitialized())
+            return;
+        vkMgr->UpdateDrawFrame();
+        if (vkMgr->GetIsWindowSizeChanged()) {
+            vkMgr->RecreateSwapchain();
+            vkMgr->SetIsWindowSizeChanged(false);
+            return;
+        }
+
+        // 1) clear pass：swapchain image UNDEFINED → COLOR_ATTACHMENT 并清屏
+        {
+            VkCommandBuffer cmd = vkMgr->BeginSingleTimeCommands();
+            VkImage image = vkMgr->GetSwapchainImage();
+            VkImageMemoryBarrier barrier{};
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = image;
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.levelCount = 1;
+            barrier.subresourceRange.layerCount = 1;
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
+                                 nullptr, 1, &barrier);
+            VkClearValue clearValue{};
+            clearValue.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
+            VkRenderingAttachmentInfo colorAttachment{};
+            colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+            colorAttachment.imageView = vkMgr->GetSwapchainImageView();
+            colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            colorAttachment.clearValue = clearValue;
+            VkRenderingInfo renderingInfo{};
+            renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+            renderingInfo.renderArea.extent = vkMgr->GetSwapchainManager()->GetExtent();
+            renderingInfo.layerCount = 1;
+            renderingInfo.colorAttachmentCount = 1;
+            renderingInfo.pColorAttachments = &colorAttachment;
+            vkCmdBeginRendering(cmd, &renderingInfo);
+            vkCmdEndRendering(cmd);
+            vkMgr->SubmitCommand(cmd, /*isFirstDraw=*/true);
+        }
+
+        // 2) mask pass（offscreen 256x256）
+        mRenderer->preDraw(mModelContext.get());
+        // 3) main pass（录制到 swapchain image 并提交）
+        mRenderer->draw(mModelContext.get());
+
+        // 4) present barrier：COLOR_ATTACHMENT → PRESENT_SRC
+        {
+            VkCommandBuffer cmd = vkMgr->BeginSingleTimeCommands();
+            VkImage image = vkMgr->GetSwapchainImage();
+            VkImageMemoryBarrier barrier{};
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = image;
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.levelCount = 1;
+            barrier.subresourceRange.layerCount = 1;
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr,
+                                 1, &barrier);
+            vkMgr->SubmitCommand(cmd);
+        }
+
+        vkMgr->PostDraw();
+        return;
+    }
+#endif
     mRenderer->preDraw(mModelContext.get());
     mRenderer->draw(mModelContext.get());
 }
@@ -719,6 +804,43 @@ void Model::CreateRenderer(int maskBufferCount) {
         LOGW("Renderer already exists, skipping creation");
         return;
     }
+#ifdef CSM_TARGET_VULKAN
+    // 与 V3 一致：Vulkan 已初始化时创建 Vulkan 渲染器；未初始化则跳过（无头模式安全）
+    if (VulkanManager::GetInstance()->IsInitialized()) {
+        auto* vkRenderer = new VkRenderer(mModelContext.get(), (int)mTexturePaths.size());
+        mRenderer.reset(vkRenderer);
+        for (size_t i = 0; i < mTexturePaths.size(); i++) {
+            std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
+            int w, h, n;
+            auto texData = readFile(texPath);
+            unsigned char* pixels =
+                texData.empty()
+                    ? nullptr
+                    : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
+            if (!pixels)
+                continue;
+            LOGD("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(),
+                 mTexturePaths[i].c_str());
+
+            VkImage image = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+            VkImageView view = VK_NULL_HANDLE;
+            VkSampler sampler = VK_NULL_HANDLE;
+            if (VkUtil::CreateTextureFromPixels(VulkanManager::GetInstance()->GetDevice(),
+                                                VulkanManager::GetInstance()->GetPhysicalDevice(),
+                                                pixels, w, h, &image, &memory, &view, &sampler,
+                                                1.0f)) {
+                vkRenderer->setTexture((int)i, view, sampler);
+            } else {
+                LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
+            }
+            stbi_image_free(pixels);
+        }
+        return;
+    }
+    LOGW("Vulkan is not initialized, skipping renderer creation");
+    return;
+#endif
     mRenderer = std::make_unique<GLRenderer>(mModelContext.get(), (int)mTexturePaths.size());
     for (size_t i = 0; i < mTexturePaths.size(); i++) {
         std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
@@ -742,7 +864,7 @@ void Model::CreateRenderer(int maskBufferCount) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
-        mRenderer->setTexture((int)i, (int)texId);
+        static_cast<GLRenderer*>(mRenderer.get())->setTexture((int)i, (int)texId);
         stbi_image_free(pixels);
     }
 }

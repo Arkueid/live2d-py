@@ -1,10 +1,8 @@
 #include "VulkanManager.hpp"
 #include <iostream>
-#include <set>
+#include <cstring>
 
 #include "Log.hpp"
-#include "Rendering/Vulkan/CubismRenderer_Vulkan.hpp"
-using namespace Csm;
 
 /**
 * @brief   デバッグ用コールバック
@@ -14,8 +12,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
                                                     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                     void* pUserData)
 {
-    // LappPal::PrintLogは最大文字数を増やせば使える
-    // LAppPal::PrintLog("validation layer: %s\n", pCallbackData->pMessage);
     std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
 }
@@ -81,18 +77,17 @@ VulkanManager::~VulkanManager()
 
 bool VulkanManager::CheckValidationLayerSupport()
 {
-    csmUint32 layerCount;
+    uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-    csmVector<VkLayerProperties> availableLayers;
-    availableLayers.Resize(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.GetPtr());
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
     for (const char* layerName : validationLayers)
     {
         bool layerFound = false;
 
-        for (csmUint32 i = 0; i < availableLayers.GetSize(); i++)
+        for (uint32_t i = 0; i < availableLayers.size(); i++)
         {
             if (strcmp(layerName, availableLayers[i].layerName) == 0)
             {
@@ -110,26 +105,26 @@ bool VulkanManager::CheckValidationLayerSupport()
     return true;
 }
 
-void VulkanManager::SetInstanceExtensions(const char** extensions, Csm::csmUint32 count)
+void VulkanManager::SetInstanceExtensions(const char** extensions, uint32_t count)
 {
-    _instanceExtensions.Clear();
-    for (Csm::csmUint32 i = 0; i < count; i++)
+    _instanceExtensions.clear();
+    for (uint32_t i = 0; i < count; i++)
     {
-        _instanceExtensions.PushBack(extensions[i]);
+        _instanceExtensions.push_back(extensions[i]);
     }
 }
 
-csmVector<const char*> VulkanManager::GetRequiredExtensions()
+std::vector<const char*> VulkanManager::GetRequiredExtensions()
 {
-    csmVector<const char*> extensions;
-    for (Csm::csmUint32 i = 0; i < _instanceExtensions.GetSize(); i++)
+    std::vector<const char*> extensions;
+    for (uint32_t i = 0; i < _instanceExtensions.size(); i++)
     {
-        extensions.PushBack(_instanceExtensions[i]);
+        extensions.push_back(_instanceExtensions[i]);
     }
 
     if (_enableValidationLayers)
     {
-        extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     return extensions;
@@ -167,14 +162,14 @@ void VulkanManager::CreateInstance()
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    csmVector<const char*> extensions = GetRequiredExtensions();
-    createInfo.enabledExtensionCount = static_cast<csmUint32>(extensions.GetSize());
-    createInfo.ppEnabledExtensionNames = extensions.GetPtr();
+    std::vector<const char*> extensions = GetRequiredExtensions();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    createInfo.ppEnabledExtensionNames = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     if (_enableValidationLayers)
     {
-        createInfo.enabledLayerCount = static_cast<csmUint32>(sizeof(validationLayers) / sizeof(validationLayers[0]));
+        createInfo.enabledLayerCount = static_cast<uint32_t>(sizeof(validationLayers) / sizeof(validationLayers[0]));
         createInfo.ppEnabledLayerNames = validationLayers;
         // vkDestroyInstanceでデバッグコールが呼ばれるために次の行が必要
         populateDebugMessengerCreateInfo(debugCreateInfo);
@@ -205,17 +200,16 @@ void VulkanManager::SetupDebugMessenger()
 
 bool VulkanManager::CheckDeviceExtensionSupport(VkPhysicalDevice physicalDevice)
 {
-    csmUint32 extensionCount;
+    uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
 
-    csmVector<VkExtensionProperties> availableExtensions;
-    availableExtensions.Resize(extensionCount);
-    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.GetPtr());
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
-    for (csmUint32 i = 0; i < sizeof(deviceExtensions) / sizeof(deviceExtensions[0]); i++)
+    for (uint32_t i = 0; i < sizeof(deviceExtensions) / sizeof(deviceExtensions[0]); i++)
     {
         bool found = false;
-        for (csmUint32 j = 0; j < availableExtensions.GetSize(); j++)
+        for (uint32_t j = 0; j < availableExtensions.size(); j++)
         {
             if (strcmp(deviceExtensions[i], availableExtensions[j].extensionName) == 0)
             {
@@ -249,13 +243,12 @@ void VulkanManager::CreateSurface()
 
 void VulkanManager::FindQueueFamilies(VkPhysicalDevice device)
 {
-    csmUint32 queueFamilyCount = 0;
+    uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-    csmVector<VkQueueFamilyProperties> queueFamilies;
-    queueFamilies.Resize(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.GetPtr());
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-    for (csmUint32 i = 0; i < queueFamilies.GetSize(); i++)
+    for (uint32_t i = 0; i < queueFamilies.size(); i++)
     {
         if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
@@ -286,7 +279,7 @@ bool VulkanManager::IsDeviceSuitable(VkPhysicalDevice device)
     {
         SwapchainManager::SwapchainSupportDetails swapchainSupport = SwapchainManager::QuerySwapchainSupport(
             device, _surface);
-        swapChainAdequate = swapchainSupport.formats.GetSize() != 0 && swapchainSupport.presentModes.GetSize() != 0;
+        swapChainAdequate = swapchainSupport.formats.size() != 0 && swapchainSupport.presentModes.size() != 0;
     }
 
     VkPhysicalDeviceFeatures supportedFeatures;
@@ -297,7 +290,7 @@ bool VulkanManager::IsDeviceSuitable(VkPhysicalDevice device)
 
 void VulkanManager::PickPhysicalDevice()
 {
-    csmUint32 deviceCount = 0;
+    uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
 
     if (deviceCount == 0)
@@ -305,12 +298,11 @@ void VulkanManager::PickPhysicalDevice()
         LOGE("failed to find GPUs with Vulkan support!");
     }
 
-    csmVector<VkPhysicalDevice> devices;
-    devices.Resize(deviceCount);
-    vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.GetPtr());
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
 
     // 一番最初に取得した物理デバイスを使用する
-    for (csmUint32 i = 0; i < devices.GetSize(); i++)
+    for (uint32_t i = 0; i < devices.size(); i++)
     {
         if (IsDeviceSuitable(devices[i]))
         {
@@ -329,33 +321,33 @@ void VulkanManager::CreateLogicalDevice()
 {
     FindQueueFamilies(_physicalDevice);
 
-    csmVector<csmInt32> uniqueQueueFamilies;
+    std::vector<int32_t> uniqueQueueFamilies;
     if (indices.graphicsFamily == indices.presentFamily)
     {
-        uniqueQueueFamilies.PushBack(indices.graphicsFamily);
+        uniqueQueueFamilies.push_back(indices.graphicsFamily);
     }
     else
     {
-        uniqueQueueFamilies.PushBack(indices.graphicsFamily);
-        uniqueQueueFamilies.PushBack(indices.presentFamily);
+        uniqueQueueFamilies.push_back(indices.graphicsFamily);
+        uniqueQueueFamilies.push_back(indices.presentFamily);
     }
 
     float queuePriority = 1.0f;
-    csmVector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    for (csmUint32 i = 0; i < uniqueQueueFamilies.GetSize(); i++)
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    for (uint32_t i = 0; i < uniqueQueueFamilies.size(); i++)
     {
         VkDeviceQueueCreateInfo queueCreateInfo{};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo.queueFamilyIndex = uniqueQueueFamilies[i];
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.PushBack(queueCreateInfo);
+        queueCreateInfos.push_back(queueCreateInfo);
     }
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.queueCreateInfoCount = queueCreateInfos.GetSize();
-    createInfo.pQueueCreateInfos = queueCreateInfos.GetPtr();
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.enabledExtensionCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
     createInfo.ppEnabledExtensionNames = deviceExtensions;
 
@@ -406,7 +398,7 @@ void VulkanManager::ChooseSupportedDepthFormat()
         VK_FORMAT_D16_UNORM
     };
 
-    for (csmInt32 i = 0; i < sizeof(depthFormats) / sizeof(depthFormats[0]); i++)
+    for (int32_t i = 0; i < sizeof(depthFormats) / sizeof(depthFormats[0]); i++)
     {
         VkFormatProperties formatProps;
         vkGetPhysicalDeviceFormatProperties(_physicalDevice, depthFormats[i], &formatProps);
@@ -417,7 +409,7 @@ void VulkanManager::ChooseSupportedDepthFormat()
             return;
         }
     }
-    CubismLogError("can't find depth format!");
+    LOGE("can't find depth format!");
     _depthFormat = depthFormats[0];
 }
 

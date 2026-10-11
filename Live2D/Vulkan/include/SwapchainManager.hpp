@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -7,10 +7,8 @@
 
 #pragma once
 #include <vulkan/vulkan.h>
-#include <Type/CubismBasicType.hpp>
-#include <Type/csmVector.hpp>
-#include "LAppPal.hpp"
-
+#include <cstdint>
+#include <vector>
 
 /**
  * @brief   スワップチェーンを扱うクラス
@@ -20,9 +18,9 @@ class SwapchainManager
 public:
     struct SwapchainSupportDetails
     {
-        VkSurfaceCapabilitiesKHR capabilities;         //基本的な機能
-        Csm::csmVector<VkSurfaceFormatKHR> formats;    //利用可能なフォーマット
-        Csm::csmVector<VkPresentModeKHR> presentModes; //利用可能な表示モード
+        VkSurfaceCapabilitiesKHR capabilities;           //基本的な機能
+        std::vector<VkSurfaceFormatKHR> formats;         //利用可能なフォーマット
+        std::vector<VkPresentModeKHR> presentModes;      //利用可能な表示モード
     };
 
     /**
@@ -32,9 +30,9 @@ public:
      * @param[in]   device              ->  デバイス
      * @param[in]   surface             ->  サーフェス
      * @param[in]   graphicsFamily      ->  描画コマンドに使うキューファミリ
-     * @param[in]   presentFamily       ->  表示コマンドに使うキューファミリ
+     * @param[in]   presentFamily       ->  表示に使うキューファミリ
      */
-    SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, Csm::csmUint32 graphicsFamily, Csm::csmUint32 presentFamily);
+    SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily);
 
     /**
      * @brief    物理デバイスのサポートを確認する
@@ -50,13 +48,13 @@ public:
      * @param[in]   availableFormats    ->  使えるサーフェスフォーマット
      * @return  選択するサーフェスフォーマット
      */
-    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const Csm::csmVector<VkSurfaceFormatKHR>& availableFormats);
+    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 
     /**
      * @brief    表示モードを選択する
      * @param[in]   availableFormats    ->  使えるフォーマット
      */
-    VkPresentModeKHR ChooseSwapPresentMode(const Csm::csmVector<VkPresentModeKHR>& availablePresentModes);
+    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 
     /**
      * @brief   スワップチェーンイメージの解像度を選択する
@@ -75,9 +73,9 @@ public:
      * @param[in]   device              ->  デバイス
      * @param[in]   surface             ->  サーフェス
      * @param[in]   graphicsFamily      ->  描画コマンドに使うキューファミリ
-     * @param[in]   presentFamily       ->  表示コマンドに使うキューファミリ
+     * @param[in]   presentFamily       ->  表示に使うキューファミリ
      */
-    void CreateSwapchain(void* window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, Csm::csmUint32 graphicsFamily, Csm::csmUint32 presentFamily);
+    void CreateSwapchain(void* window, VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily);
 
     /**
      * @brief    表示コマンドをキューに積む
@@ -86,7 +84,7 @@ public:
      * @param[in]   imageIndex     ->  イメージのインデックス
      * @return  成功したか
      */
-    VkResult QueuePresent(VkQueue& queue, Csm::csmUint32 imageIndex);
+    VkResult QueuePresent(VkQueue& queue, uint32_t imageIndex);
 
     /**
      * @brief    スワップチェーンのレイアウトの変更
@@ -116,14 +114,7 @@ public:
      *
      * @return  イメージ数
      */
-    Csm::csmInt32 GetImageCount() { return imageCount; }
-
-    /**
-     * @brief    スワップチェーンイメージビューを取得する
-     *
-     * @return  スワップチェーンイメージビュー
-     */
-    Csm::csmVector<VkImageView> GetViews() { return imageViews; }
+    int32_t GetImageCount() { return imageCount; }
 
     /**
      * @brief    スワップチェーンを取得する
@@ -142,22 +133,22 @@ public:
     /**
      * @brief    スワップチェーンのイメージを取得する
      *
-     * @return  イメージ
+     * @return  スワップチェーンイメージ
      */
-    Csm::csmVector<VkImage> GetImages() { return images; }
+    std::vector<VkImage> GetImages() { return images; }
 
     /**
-     * @brief    スワップチェーンのイメージを取得する
+     * @brief    スワップチェーンのイメージビューを取得する
      *
-     * @return  イメージ
+     * @return  スワップチェーンイメージビュー
      */
-    Csm::csmVector<VkImageView> GetImageViews() { return imageViews; }
+    std::vector<VkImageView> GetImageViews() { return imageViews; }
 
 private:
     VkExtent2D extent = {0, 0};                  ///< イメージの解像度
-    Csm::csmUint32 imageCount = 0;                             ///< イメージ数
-    Csm::csmVector<VkImage> images;                            ///< スワップチェーンのイメージ
-    Csm::csmVector<VkImageView> imageViews;                    ///< スワップチェーンのイメージビュー
-    VkSwapchainKHR swapchain;                                  ///< スワップチェーン
+    uint32_t imageCount = 0;                     ///< イメージ数
+    std::vector<VkImage> images;                 ///< スワップチェーンのイメージ
+    std::vector<VkImageView> imageViews;         ///< スワップチェーンのイメージビュー
+    VkSwapchainKHR swapchain;                    ///< スワップチェーン
     const VkFormat swapchainFormat = VK_FORMAT_R8G8B8A8_UNORM; ///< スワップチェーンのフォーマット
 };

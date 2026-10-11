@@ -272,7 +272,7 @@ void ClippingManagerOpenGL::setupClip(ModelContext* modelContext) {
             auto* mesh = static_cast<Mesh*>(modelContext->getDrawData(idx));
             auto* ctx = modelContext->getDrawContext(idx);
             mRenderer.setClipMatrix(clip->mMatrixForMask.data());
-            mRenderer.mClipChannel = clip->mLayoutChannelNo;
+            mRenderer.setClipChannel(clip->mLayoutChannelNo);
             mRenderer.setClipMaskMode(true);
             mesh->draw(&mRenderer, modelContext, ctx);
             mRenderer.setClipMaskMode(false);

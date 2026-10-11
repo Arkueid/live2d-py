@@ -1,5 +1,5 @@
-[submodule "tests/v2/glfw"]
-	path = tests/v2/glfw
+[submodule "tests/cpp/glfw"]
+	path = tests/cpp/glfw
 	url = https://github.com/glfw/glfw.git
 [submodule "Live2D/Common/backward"]
 	path = Live2D/Common/backward
