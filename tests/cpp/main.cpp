@@ -16,11 +16,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
-#include <fstream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <iterator>
 #include <vector>
 #ifdef _WIN32
 #include <windows.h>
@@ -44,6 +42,7 @@
 #include <V3/Model.hpp>
 #include <V2/Model.hpp>
 #include <IModel.hpp>
+#include <ModelFactory.hpp>
 #include "Log.hpp"
 
 using namespace Live2D::Common::Log;
@@ -54,24 +53,6 @@ static Csm::CubismFramework::Option sCubismOption;
 static bool sInitialized = false;
 static bool sGLInitialized = false;
 
-// 模型版本嗅探（简化自 Wrapper/PyModel.cpp CheckVersion）：
-// 含 "FileReferences" → v3，否则按 v2 处理
-static bool isV2ModelJson(const std::string& path) {
-    // 与库内 readFile 一致按 UTF-8 解释路径（u8path），否则中文路径打不开
-    std::ifstream file(std::filesystem::u8path(path), std::ios::binary);
-    if (!file.is_open())
-        return false;
-    std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    return text.find("\"FileReferences\"") == std::string::npos;
-}
-
-// 按版本实例化统一接口
-static std::unique_ptr<Live2D::IModel> createModel(const std::string& path) {
-    if (isV2ModelJson(path))
-        return std::make_unique<Live2D::V2::Model>();
-    return std::make_unique<Live2D::V3::Model>();
-}
-
 void init(const char* path) {
     LAppPal::InitShaderDir(path);
     sCubismOption.LogFunction = LAppPal::PrintLn;
@@ -81,6 +62,54 @@ void init(const char* path) {
 
     Csm::CubismFramework::StartUp(&sCubismAllocator, &sCubismOption);
     Csm::CubismFramework::Initialize();
+}
+
+// 模型短名 → 仓库内路径（相对仓库根，启动时解析为绝对路径）
+static const std::pair<const char*, const char*> kModelTable[] = {
+    {"kasumi2", "Resources/v2/kasumi2/kasumi2.model.json"},
+    {"haru2",   "Resources/v2/haru/haru.model.json"},
+    {"hibiki",  "Resources/v2/hibiki/hibiki.model.json"},
+    {"kana",    "Resources/v2/kana/Kobayaxi.model.json"},
+    {"shizuku", "Resources/v2/shizuku/shizuku.model.json"},
+    {"epsilon", "Resources/v2/Epsilon/Epsilon.model.json"},
+    {"test",    "Resources/v2/model/test.model.json"},
+    {"tuoer",   "Resources/v2/托尔/model0.json"},
+    {"haru3",   "Resources/v3/Haru/Haru.model3.json"},
+    {"llny",    "Resources/v3/llny/llny.model3.json"},
+    {"mao",     "Resources/v3/Mao/Mao.model3.json"},
+    {"nn",      "Resources/v3/nn/nn.model3.json"},
+    {"acbase",  "Resources/v3/ac_base_rem01/ac_base_rem01.model3.json"},
+};
+
+// 自 cwd 向上查找 relPath 存在的目录，返回绝对路径；找不到返回空串
+// （relPath 为 UTF-8 字面量，必须经 u8path 转换，否则中文路径按 ACP 误解码）
+static std::string findUpward(const char* relPath) {
+    namespace fs = std::filesystem;
+    const fs::path rel = fs::u8path(relPath);
+    fs::path cwd = fs::current_path();
+    while (true) {
+        fs::path candidate = cwd / rel;
+        if (fs::exists(candidate))
+            return candidate.u8string();   // 保持 UTF-8（.string() 在 Windows 会转 ACP 弄坏中文）
+        if (!cwd.has_parent_path() || cwd == cwd.parent_path())
+            return "";
+        cwd = cwd.parent_path();
+    }
+}
+
+// 参数 → 绝对模型路径：含 ".json" 视为路径，否则查短名表；失败打印可用短名并返回空串
+static std::string resolveModelPath(const std::string& arg) {
+    if (arg.find(".json") != std::string::npos)
+        return std::filesystem::absolute(std::filesystem::u8path(arg)).u8string();
+    for (const auto& entry : kModelTable) {
+        if (arg == entry.first)
+            return findUpward(entry.second);
+    }
+    fprintf(stderr, "unknown model name: %s\navailable names:", arg.c_str());
+    for (const auto& entry : kModelTable)
+        fprintf(stderr, " %s", entry.first);
+    fprintf(stderr, "\n");
+    return "";
 }
 
 // ============================================================================
@@ -139,30 +168,18 @@ int main(int argc, char* argv[]) {
     }
     std::string modelPath;
     if (argc > pathArg) {
-        modelPath = argv[pathArg];
+        modelPath = resolveModelPath(argv[pathArg]);
+        if (modelPath.empty())
+            return 1;
     } else {
-        // Default: kasumi2 model relative to repo root
-        // When running from build dir, walk up to find Resources/
-        namespace fs = std::filesystem;
-        fs::path cwd = fs::current_path();
-        fs::path candidate;
-        while (true) {
-            candidate = cwd / "Resources" / "v3" / "llny" / "llny.model3.json";
-            if (fs::exists(candidate))
-                break;
-            candidate = cwd / ".." / "Resources" / "v3" / "llny" / "llny.model3.json";
-            if (fs::exists(candidate))
-                break;
-            if (!cwd.has_parent_path() || cwd == cwd.parent_path()) {
-                fprintf(stderr, "ERROR: Cannot find llny.model.json\n");
-                fprintf(stderr, "Usage: %s [--smoke] [path/to/model.json]\n", argv[0]);
-                return 1;
-            }
-            cwd = cwd.parent_path();
+        modelPath = findUpward("Resources/v3/llny/llny.model3.json");
+        if (modelPath.empty()) {
+            fprintf(stderr, "ERROR: Cannot find llny.model3.json\n");
+            fprintf(stderr, "Usage: %s [--smoke] [model-name | path/to/model.json]\n", argv[0]);
+            return 1;
         }
-        init("D:/forDesktop/live2d-py/package/live2d/");
-        modelPath = candidate.string();
     }
+    init("D:/forDesktop/live2d-py/package/live2d/");
     printf("Model path: %s\n", modelPath.c_str());
 
     // --- Headless smoke test: exercise unified IModel APIs without GL --------
@@ -177,7 +194,11 @@ int main(int argc, char* argv[]) {
         }                                                                     \
     } while (0)
 
-        std::unique_ptr<Live2D::IModel> model = createModel(modelPath);
+        std::unique_ptr<Live2D::IModel> model(Live2D::CreateModel(modelPath.c_str()));
+        if (!model) {
+            fprintf(stderr, "[smoke] FAIL: cannot detect model version: %s\n", modelPath.c_str());
+            return 1;
+        }
         model->LoadModelJson(modelPath.c_str(), false);
         printf("[smoke] loaded (%s): params=%d parts=%d\n",
                model->IsV2() ? "v2" : "v3",
@@ -324,9 +345,9 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #endif
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    int winW = 800, winH = 800;
+    static int winW = 800, winH = 800;
 #ifdef CSM_TARGET_VULKAN
     const char* backendName = "Vulkan";
 #else
@@ -341,6 +362,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     glfwSetKeyCallback(window, keyCallback);
+    static Live2D::IModel* sModelForResize = nullptr;
+    glfwSetWindowSizeCallback(window, [](GLFWwindow* win, int width, int height){
+        if (sModelForResize) {
+            winW = width;
+            winH = height;
+#ifndef CSM_TARGET_VULKAN
+            glViewport(0, 0, width, height);
+#endif
+            sModelForResize->Resize(width, height);
+        }
+    });
 
 #ifdef CSM_TARGET_VULKAN
     // CubismRenderer_Vulkan loads "FrameworkShaders/*.spv" relative to the CWD;
@@ -417,7 +449,12 @@ int main(int argc, char* argv[]) {
     SetLive2DLogLevel(LV_INFO);
 
     {
-        std::unique_ptr<Live2D::IModel> model = createModel(modelPath);
+        std::unique_ptr<Live2D::IModel> model(Live2D::CreateModel(modelPath.c_str()));
+        if (!model) {
+            fprintf(stderr, "ERROR: cannot detect model version: %s\n", modelPath.c_str());
+            return 1;
+        }
+        sModelForResize = model.get();
         model->LoadModelJson(modelPath.c_str());
 
         float cw, ch;

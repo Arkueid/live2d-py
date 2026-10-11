@@ -215,10 +215,10 @@ void VkRenderer::createLayoutsAndPipelines() {
         return;
     }
 
-    VkShaderModule vertNormal = loadShaderModule("V2Shaders/v2_normal.vert.spv");
-    VkShaderModule fragNormal = loadShaderModule("V2Shaders/v2_normal.frag.spv");
-    VkShaderModule vertMask = loadShaderModule("V2Shaders/v2_mask.vert.spv");
-    VkShaderModule fragMask = loadShaderModule("V2Shaders/v2_mask.frag.spv");
+    VkShaderModule vertNormal = loadShaderModule("V2Shaders/V2Normal.vert.spv");
+    VkShaderModule fragNormal = loadShaderModule("V2Shaders/V2Normal.frag.spv");
+    VkShaderModule vertMask = loadShaderModule("V2Shaders/V2Mask.vert.spv");
+    VkShaderModule fragMask = loadShaderModule("V2Shaders/V2Mask.frag.spv");
     if (!vertNormal || !fragNormal || !vertMask || !fragMask) {
         LOGE("V2 Vulkan shaders not found under ./V2Shaders — copy V2Shaders/*.spv next to the "
              "executable");
@@ -351,12 +351,15 @@ void VkRenderer::resize(int w, int h) {
     (void)h;
 }
 
-void VkRenderer::setTexture(int no, VkImageView view, VkSampler sampler) {
+void VkRenderer::setTexture(int no, VkImage image, VkDeviceMemory memory, VkImageView view,
+                            VkSampler sampler) {
     if (no < 0)
         return;
     if (no >= (int)mTextures.size())
         mTextures.resize(no + 1);
     auto& t = mTextures[no];
+    t.image = image;
+    t.memory = memory;
     t.view = view;
     t.sampler = sampler;
     t.valid = true;

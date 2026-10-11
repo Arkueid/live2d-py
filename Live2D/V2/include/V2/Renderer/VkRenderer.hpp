@@ -55,8 +55,9 @@ public:
     void setCulling(bool cull) override { mCulling = cull; }
     void resize(int w, int h) override;
 
-    /// 绑定外部创建的纹理（VkUtil::CreateTextureFromPngFile 产物），资源由本类持有并在析构释放
-    void setTexture(int no, VkImageView view, VkSampler sampler);
+    /// 绑定外部创建的纹理（VkUtil::CreateTextureFromPixels 产物），资源所有权移交本类并在析构释放
+    void setTexture(int no, VkImage image, VkDeviceMemory memory, VkImageView view,
+                    VkSampler sampler);
 
 private:
     // std140 与 shader UBO 块布局一一对应

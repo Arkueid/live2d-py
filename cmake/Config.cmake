@@ -7,7 +7,7 @@
 # （local 文件用非 CACHE 的 set，在 include 之后对整个 configure 生效）
 
 # backend - Vulkan | OpenGL
-set(GR_BACKEND Vulkan CACHE STRING "Graphics backend: Vulkan or OpenGL")
+set(GR_BACKEND OpenGL CACHE STRING "Graphics backend: Vulkan or OpenGL")
 
 set(VIEWER off CACHE BOOL "enable viewer and disable wrapper")
 
@@ -15,7 +15,7 @@ set(DEBUG_ENABLE_CALLSTACK on CACHE BOOL "print backtrace when crashing")
 
 set(FORMAT_UTIL on CACHE BOOL "format source code by batch")
 
-set(DEBUG_ENABLE_ASAN on CACHE BOOL "detect memory corruption")
+set(DEBUG_ENABLE_ASAN off CACHE BOOL "detect memory corruption")
 
 # build the C++ test app (tests/cpp, needs the glfw submodule)
 set(LIVE2D_CPP_TEST off CACHE BOOL "build Live2DTest in tests/cpp")

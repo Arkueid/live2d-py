@@ -22,8 +22,6 @@ public:
 
     // ---- IModel ----
     void LoadModelJson(const char* path, bool createRenderer = true) override;
-    void LoadFromJsonString(const char* jsonData, bool createRenderer = true,
-                            const char* rootPath = "") override;
     const char* GetModelHomeDir() override;
 
     // 版本

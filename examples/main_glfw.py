@@ -20,7 +20,7 @@ import OpenGL.GL as GL
 live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 
-LOAD_FROM_JSON = True
+LOAD_FROM_JSON = False
 LIVE2D_VERSION = 2
 
 if LIVE2D_VERSION == 2:
@@ -29,7 +29,7 @@ else:
     from live2d import StandardParamsV3 as StandardParams
 
 
-def load_from_json_string():
+def load_from_generated_json():
     from live2d.utils.model_json import Motion, ModelJson
     m = ModelJson(version=3)
     m.model = "Haru.moc3"
@@ -62,7 +62,12 @@ def load_from_json_string():
     m.add_hit_area("HitArea2", "Body")
 
     model = live2d.Model()
-    model.LoadFromJsonString(m.to_string(), root_path=resources.RESOURCES_DIRECTORY + "/v3/Haru", create_renderer=False)
+    # 内存生成的 json 先落成临时文件再按路径加载（json 内相对路径以其所在目录解析）
+    json_path = os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru", "_generated.model3.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        f.write(m.to_string())
+    model.LoadModelJson(json_path, create_renderer=False)
+    os.remove(json_path)
     return model
 
 
@@ -82,7 +87,7 @@ def main():
 
     model = None
     if LOAD_FROM_JSON:
-        model = load_from_json_string()
+        model = load_from_generated_json()
     elif LIVE2D_VERSION == 3:
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))

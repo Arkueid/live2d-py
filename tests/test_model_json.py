@@ -558,7 +558,14 @@ def test_model_loading_v3():
 
     live2d.init()
     model = live2d.Model()
-    model.LoadFromJsonString(m.to_string(), root_path=RESOURCES + "/v3/Haru", create_renderer=False)
+    # 内存生成的 json 先落成临时文件再按路径加载（相对路径以 json 所在目录解析）
+    json_path = os.path.join(RESOURCES, "v3/Haru", "_test_gen.model3.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        f.write(m.to_string())
+    try:
+        model.LoadModelJson(json_path, create_renderer=False)
+    finally:
+        os.remove(json_path)
     del model
     live2d.dispose()
 
@@ -637,11 +644,13 @@ def test_model_loading_v2():
 
     live2d.init()
     model = live2d.Model()
-    model.LoadFromJsonString(
-        m.to_string(),
-        root_path=RESOURCES + "/v2/haru",
-        create_renderer=False,
-    )
+    json_path = os.path.join(RESOURCES, "v2/haru", "_test_gen.model.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        f.write(m.to_string())
+    try:
+        model.LoadModelJson(json_path, create_renderer=False)
+    finally:
+        os.remove(json_path)
     del model
     live2d.dispose()
 

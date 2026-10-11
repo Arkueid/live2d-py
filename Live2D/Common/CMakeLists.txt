@@ -1,12 +1,14 @@
 set(LIVE2D_COMMON Common)
 
-add_library(${LIVE2D_COMMON} STATIC 
+add_library(${LIVE2D_COMMON} STATIC
     ${LIVE2D_ROOT}/Common/Log.cpp
     ${LIVE2D_ROOT}/Common/Debug.cpp
+    ${LIVE2D_ROOT}/Common/ModelVersion.cpp
     ${LIVE2D_ROOT}/Common/stb_impl.cpp
 )
 
 target_include_directories(${LIVE2D_COMMON} PUBLIC ${LIVE2D_ROOT}/Common)
+target_compile_features(${LIVE2D_COMMON} PUBLIC cxx_std_17)
 
 add_library(Live2D::Common ALIAS ${LIVE2D_COMMON})
 

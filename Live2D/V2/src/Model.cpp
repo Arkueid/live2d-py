@@ -92,21 +92,6 @@ void Model::LoadModelJson(const char* path, bool createRenderer) {
     LoadModelJsonImpl(jsonText, pathStr.substr(0, pathStr.find_last_of("/\\") + 1), createRenderer);
 }
 
-void Model::LoadFromJsonString(const char* jsonData, bool createRenderer, const char* rootPath) {
-    if (jsonData == nullptr) {
-        LOGE("model json string is null");
-        return;
-    }
-
-    // root_path → 资源根目录（补尾部分隔符；空串 = 相对当前工作目录）
-    std::string homeDir(rootPath ? rootPath : "");
-    if (!homeDir.empty() && homeDir.back() != '/' && homeDir.back() != '\\') {
-        homeDir += '/';
-    }
-
-    LoadModelJsonImpl(std::string(jsonData), homeDir, createRenderer);
-}
-
 void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& homeDir,
                               bool createRenderer) {
     // Read JSON（不抛异常；畸形输入走 discarded）
@@ -830,7 +815,7 @@ void Model::CreateRenderer(int maskBufferCount) {
                                                 VulkanManager::GetInstance()->GetPhysicalDevice(),
                                                 pixels, w, h, &image, &memory, &view, &sampler,
                                                 1.0f)) {
-                vkRenderer->setTexture((int)i, view, sampler);
+                vkRenderer->setTexture((int)i, image, memory, view, sampler);
             } else {
                 LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
             }
@@ -840,7 +825,7 @@ void Model::CreateRenderer(int maskBufferCount) {
     }
     LOGW("Vulkan is not initialized, skipping renderer creation");
     return;
-#endif
+#else
     mRenderer = std::make_unique<GLRenderer>(mModelContext.get(), (int)mTexturePaths.size());
     for (size_t i = 0; i < mTexturePaths.size(); i++) {
         std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
@@ -867,6 +852,7 @@ void Model::CreateRenderer(int maskBufferCount) {
         static_cast<GLRenderer*>(mRenderer.get())->setTexture((int)i, (int)texId);
         stbi_image_free(pixels);
     }
+#endif
 }
 void Model::DestroyRenderer() {
     if (!mRenderer) {

@@ -37,15 +37,6 @@ public:
      */
     void LoadModelJson(const char* filePath, bool createRenderer = true) override;
 
-    /**
-     * @brief 从内存中的 model3.json 文本加载；moc3/纹理/动作/表情/物理/姿态仍从磁盘读取:
-     *        json 内绝对路径原样使用，相对路径相对 rootPath 解析（rootPath 为空 = 相对 CWD）
-     * @param jsonData model3.json 的完整 UTF-8 文本
-     * @param rootPath 资源根目录（缺少尾部分隔符时自动补 '/'）
-     */
-    void LoadFromJsonString(const char* jsonData, bool createRenderer = true,
-                            const char* rootPath = "") override;
-
     const char* GetModelHomeDir() override;
 
     // 版本

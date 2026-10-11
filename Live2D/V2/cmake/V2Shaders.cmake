@@ -20,10 +20,10 @@ else()
 endif()
 
 set(V2_SHADERS
-    v2_normal.vert
-    v2_normal.frag
-    v2_mask.vert
-    v2_mask.frag
+    V2Normal.vert
+    V2Normal.frag
+    V2Mask.vert
+    V2Mask.frag
 )
 
 set(V2_SPV_OUTPUTS)

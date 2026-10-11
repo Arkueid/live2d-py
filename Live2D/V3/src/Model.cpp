@@ -53,15 +53,6 @@ void LoadAssets(const std::string& filePath,
     LAppPal::ReleaseBytes(buffer);
 }
 
-// root_path → 资源根目录（保证以 '/' 结尾；空串原样返回 = 相对当前工作目录）
-std::string NormalizeModelHomeDir(const char* rootPath) {
-    std::string dir(rootPath ? rootPath : "");
-    if (!dir.empty() && dir.back() != '/' && dir.back() != '\\') {
-        dir += '/';
-    }
-    return dir;
-}
-
 // homeDir 已含尾部 '/'；rel 为绝对路径（含 '/' '\' 开头）时原样返回
 csmString JoinPath(const csmString& homeDir, const char* rel) {
     if (rel == nullptr || rel[0] == '\0')
@@ -115,37 +106,6 @@ void Model::LoadModelJson(const char* filePath, bool createRenderer) {
     LoadAssets(filePath, [&](csmByte* buffer, csmSizeInt size) {
         mModelSetting = new CubismModelSettingJson(buffer, size);
     });
-
-    SetupModel();
-
-    if (createRenderer) {
-        CreateRenderer(1);
-    }
-}
-
-void Model::LoadFromJsonString(const char* jsonData, bool createRenderer, const char* rootPath) {
-    if (mModelSetting != nullptr) {
-        LOGE("model already loaded");
-        return;
-    }
-    if (jsonData == nullptr || jsonData[0] == '\0') {
-        LOGE("model json string is empty");
-        return;
-    }
-
-    const std::string homeDir = NormalizeModelHomeDir(rootPath);
-    mModelHomeDir = homeDir.c_str();   // csmString::operator= 深拷贝，homeDir 可安全析构
-    LOGD("load modelSetting from json string (home: %s)", mModelHomeDir.GetRawString());
-
-    auto* setting = new CubismModelSettingJson(reinterpret_cast<const csmByte*>(jsonData),
-                                               static_cast<csmSizeInt>(strlen(jsonData)));
-    if (!setting->IsValid()) {
-        // 解析失败时 _jsonValue 为空，任何 accessor 都会越界 → 必须在这里拦下
-        LOGE("Failed to parse model json string");
-        delete setting;
-        return;
-    }
-    mModelSetting = setting;
 
     SetupModel();
 
@@ -1040,6 +1000,16 @@ void Model::CreateRenderer(int maskBufferCount) {
 void Model::DestroyRenderer() {
     mTextureManager.ReleaseTextures();
     mProxy.DeleteRenderer();
+#ifdef CSM_TARGET_VULKAN
+    // Framework 的管线/设备资源寄存在静态 s_deviceInfoList（CubismDeviceInfo_Vulkan），
+    // 无人释放会拖到进程退出的静态析构——晚于 vkDestroyDevice，触发
+    // "vkDestroyPipeline: Invalid device"。删渲染器后在此归还设备信息；
+    // 下一个 v3 模型会经 GetDeviceInfo 按需重建。
+    if (VulkanManager::GetInstance()->IsInitialized()) {
+        Rendering::CubismDeviceInfo_Vulkan::ReleaseDeviceInfo(
+            VulkanManager::GetInstance()->GetDevice());
+    }
+#endif
 }
 
 void Model::Draw() {
