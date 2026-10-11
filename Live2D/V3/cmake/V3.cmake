@@ -1,11 +1,26 @@
 set(V3_TARGET V3)
 
+if(${GR_BACKEND} MATCHES "Vulkan")
+  set(CSM_TARGET CSM_TARGET_VULKAN)
+  add_compile_definitions(CSM_TARGET_VULKAN=1)
+endif()
+message("[GR_BACKEND] ${GR_BACKEND}")
+
 include(${CMAKE_CURRENT_LIST_DIR}/Core.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/Framework.cmake)
+if (${GR_BACKEND} MATCHES "Vulkan")
+  include(${CMAKE_CURRENT_LIST_DIR}/Framework.Vulkan.cmake)
+else()
+  include(${CMAKE_CURRENT_LIST_DIR}/Framework.OpenGL.cmake)
+endif()
 # 在配置阶段立即执行文件修改脚本
 include(${CMAKE_CURRENT_LIST_DIR}/PatchCubismShader_OpenGLES2.cmake)
 
 add_subdirectory(${LIVE2D_ROOT}/V3/src)
+
+# Vulkan バックエンドでは、v3 ライブラリのビルド時にシェーダー(.spv)も必ずコンパイルする
+if(TARGET FrameworkShaders)
+  add_dependencies(${V3_TARGET} FrameworkShaders)
+endif()
 
 target_compile_definitions(${V3_TARGET} PRIVATE MODULE_LOG_TAG="v3")
 

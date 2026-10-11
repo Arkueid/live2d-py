@@ -18,16 +18,43 @@
 #include <filesystem>
 #include <string>
 #include <thread>
+#include <CubismFramework.hpp>
+#include <LAppAllocator.hpp>
+#include <LAppPal.hpp>
 
 // GLFW_INCLUDE_NONE — glad (GL/glew.h) provides all GL symbols
 #define GLFW_INCLUDE_NONE
+#ifdef CSM_TARGET_VULKAN
+#include <vulkan/vulkan.h>
+#include <GLFW/glfw3.h>
+#include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
+#include <VulkanManager.hpp>
+#else
 #include <GL/glew.h>   // glad OpenGL 4.6 core loader
 #include <GLFW/glfw3.h>
+#endif
 
-#include <V2/Model.hpp>
+#include <V3/Model.hpp>
 #include "Log.hpp"
 
 using namespace Live2D::Common::Log;
+using namespace Live2D::V3;
+
+static LAppAllocator sCubismAllocator;
+static Csm::CubismFramework::Option sCubismOption;
+static bool sInitialized = false;
+static bool sGLInitialized = false;
+
+void init(const char* path) {
+    LAppPal::InitShaderDir(path);
+    sCubismOption.LogFunction = LAppPal::PrintLn;
+    sCubismOption.LoggingLevel = Csm::CubismFramework::Option::LogLevel_Warning;
+    sCubismOption.LoadFileFunction = LAppPal::LoadFileAsBytes;
+    sCubismOption.ReleaseBytesFunction = LAppPal::ReleaseBytes;
+
+    Csm::CubismFramework::StartUp(&sCubismAllocator, &sCubismOption);
+    Csm::CubismFramework::Initialize();
+}
 
 // ============================================================================
 // Helpers
@@ -64,19 +91,20 @@ int main(int argc, char* argv[]) {
         fs::path cwd = fs::current_path();
         fs::path candidate;
         while (true) {
-            candidate = cwd / "Resources" / "v2" / "kasumi2" / "kasumi2.model.json";
+            candidate = cwd / "Resources" / "v3" / "llny" / "llny.model3.json";
             if (fs::exists(candidate))
                 break;
-            candidate = cwd / ".." / "Resources" / "v2" / "kasumi2" / "kasumi2.model.json";
+            candidate = cwd / ".." / "Resources" / "v3" / "llny" / "llny.model3.json";
             if (fs::exists(candidate))
                 break;
             if (!cwd.has_parent_path() || cwd == cwd.parent_path()) {
-                fprintf(stderr, "ERROR: Cannot find kasumi2.model.json\n");
+                fprintf(stderr, "ERROR: Cannot find llny.model.json\n");
                 fprintf(stderr, "Usage: %s [--smoke] [path/to/model.json]\n", argv[0]);
                 return 1;
             }
             cwd = cwd.parent_path();
         }
+        init("D:/forDesktop/live2d-py/package/live2d/");
         modelPath = candidate.string();
     }
     printf("Model path: %s\n", modelPath.c_str());
@@ -85,17 +113,18 @@ int main(int argc, char* argv[]) {
     if (smoke) {
         using namespace Live2D;
         int fails = 0;
-#define CHECK(cond)                                                     \
-    do {                                                                \
-        if (!(cond)) {                                                  \
+#define CHECK(cond)                                                           \
+    do {                                                                      \
+        if (!(cond)) {                                                        \
             fprintf(stderr, "[smoke] FAIL: %s (line %d)\n", #cond, __LINE__); \
-            fails++;                                                    \
-        }                                                               \
+            fails++;                                                          \
+        }                                                                     \
     } while (0)
 
-        V2::Model model;
+        Model model;
         model.LoadModelJson(modelPath.c_str(), false);
-        printf("[smoke] loaded: params=%d parts=%d\n", model.GetParameterCount(),
+        printf("[smoke] loaded: params=%d parts=%d\n",
+               model.GetParameterCount(),
                model.GetPartCount());
         CHECK(model.GetParameterCount() > 0);
         CHECK(model.GetPartCount() > 0);
@@ -134,25 +163,28 @@ int main(int argc, char* argv[]) {
         CHECK(model.GetMotionGroupCount() > 0);
         std::vector<std::string> gGroups;
         int gCounts = 0;
-        model.GetMotions(&gGroups, [](void* c, const char* group, int no, const char* file,
-                                      const char* sound) {
-            auto* groups = (std::vector<std::string>*)c;
-            if (no == 0)
-                groups->push_back(group);
-        });
+        model.GetMotions(
+            &gGroups, [](void* c, const char* group, int no, const char* file, const char* sound) {
+                auto* groups = (std::vector<std::string>*)c;
+                if (no == 0)
+                    groups->push_back(group);
+            });
         CHECK(!gGroups.empty());
         std::string firstGroup = gGroups[0];
-        printf("[smoke] motion groups=%d first=%s count=%d\n", model.GetMotionGroupCount(),
-               firstGroup.c_str(), model.GetMotionCount(firstGroup.c_str()));
+        printf("[smoke] motion groups=%d first=%s count=%d\n",
+               model.GetMotionGroupCount(),
+               firstGroup.c_str(),
+               model.GetMotionCount(firstGroup.c_str()));
         CHECK(model.GetMotionCount(firstGroup.c_str()) > 0);
 
         // hit tests
         std::vector<std::string> hitParts;
-        model.HitPart(400, 300, &hitParts,
-                      [](void* c, const char* id) {
-                          ((std::vector<std::string>*)c)->push_back(id);
-                      },
-                      false);
+        model.HitPart(
+            400,
+            300,
+            &hitParts,
+            [](void* c, const char* id) { ((std::vector<std::string>*)c)->push_back(id); },
+            false);
         printf("[smoke] HitPart: %zu hits\n", hitParts.size());
         CHECK(model.IsPartHit(0, 400, 300) == true || model.IsPartHit(0, 400, 300) == false);
         CHECK(model.IsDrawableHit(0, 400, 300) == true ||
@@ -177,8 +209,7 @@ int main(int argc, char* argv[]) {
         // expressions
         std::vector<std::pair<std::string, std::string>> exprs;
         model.GetExpressions(&exprs, [](void* c, const char* id, const char* file) {
-            ((std::vector<std::pair<std::string, std::string>>*)c)
-                ->push_back({id, file});
+            ((std::vector<std::pair<std::string, std::string>>*)c)->push_back({id, file});
         });
         printf("[smoke] expressions=%zu\n", exprs.size());
         CHECK(!exprs.empty());
@@ -190,12 +221,13 @@ int main(int argc, char* argv[]) {
 
         // extra motion (re-using the file of the first group)
         std::string extraMotionPath;
-        model.GetMotions(&extraMotionPath, [](void* c, const char* group, int no,
-                                              const char* file, const char* sound) {
-            auto* out = (std::string*)c;
-            if (out->empty())
-                *out = file;
-        });
+        model.GetMotions(
+            &extraMotionPath,
+            [](void* c, const char* group, int no, const char* file, const char* sound) {
+                auto* out = (std::string*)c;
+                if (out->empty())
+                    *out = file;
+            });
         std::string extraMotionFull = std::string(model.GetModelHomeDir()) + extraMotionPath;
         int extraNo = model.LoadExtraMotion(firstGroup.c_str(), extraMotionFull.c_str());
         printf("[smoke] LoadExtraMotion -> no=%d\n", extraNo);
@@ -213,16 +245,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // --- GLFW + OpenGL window ------------------------------------------------
+    // --- GLFW window ----------------------------------------------------------
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: glfwInit() failed\n");
         return 1;
     }
+#ifdef CSM_TARGET_VULKAN
+    // No GL context — rendering goes through Vulkan
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#else
     // Use Compatibility profile — v2cpp shaders are GLSL 1.20 (attribute/varying)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#endif
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
@@ -234,6 +271,59 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     glfwSetKeyCallback(window, keyCallback);
+
+#ifdef CSM_TARGET_VULKAN
+    // CubismRenderer_Vulkan loads "FrameworkShaders/*.spv" relative to the CWD;
+    // shaders are copied next to the exe by the build, so anchor the CWD there.
+    {
+        std::error_code ec;
+        std::filesystem::path exeDir =
+            std::filesystem::absolute(std::filesystem::path(argv[0]), ec).parent_path();
+        if (!ec && !exeDir.empty()) {
+            std::filesystem::current_path(exeDir, ec);
+        }
+    }
+
+    // --- Initialize Vulkan (device, swapchain, renderer constants) ------------
+    {
+        VulkanManager* vkManager = VulkanManager::GetInstance();
+        vkManager->SetWindow(window);
+
+        Csm::csmUint32 extCount = 0;
+        const char** exts = glfwGetRequiredInstanceExtensions(&extCount);
+        vkManager->SetInstanceExtensions(exts, extCount);
+
+        vkManager->SetCreateSurfaceFunc([](VkInstance instance, void* win) -> VkSurfaceKHR {
+            VkSurfaceKHR surface = VK_NULL_HANDLE;
+            if (glfwCreateWindowSurface(instance, (GLFWwindow*)win, nullptr, &surface) !=
+                VK_SUCCESS) {
+                fprintf(stderr, "ERROR: glfwCreateWindowSurface() failed\n");
+                return VK_NULL_HANDLE;
+            }
+            return surface;
+        });
+
+        vkManager->Initialize();
+        if (!vkManager->IsInitialized()) {
+            fprintf(stderr, "ERROR: Vulkan initialization failed\n");
+            glfwDestroyWindow(window);
+            glfwTerminate();
+            return 1;
+        }
+
+        SwapchainManager* swapchain = vkManager->GetSwapchainManager();
+        Live2D::Cubism::Framework::Rendering::CubismRenderer_Vulkan::SetConstantSettings(
+            vkManager->GetDevice(),
+            vkManager->GetPhysicalDevice(),
+            vkManager->GetCommandPool(),
+            vkManager->GetGraphicQueue(),
+            swapchain->GetImageCount(),
+            swapchain->GetExtent(),
+            vkManager->GetSwapchainImageView(),
+            swapchain->GetSwapchainImageFormat(),
+            vkManager->GetDepthFormat());
+    }
+#else
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
@@ -246,6 +336,7 @@ int main(int argc, char* argv[]) {
     }
     printf(
         "OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+#endif
 
     using namespace std::chrono_literals;
     // --- Baseline (idle, no model) -------------------------------------------
@@ -256,7 +347,7 @@ int main(int argc, char* argv[]) {
     SetLive2DLogLevel(LV_INFO);
 
     {
-        Live2D::V2::Model model;
+        Model model;
         model.LoadModelJson(modelPath.c_str());
 
         float cw, ch;
@@ -297,15 +388,20 @@ int main(int argc, char* argv[]) {
         int frameCount = 0;
         while (!glfwWindowShouldClose(window)) {
             model.Update();
+#ifndef CSM_TARGET_VULKAN
             glViewport(0, 0, winW, winH);
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+#endif
             model.Draw();
             frameCount++;
+#ifndef CSM_TARGET_VULKAN
             glfwSwapBuffers(window);
+#endif
             glfwPollEvents();
             if (model.IsMotionFinished()) {
-                model.StartRandomMotion("", 3);
+                if (model.IsV2())
+                    model.StartRandomMotion("", 3);
             }
         }
         printf("Frames rendered: %d\n", frameCount);
@@ -315,6 +411,9 @@ int main(int argc, char* argv[]) {
     // std::this_thread::sleep_for(1s);       // after destruction baseline
 
     // --- Cleanup -------------------------------------------------------------
+#ifdef CSM_TARGET_VULKAN
+    VulkanManager::GetInstance()->Destroy();
+#endif
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;

@@ -53,7 +53,7 @@ public:
 
     // update
 
-    void Update(float deltaSecs) override;
+    void Update(float deltaSecs = -1) override;
 
     /**
      * @brief

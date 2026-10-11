@@ -3,7 +3,7 @@
 # Enable with: cmake -DV2CPP_TEST=ON ...
 #
 # default to off for manylinux workflow
-# set(V2CPP_TEST 1)
+set(V2CPP_TEST 1)
 
 if(DEFINED V2CPP_TEST)
   message("V2CPP.TEST Enabled")
@@ -24,7 +24,7 @@ add_executable(V2Test
 )
 
 target_link_libraries(V2Test PRIVATE
-  Live2D::V2
+  Live2D::Live2D
   glfw
 )
 
@@ -39,6 +39,21 @@ set_target_properties(V2Test PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/tests/v2/Release
   RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_BINARY_DIR}/tests/v2/Debug
 )
+
+# ---- Vulkan shaders ---------------------------------------------------------
+# The CubismRenderer_Vulkan loads "FrameworkShaders/*.spv" relative to the CWD
+# at renderer creation time; copy the compiled shaders next to the executable
+# (V2Test sets its CWD to the exe directory at startup).
+# The .spv output directory is exposed by the v3 library via the
+# LIVE2D_SHADER_DIR property on the Framework target.
+if(TARGET FrameworkShaders)
+  add_custom_command(TARGET V2Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:V2Test>/FrameworkShaders
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:V2Test>/FrameworkShaders
+    COMMENT "Copy Vulkan .spv shaders next to V2Test"
+  )
+endif()
 
 # Wire into ctest for local use: `ctest --test-dir build` (opens a GLFW window;
 # not run in CI since runners are headless)

@@ -8,7 +8,13 @@
 #include <Live2DCubismCore.hpp>
 #include <Model/CubismMoc.hpp>
 #include <Motion/CubismMotion.hpp>
+#ifndef CSM_TARGET_VULKAN
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
+#else
+#include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
+#include <Rendering/Vulkan/CubismDeviceInfo_Vulkan.hpp>
+#include <VulkanManager.hpp>
+#endif
 #include <Utils/CubismString.hpp>
 
 
@@ -512,10 +518,17 @@ void Model::SaveParameters() {
 
 void Model::Resize(int width, int height) {
     mMatrixManager.UpdateScreenToScene(width, height);
+#ifndef CSM_TARGET_VULKAN
     auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
     if (renderer) {
         renderer->SetRenderTargetSize(width, height);
     }
+#else
+    auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
+    if (renderer) {
+        renderer->SetRenderTargetSize(width, height);
+    }
+#endif
 }
 
 void Model::SetOffset(float x, float y) {
@@ -1001,10 +1014,24 @@ void Model::Drag(float x, float y) {
 }
 
 void Model::CreateRenderer(int maskBufferCount) {
+#ifndef CSM_TARGET_VULKAN
     if (mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()) {
         LOGW("Renderer already exists, skipping creation");
         return;
     }
+    LOGI("Creating OpenGL ES2 renderer");
+#else
+    if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
+        LOGW("Renderer already exists, skipping creation");
+        return;
+    }
+    if (!VulkanManager::GetInstance()->IsInitialized()) {
+        // Vulkan デバイス未初期化（オフスクリーン用途等）ではレンダラを作らない
+        LOGW("Vulkan is not initialized, skipping renderer creation");
+        return;
+    }
+    LOGI("Creating Vulkan renderer");
+#endif
     mTextureManager.ReleaseTextures();
     mProxy.CreateRenderer(mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
     SetupTextures();
@@ -1023,12 +1050,108 @@ void Model::Draw() {
     mProxy->Update();
 
     CubismMatrix44& matrix = mMatrixManager.GetMvp();
+
+#ifndef CSM_TARGET_VULKAN
     Rendering::CubismRenderer_OpenGLES2* renderer =
         mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
 
     renderer->SetMvpMatrix(&matrix);
 
     renderer->DrawModel();
+#else
+    Rendering::CubismRenderer_Vulkan* renderer =
+        mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
+    VulkanManager* vkManager = VulkanManager::GetInstance();
+    if (renderer == nullptr || !vkManager->IsInitialized()) {
+        return;
+    }
+
+    // --- スワップチェーンイメージの取得 ---
+    vkManager->UpdateDrawFrame();
+    if (vkManager->GetIsWindowSizeChanged()) {
+        vkManager->RecreateSwapchain();
+        vkManager->SetIsWindowSizeChanged(false);
+        // このフレームは破棄（次フレームで再取得）
+        return;
+    }
+
+    SwapchainManager* swapchain = vkManager->GetSwapchainManager();
+
+    // --- PreModelDraw: スワップチェーンイメージのクリア ---
+    {
+        VkCommandBuffer commandBuffer = vkManager->BeginSingleTimeCommands();
+
+        // レイアウト変更
+        VkImageMemoryBarrier memoryBarrier{};
+        memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        memoryBarrier.srcAccessMask = 0;
+        memoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        memoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        memoryBarrier.image = vkManager->GetSwapchainImage();
+        memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
+                             nullptr, 1, &memoryBarrier);
+
+        VkRenderingAttachmentInfoKHR colorAttachment{};
+        colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+        colorAttachment.imageView = vkManager->GetSwapchainImageView();
+        colorAttachment.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.clearValue = {{0.0f, 0.0f, 0.0f, 1.0f}};
+
+        VkRenderingInfo renderingInfo{};
+        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+        renderingInfo.renderArea = {{0, 0}, swapchain->GetExtent()};
+        renderingInfo.layerCount = 1;
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachments = &colorAttachment;
+
+        vkCmdBeginRendering(commandBuffer, &renderingInfo);
+        vkCmdEndRendering(commandBuffer);
+        // 最初の提出はイメージ取得セマフォを待つ
+        vkManager->SubmitCommand(commandBuffer, true);
+    }
+
+    Rendering::CubismRenderer_Vulkan::SetRenderTarget(
+        vkManager->GetSwapchainImage(), vkManager->GetSwapchainImageView(),
+        swapchain->GetSwapchainImageFormat(), swapchain->GetExtent());
+
+    renderer->SetMvpMatrix(&matrix);
+
+    // モデルで使用するオフスクリーン管理の開始
+    Rendering::CubismDeviceInfo_Vulkan* deviceInfo =
+        Rendering::CubismDeviceInfo_Vulkan::GetDeviceInfo(vkManager->GetDevice());
+    deviceInfo->GetOffscreenManager()->BeginFrameProcess();
+
+    renderer->DrawModel();
+
+    deviceInfo->GetOffscreenManager()->EndFrameProcess();
+
+    // --- PostModelDraw: 表示用レイアウトへ変更 ---
+    {
+        VkCommandBuffer commandBuffer = vkManager->BeginSingleTimeCommands();
+
+        VkImageMemoryBarrier memoryBarrier{};
+        memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        memoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        memoryBarrier.dstAccessMask = 0;
+        memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        memoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        memoryBarrier.image = vkManager->GetSwapchainImage();
+        memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                             &memoryBarrier);
+
+        vkManager->SubmitCommand(commandBuffer);
+    }
+
+    // --- 表示 ---
+    vkManager->PostDraw();
+#endif
 }
 
 int Model::GetPartCount() const {
@@ -1339,20 +1462,52 @@ void Model::SetupTextures() {
         csmString texturePath = mModelSetting->GetTextureFileName(modelTextureNumber);
         texturePath = JoinPath(mModelHomeDir, texturePath.GetRawString());
 
-        // 已经加载过的纹理会直接复用
+// 已经加载过的纹理会直接复用
+#ifdef CSM_TARGET_VULKAN
+        Rendering::CubismRenderer_Vulkan* renderer =
+            mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
+        if (renderer == nullptr) {
+            continue;
+        }
+        LAppTextureManager::TextureInfo* texture = mTextureManager.CreateTextureFromPngFile(
+            texturePath.GetRawString(), VulkanManager::GetInstance()->GetImageFormat(),
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                VK_IMAGE_USAGE_SAMPLED_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, renderer->GetAnisotropy());
+        if (texture) {
+            CubismImageVulkan image;
+            if (mTextureManager.GetTexture(texture->id, image)) {
+                renderer->BindTexture(image);
+            }
+        }
+#else
         LAppTextureManager::TextureInfo* texture =
             mTextureManager.CreateTextureFromPngFile(texturePath.GetRawString());
         const csmInt32 glTextueNumber = texture->id;
-
         // OpenGL
         mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->BindTexture(modelTextureNumber,
                                                                                glTextueNumber);
+#endif
     }
 
+
 #ifdef PREMULTIPLIED_ALPHA_ENABLE
+#ifndef CSM_TARGET_VULKAN
     mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(true);
 #else
+    if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
+        mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()->IsPremultipliedAlpha(true);
+    }
+#endif
+#else
+#ifndef CSM_TARGET_VULKAN
     mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(false);
+#else
+    if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
+        mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()->IsPremultipliedAlpha(false);
+    }
+#endif
 #endif
 }
 

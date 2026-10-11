@@ -8,11 +8,16 @@
 #pragma once
 
 #include <string>
-#ifndef CSM_TARGET_ANDROID_ES2
-#include <GL/glew.h>
-#else
+#ifdef CSM_TARGET_ANDROID_ES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#elif defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_MAC_GL) || defined(CSM_TARGET_LINUX_GL)
+#include <GL/glew.h>
+#elif defined(CSM_TARGET_VULKAN)
+#include <vulkan/vulkan.h>
+#include <Rendering/Vulkan/CubismClass_Vulkan.hpp>
+#else
+#error "csm target is not set"
 #endif
 #include <Type/csmVector.hpp>
 namespace Live2D {
@@ -28,7 +33,7 @@ public:
      * @brief 画像情報構造体
      */
     struct TextureInfo {
-        GLuint id;              ///< テクスチャID
+        unsigned int id;        ///< テクスチャID
         int width;              ///< 横幅
         int height;             ///< 高さ
         std::string fileName;   ///< ファイル名
@@ -63,14 +68,6 @@ public:
     }
 
     /**
-     * @brief 画像読み込み
-     *
-     * @param[in] fileName  読み込む画像ファイルパス名
-     * @return 画像情報。読み込み失敗時はNULLを返す
-     */
-    TextureInfo* CreateTextureFromPngFile(std::string fileName);
-
-    /**
      * @brief 画像の解放
      *
      * 配列に存在する画像全てを解放する
@@ -99,10 +96,38 @@ public:
      * @param   textureId[in]       取得したいテクスチャID
      * @return  テクスチャが存在していればTextureInfoが返る
      */
-    TextureInfo* GetTextureInfoById(GLuint textureId) const;
+    TextureInfo* GetTextureInfoById(unsigned int textureId) const;
 
+#ifdef CSM_TARGET_VULKAN
+    void CopyBufferToImage(VkCommandBuffer commandBuffer, const VkBuffer& buffer, VkImage image,
+                           uint32_t width, uint32_t height);
+
+    void GenerateMipmaps(Live2D::Cubism::Framework::CubismImageVulkan image, uint32_t texWidth,
+                         uint32_t texHeight, uint32_t mipLevels);
+
+    bool GetTexture(Csm::csmUint32 textureId,
+                    Live2D::Cubism::Framework::CubismImageVulkan& retTexture) const;
+
+    TextureInfo* CreateTextureFromPngFile(std::string fileName, VkFormat format,
+                                          VkImageTiling tiling, VkImageUsageFlags usage,
+                                          VkMemoryPropertyFlags imageProperties,
+                                          Csm::csmFloat32 anisotropy);
+#else
+    /**
+     * @brief 画像読み込み
+     *
+     * @param[in] fileName  読み込む画像ファイルパス名
+     * @return 画像情報。読み込み失敗時はNULLを返す
+     */
+    TextureInfo* CreateTextureFromPngFile(std::string fileName);
+#endif
 private:
-    Csm::csmVector<TextureInfo*> mTextures;
+    Csm::csmVector<TextureInfo*> mTextureInfos;
+#ifdef CSM_TARGET_VULKAN
+    Csm::csmVector<Live2D::Cubism::Framework::CubismImageVulkan> mTextures;
+    unsigned int mSequenceId;
+    unsigned int mMipLevels;
+#endif
 };
 }   // namespace V3
 }   // namespace Live2D

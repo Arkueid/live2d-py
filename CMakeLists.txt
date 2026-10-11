@@ -34,14 +34,13 @@ include(cmake/VersionCheck.cmake)
 # ---- Cubism Native SDK ----
 if (DEBUG_ENABLE_ASAN)
   message("[Asan] on")
-  add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g -O1)
+  add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g)
   add_link_options(-fsanitize=address -shared-libasan)
 endif()
 
 if (DEBUG_ENABLE_CALLSTACK)
   message("[CallStack] on")
   add_compile_definitions(DEBUG_ENABLE_CALLSTACK)
-  add_compile_options("/Od" "/Ob0")
 endif()
 
 add_subdirectory(Live2D)
@@ -58,7 +57,7 @@ else()
 endif()
 
 # testing
-add_subdirectory(tests/v2 ${CMAKE_CURRENT_BINARY_DIR}/tests/v2)
+add_subdirectory(tests/cpp ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp)
 
 # --format--
 include(cmake/Format.cmake)
