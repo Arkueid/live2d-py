@@ -180,8 +180,8 @@ void Live2DScene::paintGL()
                      sizeof(float) * 2 * model->GetDrawableVertexCount(selectedDrawableIndex),
                      model->GetDrawableVertices(selectedDrawableIndex),
                      GL_STATIC_DRAW);
-        QMatrix4x4 mvp(model->GetMvp());
-        program->setUniformValue("mvp", mvp);
+        // GetMvp() 返回 column-major，直接用 GL_FALSE 传递，避免 QMatrix4x4 的 row-major 构造转置
+        glUniformMatrix4fv(program->uniformLocation("mvp"), 1, GL_FALSE, model->GetMvp());
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
         glDrawElements(GL_TRIANGLES,
