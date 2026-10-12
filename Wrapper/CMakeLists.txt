@@ -18,3 +18,12 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${WRAPPER}> ${CMAKE_SOURCE_DIR}/package/live2d/
     COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> ${CMAKE_SOURCE_DIR}/package/live2d/FrameworkShaders
 )
+
+# Vulkan 后端下，把 V2 的 .spv 也拷到 package/live2d/FrameworkShaders
+# （与 v3 Framework shader 放同一目录，文件名带 V2 前缀不冲突）
+if (${GR_BACKEND} MATCHES "Vulkan")
+    add_custom_command(
+        TARGET ${WRAPPER} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_PROPERTY:V2Shaders,LIVE2D_SHADER_DIR> ${CMAKE_SOURCE_DIR}/package/live2d/FrameworkShaders
+    )
+endif()

@@ -1,6 +1,6 @@
 #include "Init.hpp"
 
-#include <V3/LAppPal.hpp>
+#include <FileUtils.hpp>
 #include <V3/LAppAllocator.hpp>
 
 #include <CubismFramework.hpp>
@@ -17,12 +17,12 @@ void Init(const char* shaderDir, int logLevel) {
         return;
     }
 
-    V3::LAppPal::InitShaderDir(shaderDir ? shaderDir : "");
+    Common::FileUtils::InitShaderDir(shaderDir ? shaderDir : "");
 
-    sOption.LogFunction = V3::LAppPal::PrintLn;
+    sOption.LogFunction = Common::FileUtils::PrintLn;
     sOption.LoggingLevel = static_cast<Csm::CubismFramework::Option::LogLevel>(logLevel);
-    sOption.LoadFileFunction = V3::LAppPal::LoadFileAsBytes;
-    sOption.ReleaseBytesFunction = V3::LAppPal::ReleaseBytes;
+    sOption.LoadFileFunction = Common::FileUtils::LoadFileAsBytes;
+    sOption.ReleaseBytesFunction = Common::FileUtils::ReleaseBytes;
 
     Csm::CubismFramework::StartUp(&sAllocator, &sOption);
     Csm::CubismFramework::Initialize();

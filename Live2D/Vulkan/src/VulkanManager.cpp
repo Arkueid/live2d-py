@@ -1,8 +1,43 @@
 #include "VulkanManager.hpp"
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
+#include <algorithm>
 
 #include "Log.hpp"
+
+#if defined(_WIN32)
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #include <vulkan/vulkan_win32.h>
+#endif
+
+/**
+ * @brief   平台标准的 surface 创建（未设置外部钩子时使用）
+ *          Windows 已实现，其他平台未实现（abort 占位）
+ */
+static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCreateContext* ctx)
+{
+#if defined(_WIN32)
+    VkWin32SurfaceCreateInfoKHR createInfo{};
+    createInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.hinstance = GetModuleHandle(nullptr);
+    createInfo.hwnd      = static_cast<HWND>(ctx->window);
+
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS)
+    {
+        LOGE("failed to create Win32 surface!");
+        return VK_NULL_HANDLE;
+    }
+    return surface;
+#else
+    // TODO: 实现 Linux(X11/Wayland) / macOS 的 surface 创建
+    LOGE("createSurfaceInternal: platform not implemented yet");
+    std::abort();
+    return VK_NULL_HANDLE;
+#endif
+}
 
 /**
 * @brief   デバッグ用コールバック
@@ -68,6 +103,7 @@ VulkanManager::VulkanManager(void* wind):
                                               , _debugMessenger()
 {
     _window = wind;
+    _surfaceCtx.window = wind;
 }
 
 VulkanManager::~VulkanManager()
@@ -121,6 +157,24 @@ std::vector<const char*> VulkanManager::GetRequiredExtensions()
     {
         extensions.push_back(_instanceExtensions[i]);
     }
+
+    // 自动追加平台 surface 扩展（排除外部已注入的重复项）
+    auto hasExt = [&](const char* name) {
+        return std::find(extensions.begin(), extensions.end(), std::string(name)) != extensions.end();
+    };
+
+    if (!hasExt(VK_KHR_SURFACE_EXTENSION_NAME))
+    {
+        extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    }
+
+#if defined(_WIN32)
+    if (!hasExt(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
+    {
+        extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    }
+    // TODO: 追加 Linux(X11/Wayland) / macOS 的 surface 扩展
+#endif
 
     if (_enableValidationLayers)
     {
@@ -229,15 +283,16 @@ void VulkanManager::CreateSurface()
 {
     if (_createSurfaceFunc != nullptr)
     {
-        _surface = _createSurfaceFunc(_instance, _window);
-        if (_surface == VK_NULL_HANDLE)
-        {
-            LOGE("failed to create window surface!");
-        }
+        _surface = _createSurfaceFunc(_instance, &_surfaceCtx);
     }
     else
     {
-        LOGE("no surface creation hook set (SetCreateSurfaceFunc)");
+        _surface = createSurfaceInternal(_instance, &_surfaceCtx);
+    }
+
+    if (_surface == VK_NULL_HANDLE)
+    {
+        LOGE("failed to create window surface!");
     }
 }
 

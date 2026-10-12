@@ -11,6 +11,16 @@
 #include <vector>
 #include "SwapchainManager.hpp"
 
+/**
+ * @brief   平台无关的 surface 创建上下文
+ *          window  : 原生窗口句柄 (HWND / X11 Window / wl_surface* / NSView*)
+ *          display : 显示连接 (X11: Display* / Wayland: wl_display* / 其他: nullptr)
+ */
+struct SurfaceCreateContext {
+    void* window = nullptr;
+    void* display = nullptr;
+};
+
  /**
   * @brief   vulkanに必要なリソースを扱うクラス
   */
@@ -65,11 +75,20 @@ public:
     void SetInstanceExtensions(const char** extensions, uint32_t count);
 
     /**
-     * @brief   サーフェス作成フック
-     *          glfwCreateWindowSurface 等、ライブラリ非依存にするため外部から注入する
+     * @brief   surface 创建钩子
+     *          可从外部注入（省略时使用平台标准的 vkCreate*Surface）
      */
-    typedef VkSurfaceKHR (*CreateSurfaceFunc)(VkInstance instance, void* window);
+    typedef VkSurfaceKHR (*CreateSurfaceFunc)(VkInstance instance, const SurfaceCreateContext* ctx);
     void SetCreateSurfaceFunc(CreateSurfaceFunc func) { _createSurfaceFunc = func; }
+
+    /**
+     * @brief   批量设置 surface 创建上下文
+     */
+    void SetSurfaceCreateContext(const SurfaceCreateContext& ctx) {
+        _surfaceCtx = ctx;
+        _window = ctx.window;
+    }
+    void SetDisplay(void* display) { _surfaceCtx.display = display; }
 
     /**
      * @brief   初期化済みか（論理デバイスが作成されているか）
@@ -270,9 +289,10 @@ public:
     VkImageView GetSwapchainImageView() { return GetSwapchainManager()->GetImageViews()[_imageIndex]; }
 
 private:
-    void* _window;                                        // ウィンドウ
-    std::vector<const char*> _instanceExtensions;         // 外部から注入されたインスタンス拡張
-    CreateSurfaceFunc _createSurfaceFunc = nullptr;       // サーフェス作成フック
+    void* _window;                                        // 窗口
+    SurfaceCreateContext _surfaceCtx;                     // surface 创建上下文
+    std::vector<const char*> _instanceExtensions;         // 外部注入的实例扩展
+    CreateSurfaceFunc _createSurfaceFunc = nullptr;       // surface 创建钩子（省略时用内部实现）
     VkInstance _instance;                                       // ライブラリを初期化するインスタンス
     VkSurfaceKHR _surface;                                      // ウィンドウシステムに描画ために必要なサーフェス
     VkPhysicalDevice _physicalDevice;                           // 物理デバイス

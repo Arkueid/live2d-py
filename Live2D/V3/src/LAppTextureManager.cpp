@@ -7,7 +7,7 @@
 
 #include "LAppTextureManager.hpp"
 #include "Log.hpp"
-#include "LAppPal.hpp"
+#include "FileUtils.hpp"
 #ifdef CSM_TARGET_VULKAN
 #include "VulkanManager.hpp"
 #endif
@@ -157,7 +157,7 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
     unsigned char* png;
     unsigned char* address;
 
-    address = LAppPal::LoadFileAsBytes(fileName, &size);
+    address = Common::FileUtils::LoadFileAsBytes(fileName, &size);
     if (address == NULL)
     {
         LOGE("couldn't load texture file: %s", fileName.c_str());
@@ -175,7 +175,7 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
     if (!png)
     {
         LOGE("couldn't decode texture image: %s", fileName.c_str());
-        LAppPal::ReleaseBytes(address);
+        Common::FileUtils::ReleaseBytes(address);
         return NULL;
     }
     {
@@ -200,7 +200,7 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
 
     // 解放処理
     stbi_image_free(png);
-    LAppPal::ReleaseBytes(address);
+    Common::FileUtils::ReleaseBytes(address);
 
     mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
@@ -337,7 +337,7 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
     unsigned char* png;
     unsigned char* address;
 
-    address = LAppPal::LoadFileAsBytes(fileName, &size);
+    address = Common::FileUtils::LoadFileAsBytes(fileName, &size);
 
     // png情報を取得する
     png = stbi_load_from_memory(
@@ -364,7 +364,7 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
 
     // 解放処理
     stbi_image_free(png);
-    LAppPal::ReleaseBytes(address);
+    Common::FileUtils::ReleaseBytes(address);
 
     LAppTextureManager::TextureInfo* textureInfo = new LAppTextureManager::TextureInfo();
 

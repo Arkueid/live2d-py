@@ -50,13 +50,13 @@ if(TARGET FrameworkShaders)
   )
 endif()
 
-# V2 Vulkan shaders — VkRenderer loads "V2Shaders/*.spv" relative to the CWD;
+# V2 Vulkan shaders — VkRenderer loads "FrameworkShaders/V2*.spv" relative to the CWD;
 # exposed by the v2 library via the LIVE2D_SHADER_DIR property on V2Shaders.
+# 与 v3 Framework shader 放同一目录（文件名带 V2 前缀不冲突）。
 if(TARGET V2Shaders)
   add_custom_command(TARGET Live2DTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Live2DTest>/V2Shaders
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            $<TARGET_PROPERTY:V2Shaders,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DTest>/V2Shaders
+            $<TARGET_PROPERTY:V2Shaders,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DTest>/FrameworkShaders
     COMMENT "Copy V2 Vulkan .spv shaders next to Live2DTest"
   )
 endif()

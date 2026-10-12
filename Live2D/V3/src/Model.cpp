@@ -18,7 +18,7 @@
 #include <Utils/CubismString.hpp>
 
 
-#include <LAppPal.hpp>
+#include <FileUtils.hpp>
 #include <Log.hpp>
 
 
@@ -46,11 +46,11 @@ void LoadAssets(const std::string& filePath,
         return;
     }
 
-    buffer = LAppPal::LoadFileAsBytes(filePath.c_str(), &bufferSize);
+    buffer = Common::FileUtils::LoadFileAsBytes(filePath.c_str(), &bufferSize);
 
     afterLoadCallback(buffer, bufferSize);
 
-    LAppPal::ReleaseBytes(buffer);
+    Common::FileUtils::ReleaseBytes(buffer);
 }
 
 // homeDir 已含尾部 '/'；rel 为绝对路径（含 '/' '\' 开头）时原样返回
@@ -1390,11 +1390,11 @@ bool Model::HasMocConsistencyFromFile(const char* mocFileName) {
         return false;
     csmString path = JoinPath(mModelHomeDir, mocFileName);
     csmSizeInt size;
-    csmByte* buffer = LAppPal::LoadFileAsBytes(path.GetRawString(), &size);
+    csmByte* buffer = Common::FileUtils::LoadFileAsBytes(path.GetRawString(), &size);
     if (!buffer)
         return false;
     bool ok = CubismMoc::HasMocConsistencyFromUnrevivedMoc(buffer, size);
-    LAppPal::ReleaseBytes(buffer);
+    Common::FileUtils::ReleaseBytes(buffer);
     return ok;
 }
 

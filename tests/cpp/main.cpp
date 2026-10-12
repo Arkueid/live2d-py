@@ -29,7 +29,9 @@
 #define GLFW_INCLUDE_NONE
 #ifdef CSM_TARGET_VULKAN
 #include <vulkan/vulkan.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 #include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
 #include <VulkanManager.hpp>
 #else
@@ -357,36 +359,22 @@ int main(int argc, char* argv[]) {
     });
 
 #ifdef CSM_TARGET_VULKAN
-    // CubismRenderer_Vulkan loads "FrameworkShaders/*.spv" relative to the CWD;
-    // shaders are copied next to the exe by the build, so anchor the CWD there.
-    {
-        std::error_code ec;
-        std::filesystem::path exeDir =
-            std::filesystem::absolute(std::filesystem::path(argv[0]), ec).parent_path();
-        if (!ec && !exeDir.empty()) {
-            std::filesystem::current_path(exeDir, ec);
-        }
-    }
-
     // --- Initialize Vulkan (device, swapchain, renderer constants) ------------
     {
         VulkanManager* vkManager = VulkanManager::GetInstance();
-        vkManager->SetWindow(window);
+
+        // 获取原生窗口句柄 (HWND) 并传给 VulkanManager。
+        // surface 创建由 VulkanManager 内部的 vkCreateWin32SurfaceKHR 完成。
+        SurfaceCreateContext surfaceCtx{};
+        surfaceCtx.window  = glfwGetWin32Window(window);
+        surfaceCtx.display = nullptr;
+        vkManager->SetSurfaceCreateContext(surfaceCtx);
 
         Csm::csmUint32 extCount = 0;
         const char** exts = glfwGetRequiredInstanceExtensions(&extCount);
         vkManager->SetInstanceExtensions(exts, extCount);
 
-        vkManager->SetCreateSurfaceFunc([](VkInstance instance, void* win) -> VkSurfaceKHR {
-            VkSurfaceKHR surface = VK_NULL_HANDLE;
-            if (glfwCreateWindowSurface(instance, (GLFWwindow*)win, nullptr, &surface) !=
-                VK_SUCCESS) {
-                fprintf(stderr, "ERROR: glfwCreateWindowSurface() failed\n");
-                return VK_NULL_HANDLE;
-            }
-            return surface;
-        });
-
+        // 不调用 SetCreateSurfaceFunc → 使用平台标准实现
         vkManager->Initialize();
         if (!vkManager->IsInitialized()) {
             fprintf(stderr, "ERROR: Vulkan initialization failed\n");

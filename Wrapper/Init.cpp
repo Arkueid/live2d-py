@@ -1,11 +1,20 @@
+#ifndef CSM_TARGET_VULKAN
 #include <GL/glew.h>
+#endif
 
 #include <Init.hpp>
 #include <Log.hpp>
+#ifdef CSM_TARGET_VULKAN
+#include <vulkan/vulkan.h>
+#include <VulkanManager.hpp>
+#include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
+#include <vector>
+#else
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
+#endif
 #include <cstdlib>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #endif
 
@@ -19,6 +28,7 @@ using namespace Live2D;
 using namespace Live2D::Common::Log;
 
 #ifdef DEBUG_ENABLE_CALLSTACK
+#ifndef CSM_TARGET_VULKAN
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                        GLsizei length, const GLchar* message,
                                        const void* userParam) {
@@ -39,8 +49,8 @@ static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GL
     }
 }
 #endif
+#endif
 
-static bool sGLInitialized = false;
 
 static PyObject* live2d_init_internal(PyObject* self, PyObject* args) {
     const char* path;
@@ -58,7 +68,10 @@ static PyObject* live2d_dispose() {
     Py_RETURN_NONE;
 }
 
+
 static PyObject* live2d_glInit() {
+#ifndef CSM_TARGET_VULKAN
+    static bool sGLInitialized = false;
     if (sGLInitialized) {
         LOGE("live2d.glInit double called");
         Py_RETURN_NONE;
@@ -67,6 +80,7 @@ static PyObject* live2d_glInit() {
     if (!gladLoadGL()) {
         LOGE("Can't initilize glad.");
     }
+    sGLInitialized = true;
 
 #ifdef DEBUG_ENABLE_CALLSTACK
     glEnable(GL_DEBUG_OUTPUT);
@@ -79,15 +93,25 @@ static PyObject* live2d_glInit() {
     // 只打开 HIGH 严重级别（通常是真正的错误）
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, NULL, GL_TRUE);
 #endif
+#else
+    LOGE("live2d.glInit Vulkan build not supported");
+    abort();
+#endif   // CSM_TARGET_VULKAN
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_glRelease() {
+#ifndef CSM_TARGET_VULKAN
     Csm::Rendering::CubismRenderer::StaticRelease();
+#else
+    LOGE("live2d.glRelease Vulkan build not supported");
+    abort();
+#endif   // CSM_TARGET_VULKAN
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
+#ifndef CSM_TARGET_VULKAN
     // 默认为黑色
     float r = 0.0, g = 0.0, b = 0.0, a = 0.0;
 
@@ -99,7 +123,100 @@ static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearDepth(1.0);
+#else
+    LOGE("live2d.clearBuffer Vulkan build not supported");
+    abort();
+#endif   // CSM_TARGET_VULKAN
+    Py_RETURN_NONE;
+}
 
+// ---- vkInit / vkDestroy ---------------------------------------------------
+// Python 侧始终可见；非 Vulkan 构建时 LOGE + abort，避免误调用。
+// Vulkan 构建时 surface 创建由 VulkanManager 内部的平台标准实现
+// (vkCreate*Surface) 完成，pyd 不依赖 glfw。
+// vkInit(window_ptr: int, instance_extensions: list[str], display_ptr: int = 0)
+// - window_ptr : 原生窗口句柄 (Windows: HWND)
+// - display_ptr: 显示连接 (X11/Wayland 使用，Windows 传 0)
+// shader 经 FileUtils 的 LoadFileAsBytes 加载，并被重定向到 SHADER_DIR。
+static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
+#ifdef CSM_TARGET_VULKAN
+    unsigned long long windowAddr = 0;
+    PyObject* extList = nullptr;
+    unsigned long long displayAddr = 0;
+    if (!PyArg_ParseTuple(args, "KO|K", &windowAddr, &extList, &displayAddr)) {
+        return NULL;
+    }
+    if (!PySequence_Check(extList)) {
+        PyErr_SetString(PyExc_TypeError, "instance_extensions must be a sequence of str");
+        return NULL;
+    }
+
+    std::vector<std::string> extStorage;
+    const Py_ssize_t extCount = PySequence_Size(extList);
+    if (extCount < 0)
+        return NULL;
+    extStorage.reserve(extCount);
+    for (Py_ssize_t i = 0; i < extCount; ++i) {
+        PyObject* item = PySequence_GetItem(extList, i);
+        if (!item)
+            return NULL;
+        PyObject* utf8 = PyUnicode_AsEncodedString(item, "utf-8", nullptr);
+        if (!utf8) {
+            Py_DECREF(item);
+            return NULL;
+        }
+        const char* s = PyBytes_AsString(utf8);
+        if (s)
+            extStorage.emplace_back(s);
+        Py_DECREF(utf8);
+        Py_DECREF(item);
+    }
+    std::vector<const char*> extPtrs;
+    extPtrs.reserve(extStorage.size());
+    for (const auto& s : extStorage)
+        extPtrs.push_back(s.c_str());
+
+    SurfaceCreateContext surfaceCtx{};
+    surfaceCtx.window = reinterpret_cast<void*>(static_cast<uintptr_t>(windowAddr));
+    surfaceCtx.display = reinterpret_cast<void*>(static_cast<uintptr_t>(displayAddr));
+
+    VulkanManager* vkManager = VulkanManager::GetInstance();
+    vkManager->SetSurfaceCreateContext(surfaceCtx);
+    vkManager->SetInstanceExtensions(extPtrs.data(), static_cast<uint32_t>(extPtrs.size()));
+    // 不调用 SetCreateSurfaceFunc → 使用 VulkanManager 内部的平台标准实现
+    vkManager->Initialize();
+    if (!vkManager->IsInitialized()) {
+        PyErr_SetString(PyExc_RuntimeError, "Vulkan initialization failed");
+        return NULL;
+    }
+
+    // 设置 Framework Vulkan 渲染器的设备常量 (CreateRenderer 前必须)
+    SwapchainManager* swapchain = vkManager->GetSwapchainManager();
+    Live2D::Cubism::Framework::Rendering::CubismRenderer_Vulkan::SetConstantSettings(
+        vkManager->GetDevice(),
+        vkManager->GetPhysicalDevice(),
+        vkManager->GetCommandPool(),
+        vkManager->GetGraphicQueue(),
+        swapchain->GetImageCount(),
+        swapchain->GetExtent(),
+        vkManager->GetSwapchainImageView(),
+        swapchain->GetSwapchainImageFormat(),
+        vkManager->GetDepthFormat());
+#else
+    LOGE("vkInit called but Vulkan backend is not enabled in this build");
+    std::abort();
+    // unreachable
+#endif
+    Py_RETURN_NONE;
+}
+
+static PyObject* live2d_vk_destroy(PyObject* /*self*/, PyObject* /*args*/) {
+#ifdef CSM_TARGET_VULKAN
+    VulkanManager::GetInstance()->Destroy();
+#else
+    LOGE("vkDestroy called but Vulkan backend is not enabled in this build");
+    std::abort();
+#endif
     Py_RETURN_NONE;
 }
 
@@ -163,6 +280,8 @@ static PyMethodDef live2d_methods[] = {
     {"glInit", (PyCFunction)live2d_glInit, METH_VARARGS, ""},
     {"glRelease", (PyCFunction)live2d_glRelease, METH_VARARGS, ""},
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
+    {"vkInit", (PyCFunction)live2d_vk_init, METH_VARARGS, ""},
+    {"vkDestroy", (PyCFunction)live2d_vk_destroy, METH_VARARGS, ""},
     {"enableLog", (PyCFunction)live2d_enable_log, METH_VARARGS, ""},
     {"isLogEnabled", (PyCFunction)live2d_is_log_enabled, METH_VARARGS, ""},
     {"setLogLevel", (PyCFunction)live2d_set_log_level, METH_VARARGS, ""},
@@ -188,7 +307,7 @@ PyMODINIT_FUNC PyInit__live2d(void) {
         return NULL;
     }
 
-#ifdef CSM_TARGET_WIN_GL
+#ifdef _WIN32
     SetConsoleOutputCP(65001);
 #endif
     return m;

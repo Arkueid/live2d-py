@@ -1,4 +1,4 @@
-# BY TONGYILINGMA
+# BY DEEPSEEK
 
 # 源文件路径
 set(INPUT_FILE ${LIVE2D_ROOT}/V3/Framework/src/Rendering/OpenGL/CubismShader_OpenGLES2.cpp)

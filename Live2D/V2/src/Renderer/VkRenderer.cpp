@@ -7,41 +7,37 @@
 #include "PartsDataContext.hpp"
 #include "VulkanManager.hpp"
 #include "VkUtil.hpp"
+#include <FileUtils.hpp>
 #include <cstring>
-#include <fstream>
 #include <vector>
 
 namespace Live2D {
 namespace V2 {
 
 // ---- shader 加载 ----
-
-static std::vector<char> readFileBytes(const std::string& path) {
-    std::ifstream file(path, std::ios::ate | std::ios::binary);
-    if (!file.is_open()) {
-        LOGE("failed to open shader file: %s", path.c_str());
-        return {};
-    }
-    size_t fileSize = (size_t)file.tellg();
-    std::vector<char> buffer(fileSize);
-    file.seekg(0);
-    file.read(buffer.data(), fileSize);
-    return buffer;
-}
+// 经 Common::FileUtils 加载，自动走 SHADER_DIR 重定向（与 v3 共用同一拦截）。
 
 VkShaderModule VkRenderer::loadShaderModule(const char* path) {
-    auto code = readFileBytes(path);
-    if (code.empty())
+    unsigned int size = 0;
+    unsigned char* code = Live2D::Common::FileUtils::LoadFileAsBytes(path, &size);
+    if (!code || size == 0) {
+        LOGE("failed to load shader file: %s", path);
         return VK_NULL_HANDLE;
+    }
+
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size();
-    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+    createInfo.codeSize = size;
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(code);
+
     VkShaderModule module;
     if (vkCreateShaderModule(mDevice, &createInfo, nullptr, &module) != VK_SUCCESS) {
         LOGE("failed to create shader module: %s", path);
+        Live2D::Common::FileUtils::ReleaseBytes(code);
         return VK_NULL_HANDLE;
     }
+
+    Live2D::Common::FileUtils::ReleaseBytes(code);
     return module;
 }
 
@@ -215,12 +211,12 @@ void VkRenderer::createLayoutsAndPipelines() {
         return;
     }
 
-    VkShaderModule vertNormal = loadShaderModule("V2Shaders/V2Normal.vert.spv");
-    VkShaderModule fragNormal = loadShaderModule("V2Shaders/V2Normal.frag.spv");
-    VkShaderModule vertMask = loadShaderModule("V2Shaders/V2Mask.vert.spv");
-    VkShaderModule fragMask = loadShaderModule("V2Shaders/V2Mask.frag.spv");
+    VkShaderModule vertNormal = loadShaderModule("FrameworkShaders/V2Normal.vert.spv");
+    VkShaderModule fragNormal = loadShaderModule("FrameworkShaders/V2Normal.frag.spv");
+    VkShaderModule vertMask = loadShaderModule("FrameworkShaders/V2Mask.vert.spv");
+    VkShaderModule fragMask = loadShaderModule("FrameworkShaders/V2Mask.frag.spv");
     if (!vertNormal || !fragNormal || !vertMask || !fragMask) {
-        LOGE("V2 Vulkan shaders not found under ./V2Shaders — copy V2Shaders/*.spv next to the "
+        LOGE("V2 Vulkan shaders not found under ./FrameworkShaders — copy V2*.spv next to the "
              "executable");
         return;
     }

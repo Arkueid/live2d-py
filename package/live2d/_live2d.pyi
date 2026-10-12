@@ -159,6 +159,25 @@ def clearBuffer(r: float = 0.0, g: float = 0.0, b: float = 0.0, a: float = 0.0) 
     """Clear color buffer."""
     ...
 
+# ---- Vulkan backend ----
+# vkInit / vkDestroy 在所有构建的 pyd 中都存在；
+# 非 Vulkan 构建时调用会 LOGE 后 abort。
+
+def vkInit(window_ptr: int, instance_extensions: list[str], display_ptr: int = 0) -> None:
+    """Initialize Vulkan instance/device/swapchain.
+
+    window_ptr: 原生窗口句柄（Windows: HWND，可经 glfwGetWin32Window 获取）
+    instance_extensions: glfw.get_required_instance_extensions() 的结果
+    display_ptr: 显示连接（X11/Wayland 用，Windows 传 0）
+    surface 创建由 VulkanManager 内部的平台标准 vkCreate*Surface 完成。
+    shader 经 LAppPal::LoadFileAsBytes 从 SHADER_DIR 加载，无需 chdir。
+    """
+    ...
+
+def vkDestroy() -> None:
+    """Destroy Vulkan resources."""
+    ...
+
 def enableLog(enable: bool) -> None:
     """Enable/disable log output."""
     ...
