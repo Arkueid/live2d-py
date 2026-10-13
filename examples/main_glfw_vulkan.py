@@ -65,14 +65,10 @@ def main():
     live2d.init()
 
     # Vulkan 实例/设备/交换链初始化。
-    # shader 经 LAppPal::LoadFileAsBytes 从 SHADER_DIR 加载，
-    # 因此不需要把 CWD 切到 shader 目录。
+    # 实例扩展由 native 层 (VulkanManager::GetRequiredExtensions) 自动补齐，
+    # 无需从 Python 传入；shader 经 FileUtils 从 SHADER_DIR 加载，无需 chdir。
     window_handle, display_handle = get_native_window_handle(window)
-    live2d.vkInit(
-        window_handle,
-        glfw.get_required_instance_extensions() or [],
-        display_handle,
-    )
+    live2d.vkInit(window_handle, display_handle)
 
     model = live2d.Model()
     model_path = os.path.abspath(

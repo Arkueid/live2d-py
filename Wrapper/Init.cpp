@@ -134,47 +134,19 @@ static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
 // Python 侧始终可见；非 Vulkan 构建时 LOGE + abort，避免误调用。
 // Vulkan 构建时 surface 创建由 VulkanManager 内部的平台标准实现
 // (vkCreate*Surface) 完成，pyd 不依赖 glfw。
-// vkInit(window_ptr: int, instance_extensions: list[str], display_ptr: int = 0)
+// 实例扩展 (VK_KHR_surface / VK_KHR_*_surface / debug_utils) 全部由
+// VulkanManager::GetRequiredExtensions() 在 native 层确定，Python 无需传入。
+// vkInit(window_ptr: int, display_ptr: int = 0)
 // - window_ptr : 原生窗口句柄 (Windows: HWND)
 // - display_ptr: 显示连接 (X11/Wayland 使用，Windows 传 0)
 // shader 经 FileUtils 的 LoadFileAsBytes 加载，并被重定向到 SHADER_DIR。
 static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
 #ifdef CSM_TARGET_VULKAN
     unsigned long long windowAddr = 0;
-    PyObject* extList = nullptr;
     unsigned long long displayAddr = 0;
-    if (!PyArg_ParseTuple(args, "KO|K", &windowAddr, &extList, &displayAddr)) {
+    if (!PyArg_ParseTuple(args, "K|K", &windowAddr, &displayAddr)) {
         return NULL;
     }
-    if (!PySequence_Check(extList)) {
-        PyErr_SetString(PyExc_TypeError, "instance_extensions must be a sequence of str");
-        return NULL;
-    }
-
-    std::vector<std::string> extStorage;
-    const Py_ssize_t extCount = PySequence_Size(extList);
-    if (extCount < 0)
-        return NULL;
-    extStorage.reserve(extCount);
-    for (Py_ssize_t i = 0; i < extCount; ++i) {
-        PyObject* item = PySequence_GetItem(extList, i);
-        if (!item)
-            return NULL;
-        PyObject* utf8 = PyUnicode_AsEncodedString(item, "utf-8", nullptr);
-        if (!utf8) {
-            Py_DECREF(item);
-            return NULL;
-        }
-        const char* s = PyBytes_AsString(utf8);
-        if (s)
-            extStorage.emplace_back(s);
-        Py_DECREF(utf8);
-        Py_DECREF(item);
-    }
-    std::vector<const char*> extPtrs;
-    extPtrs.reserve(extStorage.size());
-    for (const auto& s : extStorage)
-        extPtrs.push_back(s.c_str());
 
     SurfaceCreateContext surfaceCtx{};
     surfaceCtx.window = reinterpret_cast<void*>(static_cast<uintptr_t>(windowAddr));
@@ -182,7 +154,7 @@ static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
 
     VulkanManager* vkManager = VulkanManager::GetInstance();
     vkManager->SetSurfaceCreateContext(surfaceCtx);
-    vkManager->SetInstanceExtensions(extPtrs.data(), static_cast<uint32_t>(extPtrs.size()));
+    // 不调用 SetInstanceExtensions → GetRequiredExtensions() 自动补齐所需扩展
     // 不调用 SetCreateSurfaceFunc → 使用 VulkanManager 内部的平台标准实现
     vkManager->Initialize();
     if (!vkManager->IsInitialized()) {

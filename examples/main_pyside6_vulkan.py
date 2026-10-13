@@ -58,9 +58,8 @@ class VulkanWindow(QWindow):
 
     def _init_vulkan(self) -> None:
         window_handle, display_handle = get_native_window_handle(self)
-        # VulkanManager 会自动追加平台 surface 扩展 (VK_KHR_surface /
-        # VK_KHR_win32_surface)，所以这里传空列表即可。
-        live2d.vkInit(window_handle, [], display_handle)
+        # 所需实例扩展由 native 层 (VulkanManager::GetRequiredExtensions) 自动补齐
+        live2d.vkInit(window_handle, display_handle)
 
         self.model = live2d.Model()
         model_path = os.path.abspath(

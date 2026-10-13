@@ -1,7 +1,6 @@
 #include "VulkanManager.hpp"
 #include <iostream>
 #include <cstring>
-#include <cstdlib>
 #include <algorithm>
 
 #include "Log.hpp"
@@ -14,7 +13,7 @@
 
 /**
  * @brief   平台标准的 surface 创建（未设置外部钩子时使用）
- *          Windows 已实现，其他平台未实现（abort 占位）
+ *          仅支持 Windows；其他平台编译期直接报错
  */
 static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCreateContext* ctx)
 {
@@ -32,10 +31,7 @@ static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCrea
     }
     return surface;
 #else
-    // TODO: 实现 Linux(X11/Wayland) / macOS 的 surface 创建
-    LOGE("createSurfaceInternal: platform not implemented yet");
-    std::abort();
-    return VK_NULL_HANDLE;
+#error "createSurfaceInternal: only Windows is implemented; implement vkCreate*Surface for this platform"
 #endif
 }
 
@@ -173,7 +169,8 @@ std::vector<const char*> VulkanManager::GetRequiredExtensions()
     {
         extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     }
-    // TODO: 追加 Linux(X11/Wayland) / macOS 的 surface 扩展
+#else
+#error "GetRequiredExtensions: only Windows is implemented; append the platform surface extension for this platform"
 #endif
 
     if (_enableValidationLayers)

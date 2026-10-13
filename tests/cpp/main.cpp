@@ -370,10 +370,7 @@ int main(int argc, char* argv[]) {
         surfaceCtx.display = nullptr;
         vkManager->SetSurfaceCreateContext(surfaceCtx);
 
-        Csm::csmUint32 extCount = 0;
-        const char** exts = glfwGetRequiredInstanceExtensions(&extCount);
-        vkManager->SetInstanceExtensions(exts, extCount);
-
+        // 不调用 SetInstanceExtensions → GetRequiredExtensions() 自动补齐所需扩展
         // 不调用 SetCreateSurfaceFunc → 使用平台标准实现
         vkManager->Initialize();
         if (!vkManager->IsInitialized()) {
