@@ -19,7 +19,7 @@
 #include <Motion/ACubismMotion.hpp>
 
 #include <LAppTextureManager.hpp>
-#include <MatrixManagerV3.hpp>
+#include <MatrixManager.hpp>
 
 using namespace Csm;
 
@@ -246,6 +246,9 @@ private:
 
     const int* GetDrawableRenderOrders() const;
 
+    // 像素坐标 → 模型画布坐标（完整 mvp 逆变换，旋转/缩放/平移均正确）
+    void screenToModel(float* x, float* y);
+
 private:
     CubismUserModelProxy mProxy;   // 必须声明在其它成员之前（先构造、后析构，等价原基类顺序）
     ICubismModelSetting* mModelSetting;
@@ -274,7 +277,7 @@ private:
 
     LAppTextureManager mTextureManager;
 
-    MatrixManagerV3 mMatrixManager;
+    Common::MatrixManager mMatrixManager;
 
     csmFloat32 mDragX;
     csmFloat32 mDragY;

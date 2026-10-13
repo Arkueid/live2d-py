@@ -1,8 +1,8 @@
 #pragma once
 #include "BaseModel.hpp"
 #include "TargetPoint.hpp"
-#include "MatrixManagerV2.hpp"
 #include "IRenderer.hpp"
+#include <MatrixManager.hpp>
 #include <IModel.hpp>
 #include <functional>
 #include <memory>
@@ -150,7 +150,7 @@ private:
                            bool createRenderer);
 
     TargetPoint mDragMgr;
-    MatrixManagerV2 mMatrixManager;
+    Common::MatrixManager mMatrixManager;
     // Model 是唯一读墙钟的地方，且只做一件事: 墙钟路径每帧算一次 dt
     //（delta 路径直接用传入值）。子系统全部收 dt、内部累计 elapsed。
     float mBreathTimeMs = 0;            // 呼吸动画累计（Model 自己的逻辑）
@@ -172,7 +172,6 @@ private:
     std::unordered_map<std::string, std::string> mExpressionFiles;
     int mCurrentMotionNo = 0;
     std::unique_ptr<IRenderer> mRenderer;
-    float mMvpCache[16] = {};
     std::vector<float> mDrawableVertexCache;
     std::vector<unsigned short> mDrawableIndexCache;
 };

@@ -120,6 +120,8 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
     loadModelData(mocData, 0);
     mModelMatrix.mWidth = (float)mModelImpl->getCanvasWidth();
     mModelMatrix.mHeight = (float)mModelImpl->getCanvasHeight();
+    // 画布适配参数在模型生命周期内不变，加载时设置一次
+    mMatrixManager.setFit({mModelMatrix.mWidth, mModelMatrix.mHeight, true, true});
     LOGI("Load model: %s", mocPath.c_str());
 
     // Load texture paths from JSON
@@ -396,13 +398,11 @@ void Model::Draw() {
     // This allows SetParameterValue between Update() and Draw() to take effect
     mModelContext->update();
 
-    auto mvp = mMatrixManager.getMvp(&mModelMatrix);
-
     if (!mRenderer) {
         LOGE("Renderer not initialized");
         return;
     }
-    mRenderer->setMatrix(mvp.data());
+    mRenderer->setMatrix(mMatrixManager.getMvp());
 #ifdef CSM_TARGET_VULKAN
     if (mRenderer->isVulkan()) {
         // Vulkan 帧流程（镜像 V3::Model::Draw）：
@@ -657,7 +657,7 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
     float sy = (y - h * 0.5f) * -2.0f / h;
 
     // Step 2: scene → canvas via MVP inverse (match Python MatrixManager.invertTransform)
-    auto mvp = mMatrixManager.getMvp(&mModelMatrix);
+    const float* mvp = mMatrixManager.getMvp();
     float mx = (sx - mvp[12]) / mvp[0];
     float my = (sy - mvp[13]) / mvp[5];
 
@@ -888,10 +888,7 @@ int Model::GetExpressionCount() {
     return (int)mExpressions.size();
 }
 const float* Model::GetMvp() {
-    auto mvp = mMatrixManager.getMvp(&mModelMatrix);
-    for (int i = 0; i < 16; i++)
-        mMvpCache[i] = mvp[i];
-    return mMvpCache;
+    return mMatrixManager.getMvp();
 }
 
 // ---- 细化更新（dt 由外部传入，与 Update(deltaSecs) 的 delta 路径同构）----

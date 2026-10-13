@@ -6,6 +6,7 @@
 #include <CubismModelSettingJson.hpp>
 #include <Id/CubismIdManager.hpp>
 #include <Live2DCubismCore.hpp>
+#include <Math/CubismMatrix44.hpp>
 #include <Model/CubismMoc.hpp>
 #include <Motion/CubismMotion.hpp>
 #ifndef CSM_TARGET_VULKAN
@@ -192,6 +193,10 @@ void Model::SetupModel() {
     if (mProxy.GetModel() == nullptr) {
         LOGE("Failed to SetupModel()");
     }
+    if (mProxy.GetModel() != nullptr) {
+        // 画布适配参数在模型生命周期内不变，加载时设置一次
+        mMatrixManager.setFit({mProxy->GetCanvasWidth(), mProxy->GetCanvasHeight(), false, false});
+    }
 
     // exp3.json
     if (mModelSetting->GetExpressionCount() > 0) {
@@ -301,7 +306,6 @@ void Model::SetupModel() {
         PreloadMotionGroup(group);
     }
     mProxy._motionManager->StopAllMotions();
-    mMatrixManager.SetModelWH(mProxy->GetCanvasWidth(), mProxy->GetCanvasHeight());
     mParamAngleXi = mProxy->GetParameterIndex(mIdParamAngleX);
     mParamAngleYi = mProxy->GetParameterIndex(mIdParamAngleY);
     mParamAngleZi = mProxy->GetParameterIndex(mIdParamAngleZ);
@@ -477,7 +481,7 @@ void Model::SaveParameters() {
 }
 
 void Model::Resize(int width, int height) {
-    mMatrixManager.UpdateScreenToScene(width, height);
+    mMatrixManager.onResize(width, height);
 #ifndef CSM_TARGET_VULKAN
     auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
     if (renderer) {
@@ -494,38 +498,46 @@ void Model::Resize(int width, int height) {
 void Model::SetOffset(float x, float y) {
     mOffsetX = x;
     mOffsetY = y;
-    mMatrixManager.SetOffset(x, y);
+    mMatrixManager.setOffset(x, y);
 }
 
 void Model::SetOffsetX(float x) {
     mOffsetX = x;
-    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
+    mMatrixManager.setOffset(mOffsetX, mOffsetY);
 }
 
 void Model::SetOffsetY(float y) {
     mOffsetY = y;
-    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
+    mMatrixManager.setOffset(mOffsetX, mOffsetY);
 }
 
 void Model::Rotate(float angle) {
-    mMatrixManager.Rotate(angle);
+    mMatrixManager.rotate(angle);
 }
 
 void Model::SetScale(float scale) {
-    mMatrixManager.SetScaleX(scale);
-    mMatrixManager.SetScaleY(scale);
+    mMatrixManager.setScale(scale);
 }
 
 void Model::SetScaleX(float scale) {
-    mMatrixManager.SetScaleX(scale);
+    mMatrixManager.setScaleX(scale);
 }
 
 void Model::SetScaleY(float scale) {
-    mMatrixManager.SetScaleY(scale);
+    mMatrixManager.setScaleY(scale);
+}
+
+void Model::screenToModel(float* x, float* y) {
+    // 像素 → ndc → 完整 mvp 逆变换（含旋转/缩放/平移）
+    float w = (float)mMatrixManager.getWidth();
+    float h = (float)mMatrixManager.getHeight();
+    *x = *x / w * 2.0f - 1.0f;
+    *y = 1.0f - *y / h * 2.0f;
+    Common::MatrixManager::invertTransform(x, y, mMatrixManager.getMvp());
 }
 
 const float* Model::GetMvp() {
-    return mMatrixManager.GetMvp().GetArray();
+    return mMatrixManager.getMvp();
 }
 
 namespace {
@@ -775,8 +787,7 @@ static bool isInTriangle(const csmVector2 p0, const csmVector2 p1, const csmVect
 
 void Model::HitPart(float x, float y, void* collector,
                     void (*collect)(void* collector, const char* id), bool topOnly) {
-    mMatrixManager.ScreenToScene(&x, &y);
-    mMatrixManager.InvertTransform(&x, &y);
+    screenToModel(&x, &y);
     const csmInt32 drawableCount = mProxy->GetDrawableCount();
     const csmInt32* renderOrders = GetDrawableRenderOrders();
     for (csmInt32 i = 0; i < drawableCount; i++) {
@@ -834,8 +845,7 @@ void Model::HitPart(float x, float y, void* collector,
 
 void Model::HitDrawable(float x, float y, void* collector,
                         void (*collect)(void* collector, const char* id), bool topOnly) {
-    mMatrixManager.ScreenToScene(&x, &y);
-    mMatrixManager.InvertTransform(&x, &y);
+    screenToModel(&x, &y);
 
     const csmInt32 drawableCount = mProxy->GetDrawableCount();
     const csmInt32* renderOrders = GetDrawableRenderOrders();
@@ -879,8 +889,7 @@ void Model::HitDrawable(float x, float y, void* collector,
 }
 
 bool Model::IsAreaHit(const char* areaName, float x, float y) {
-    mMatrixManager.ScreenToScene(&x, &y);
-    mMatrixManager.InvertTransform(&x, &y);
+    screenToModel(&x, &y);
 
     if (mProxy.GetOpacity() < 1) {
         return false;
@@ -896,8 +905,7 @@ bool Model::IsAreaHit(const char* areaName, float x, float y) {
 }
 
 bool Model::IsPartHit(int index, float x, float y) {
-    mMatrixManager.ScreenToScene(&x, &y);
-    mMatrixManager.InvertTransform(&x, &y);
+    screenToModel(&x, &y);
 
     if (mProxy->GetPartOpacity(index) == 0.0f) {
         return false;
@@ -944,8 +952,7 @@ bool Model::IsPartHit(int index, float x, float y) {
 }
 
 bool Model::IsDrawableHit(int index, float x, float y) {
-    mMatrixManager.ScreenToScene(&x, &y);     // 屏幕到OpenGL坐标系
-    mMatrixManager.InvertTransform(&x, &y);   // OpenGL坐标系到模型坐标系
+    screenToModel(&x, &y);   // 屏幕坐标到模型坐标系（完整 mvp 逆变换）
 
     // 顶点连线个数，3个顶点一个三角形，一定是3的整数倍
     const int indexCount = mProxy->GetDrawableVertexIndexCount(index);
@@ -969,7 +976,7 @@ bool Model::IsDrawableHit(int index, float x, float y) {
 }
 
 void Model::Drag(float x, float y) {
-    mMatrixManager.ScreenToScene(&x, &y);
+    mMatrixManager.screenToScene(&x, &y);
     mProxy.SetDragging(x, y);
 }
 
@@ -993,7 +1000,7 @@ void Model::CreateRenderer(int maskBufferCount) {
     LOGI("Creating Vulkan renderer");
 #endif
     mTextureManager.ReleaseTextures();
-    mProxy.CreateRenderer(mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
+    mProxy.CreateRenderer(mMatrixManager.getWidth(), mMatrixManager.getHeight(), maskBufferCount);
     SetupTextures();
 }
 
@@ -1019,7 +1026,11 @@ void Model::Draw() {
 
     mProxy->Update();
 
-    CubismMatrix44& matrix = mMatrixManager.GetMvp();
+    // renderer 的 SetMvpMatrix 内部会拷贝矩阵，CubismMatrix44 仅作转换壳（无需成员缓存）
+    // SetMatrix 签名为非 const（实际只读取内容）
+    CubismMatrix44 mvp;
+    mvp.SetMatrix(const_cast<csmFloat32*>(mMatrixManager.getMvp()));
+    CubismMatrix44& matrix = mvp;
 
 #ifndef CSM_TARGET_VULKAN
     Rendering::CubismRenderer_OpenGLES2* renderer =

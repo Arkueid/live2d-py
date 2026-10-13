@@ -4,6 +4,7 @@
 namespace Live2D {
 namespace V2 {
 
+// 语义对齐 Python v2 的 L2DModelMatrix（translate/scale 均为绝对赋值）
 class ModelMatrix {
 public:
     ModelMatrix() { identity(); }
@@ -21,16 +22,7 @@ public:
     float invertTransformX(float src) const { return (src - mMat[12]) / mMat[0]; }
     float invertTransformY(float src) const { return (src - mMat[13]) / mMat[5]; }
 
-    float getScale() const { return mScale; }
-    void setScale(float s) { mScale = s; }
-    float getX() const { return mX; }
-    void setX(float x) { mX = x; }
-    float getY() const { return mY; }
-    void setY(float y) { mY = y; }
-
     float mWidth = 0, mHeight = 0;
-    float mX = 0, mY = 0;
-    float mScale = 1.0f;
 
 private:
     std::array<float, 16> mMat{};

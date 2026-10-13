@@ -21,7 +21,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 
 LOAD_FROM_JSON = False
-LIVE2D_VERSION = 2
+LIVE2D_VERSION = 3
 
 if LIVE2D_VERSION == 2:
     from live2d import StandardParamsV2 as StandardParams
@@ -91,10 +91,15 @@ def main():
     elif LIVE2D_VERSION == 3:
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/haru/haru.model3.json"), create_renderer=False)
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"), create_renderer=False)
     elif LIVE2D_VERSION == 2:
         model = live2d.Model()
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
                             create_renderer=False)  # Load model without creating renderer
     model.CreateRenderer()
 

@@ -24,11 +24,19 @@ from glfw.GLFW import _glfw as _glfw_lib
 import live2d
 import resources
 
+from live2d.utils import log
+from live2d.utils.lipsync import WavHandler
+
 live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_WARN)
 
 
 LIVE2D_VERSION = 2
+
+if LIVE2D_VERSION == 2:
+    from live2d import StandardParamsV2 as StandardParams
+else:
+    from live2d import StandardParamsV3 as StandardParams
 
 
 def get_native_window_handle(window):
@@ -71,12 +79,51 @@ def main():
     live2d.vkInit(window_handle, display_handle)
 
     model = live2d.Model()
-    model_path = os.path.abspath(
-        os.path.join(resources.RESOURCES_DIRECTORY, "v3", "Haru", "Haru.model3.json") if LIVE2D_VERSION == 3 else os.path.join(resources.RESOURCES_DIRECTORY, "v2", "kasumi2", "kasumi2.model.json")
-    )
-    model.LoadModelJson(model_path, create_renderer=False)
+    if LIVE2D_VERSION == 3:
+        model = live2d.Model()
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"), create_renderer=False)
+    elif LIVE2D_VERSION == 2:
+        model = live2d.Model()
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
+                            create_renderer=False)  # Load model without creating renderer
     model.CreateRenderer()
     model.Resize(*display)
+
+    # Disable auto effects
+    model.SetAutoBlink(False)
+    model.SetAutoBreath(False)
+
+    wavHandler = WavHandler()
+    lipSyncN = 3
+    audioPlayed = False
+
+    def on_start_motion_callback(group, no):
+        log.LOGI("start motion: [%s_%d]" % (group, no))
+
+    def on_finish_motion_callback(group, no):
+        log.LOGI("motion finished")
+
+    # Print all parameters
+    print(f"Parameter Count: {model.GetParamCount()}")
+    paramIds = model.GetParamIds()
+    for i in range(model.GetParamCount()):
+        log.LOGD(paramIds[i], 0, model.GetParamValueByIndex(i), model.GetParamMaxByIndex(i),
+                 model.GetParamMinByIndex(i), model.GetParamDefaultByIndex(i))
+
+    # Print part IDs
+    partIds = model.GetPartIds()
+    print(f"Part Count: {len(partIds)}")
+    print("Part IDs:", partIds)
+
+    print("Canvas size:", model.GetCanvasSize())
+    print("Canvas size in pixels:", model.GetCanvasSizePixel())
+    print("Pixels per unit:", model.GetPixelsPerUnit())
 
     def on_resize(_window, width, height):
         if width > 0 and height > 0:
@@ -86,6 +133,21 @@ def main():
 
     dx, dy = 0.0, 0.0
     scale = 1.0
+    currentTopClickedPartId = None
+
+    def getHitFeedback(x, y):
+        nonlocal currentTopClickedPartId
+        t = time.time()
+        hitPartIds = model.HitPart(x, y, False)
+        print(f"hit part cost: {time.time() - t:.4f}s")
+        print(f"hit parts: {hitPartIds}")
+        if currentTopClickedPartId is not None:
+            pidx = partIds.index(currentTopClickedPartId)
+            model.SetPartOpacity(pidx, 1)
+            model.SetPartMultiplyColor(pidx, 1.0, 1.0, 1.0, 1.0)
+            print("Part Multiply Color:", model.GetPartMultiplyColor(pidx))
+        if len(hitPartIds) > 0:
+            return hitPartIds[0]
 
     def on_key(_window, key, _scancode, action, _mods):
         nonlocal dx, dy, scale
@@ -104,24 +166,37 @@ def main():
         elif key == glfw.KEY_U:
             scale -= 0.1
         elif key == glfw.KEY_R:
+            model.StopAllMotions()
             model.ResetPose()
             model.ResetAllParameters()
+        elif key == glfw.KEY_E:
+            model.ResetExpression()
 
     glfw.set_key_callback(window, on_key)
 
     def on_cursor_pos(_window, x, y):
+        nonlocal currentTopClickedPartId
         model.Drag(x, y)
+        currentTopClickedPartId = getHitFeedback(x, y)
 
     glfw.set_cursor_pos_callback(window, on_cursor_pos)
 
     def on_mouse_button(_window, button, action, _mods):
+        nonlocal currentTopClickedPartId
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
+            x, y = glfw.get_cursor_pos(window)
+            currentTopClickedPartId = getHitFeedback(x, y)
             model.SetRandomExpression()
-            model.StartRandomMotion(priority=3)
+            model.StartRandomMotion(priority=3, onFinish=on_finish_motion_callback)
 
     glfw.set_mouse_button_callback(window, on_mouse_button)
 
     model.StartRandomMotion(priority=3)
+
+    # Rotate animation
+    inc_per_sec = math.pi * 2 / 3
+    deg_max = 5
+    progress = 0
 
     last_time = time.time()
     fps_frames = 0
@@ -137,8 +212,25 @@ def main():
         now = time.time()
         delta = now - last_time
         last_time = now
+        progress += inc_per_sec * delta
+        deg = math.sin(progress) * deg_max
+        model.Rotate(deg)
 
         model.Update()
+
+        if currentTopClickedPartId is not None:
+            pidx = partIds.index(currentTopClickedPartId)
+            model.SetPartOpacity(pidx, 0.5)
+            model.SetPartMultiplyColor(pidx, 0.0, 0.0, 1.0, 0.9)
+
+        if wavHandler.Update():
+            model.SetParamById(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
+
+        if not audioPlayed:
+            model.StartMotion("", 0, live2d.MotionPriority.FORCE,
+                              on_start_motion_callback, on_finish_motion_callback)
+            audioPlayed = True
+
         model.SetOffset(dx, dy)
         model.SetScale(scale)
         # Vulkan 帧（acquire → clear → 绘制 → present）全部封装在 Draw() 内

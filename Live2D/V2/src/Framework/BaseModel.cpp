@@ -39,7 +39,10 @@ void BaseModel::loadModelData(const std::vector<uint8_t>& data, int version) {
     mModelContext->init(mModelImpl.get());
     mModelMatrix =
         ModelMatrix((float)mModelImpl->getCanvasWidth(), (float)mModelImpl->getCanvasHeight());
-    mModelMatrix.setWidth(2);
+    // 默认按画布高度适配（对齐 Common::MatrixManager 横屏规则），
+    // 保证高画布的角色模型默认完整显示；
+    // 渲染适配矩阵由 Common::MatrixManager 每帧按窗口重算，此处仅供 hitTestSimple 反算
+    mModelMatrix.setHeight(2);
     mModelMatrix.setCenterPosition(0, 0);
 }
 AMotion* BaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data) {

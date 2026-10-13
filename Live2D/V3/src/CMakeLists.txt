@@ -3,7 +3,6 @@ add_library(${V3_TARGET} STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/CubismUserModelProxy.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppAllocator.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/LAppTextureManager.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/MatrixManagerV3.cpp
 )
 
 # VulkanManager / SwapchainManager 已迁移至 Live2D/Vulkan（Live2D::Vulkan），由 V3.cmake 链接

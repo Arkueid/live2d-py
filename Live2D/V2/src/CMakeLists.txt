@@ -36,7 +36,6 @@ add_library(${V2_TARGET} STATIC
     Framework/ExpressionMotion.cpp
     Framework/MotionManager.cpp
     Framework/BaseModel.cpp
-    Framework/MatrixManagerV2.cpp
     Framework/Live2DMotion.cpp
     Model.cpp
 )
