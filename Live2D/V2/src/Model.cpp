@@ -392,6 +392,12 @@ void Model::Update(float deltaSecs) {
         mPhysics->updateParam(mModelContext.get(), (long long)dtMs);
     if (mPose)
         mPose->updateParam(mModelContext.get(), dt);
+
+#ifdef CSM_TARGET_VULKAN
+    // 本帧参数发生过变化，裁剪遮罩内容需重渲
+    if (mRenderer && mRenderer->isVulkan())
+        mRenderer->setMaskDirty();
+#endif
 }
 void Model::Draw() {
     // Match v2 Python: process deformer chain in draw(), not update()
@@ -405,82 +411,11 @@ void Model::Draw() {
     mRenderer->setMatrix(mMatrixManager.getMvp());
 #ifdef CSM_TARGET_VULKAN
     if (mRenderer->isVulkan()) {
-        // Vulkan 帧流程（镜像 V3::Model::Draw）：
-        // acquire → clear pass → mask pass → main pass → present barrier
+        // 帧解耦：acquire/clear/present 由外部 vkBeginFrame/vkEndFrame 驱动，
+        // Draw 仅向帧命令缓冲录制；mask 区间由渲染器自管（挂起/恢复）
         VulkanManager* vkMgr = VulkanManager::GetInstance();
-        if (!vkMgr->IsInitialized())
+        if (!vkMgr->IsFrameActive())
             return;
-        vkMgr->UpdateDrawFrame();
-        if (vkMgr->GetIsWindowSizeChanged()) {
-            vkMgr->RecreateSwapchain();
-            vkMgr->SetIsWindowSizeChanged(false);
-            return;
-        }
-
-        // 1) clear pass：swapchain image UNDEFINED → COLOR_ATTACHMENT 并清屏
-        {
-            VkCommandBuffer cmd = vkMgr->BeginSingleTimeCommands();
-            VkImage image = vkMgr->GetSwapchainImage();
-            VkImageMemoryBarrier barrier{};
-            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = image;
-            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.levelCount = 1;
-            barrier.subresourceRange.layerCount = 1;
-            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                 VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
-                                 nullptr, 1, &barrier);
-            VkClearValue clearValue{};
-            clearValue.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
-            VkRenderingAttachmentInfo colorAttachment{};
-            colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-            colorAttachment.imageView = vkMgr->GetSwapchainImageView();
-            colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            colorAttachment.clearValue = clearValue;
-            VkRenderingInfo renderingInfo{};
-            renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-            renderingInfo.renderArea.extent = vkMgr->GetSwapchainManager()->GetExtent();
-            renderingInfo.layerCount = 1;
-            renderingInfo.colorAttachmentCount = 1;
-            renderingInfo.pColorAttachments = &colorAttachment;
-            vkCmdBeginRendering(cmd, &renderingInfo);
-            vkCmdEndRendering(cmd);
-            vkMgr->SubmitCommand(cmd, /*isFirstDraw=*/true);
-        }
-
-        // 2) mask pass（offscreen 256x256）
-        mRenderer->preDraw(mModelContext.get());
-        // 3) main pass（录制到 swapchain image 并提交）
-        mRenderer->draw(mModelContext.get());
-
-        // 4) present barrier：COLOR_ATTACHMENT → PRESENT_SRC
-        {
-            VkCommandBuffer cmd = vkMgr->BeginSingleTimeCommands();
-            VkImage image = vkMgr->GetSwapchainImage();
-            VkImageMemoryBarrier barrier{};
-            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = image;
-            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.levelCount = 1;
-            barrier.subresourceRange.layerCount = 1;
-            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr,
-                                 1, &barrier);
-            vkMgr->SubmitCommand(cmd);
-        }
-
-        vkMgr->PostDraw();
-        return;
     }
 #endif
     mRenderer->preDraw(mModelContext.get());

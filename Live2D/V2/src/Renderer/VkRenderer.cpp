@@ -453,18 +453,21 @@ static void beginRendering(VkCommandBuffer cmd, VkImageView view, uint32_t width
 }
 
 void VkRenderer::preDraw(ModelContext* context) {
-    // 帧首复位 arena（mask pass 与 main pass 共用，SubmitCommand 同步保证覆盖安全）
+    // 帧首复位 arena（帧内所有录制共用，EndFrame 提交后等待 GPU 空闲，覆盖安全）
     mVbOffset = 0;
     mIbOffset = 0;
     mUboIndex = 0;
 
-    if (!mClipManager)
+    if (!mClipManager || !mMaskDirty)
         return;
 
+    // mask 脏（本帧 Update 过或首次绘制）才重渲：模型自管 mask 阶段——
+    // 挂起帧主区间 → 录制 mask 区间 → 恢复帧主区间（帧流程对 mask 无感知）
     VulkanManager* mgr = VulkanManager::GetInstance();
-    VkCommandBuffer cmd = mgr->BeginSingleTimeCommands();
+    VkCommandBuffer cmd = mgr->GetFrameCommandBuffer();
 
-    // mask image: SHADER_READ(或首帧 UNDEFINED) → COLOR_ATTACHMENT
+    mgr->SuspendMainRegion();
+    // mask image: 上帧 SHADER_READ → COLOR_ATTACHMENT（每帧全量重写）
     imageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     beginRendering(cmd, mMaskView, MASK_SIZE, MASK_SIZE, /*clear=*/true);
     mCurrentCmd = cmd;
@@ -473,22 +476,17 @@ void VkRenderer::preDraw(ModelContext* context) {
     vkCmdEndRendering(cmd);
     imageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    mgr->ResumeMainRegion();
 
-    mgr->SubmitCommand(cmd);
+    mMaskDirty = false;
 }
 
 void VkRenderer::draw(ModelContext* context) {
     if (context->mOrderListFirstDrawIndex.empty())
         return;
 
-    VulkanManager* mgr = VulkanManager::GetInstance();
-    auto* sc = mgr->GetSwapchainManager();
-    VkExtent2D ext = sc->GetExtent();
-
-    VkCommandBuffer cmd = mgr->BeginSingleTimeCommands();
-    // swapchain image 已由 clear pass 转为 COLOR_ATTACHMENT 并清屏，这里 LOAD 续画
-    beginRendering(cmd, mgr->GetSwapchainImageView(), ext.width, ext.height, /*clear=*/false);
-    mCurrentCmd = cmd;
+    // 纯录制：帧主区间已由 vkBeginFrame 打开（clear 过），直接向帧命令缓冲录制
+    mCurrentCmd = VulkanManager::GetInstance()->GetFrameCommandBuffer();
 
     for (size_t i = 0; i < context->mOrderListFirstDrawIndex.size(); i++) {
         int idx = context->mOrderListFirstDrawIndex[i];
@@ -509,8 +507,6 @@ void VkRenderer::draw(ModelContext* context) {
     }
 
     mCurrentCmd = VK_NULL_HANDLE;
-    vkCmdEndRendering(cmd);
-    mgr->SubmitCommand(cmd);
 }
 
 void VkRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,

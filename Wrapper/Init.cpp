@@ -192,6 +192,97 @@ static PyObject* live2d_vk_destroy(PyObject* /*self*/, PyObject* /*args*/) {
     Py_RETURN_NONE;
 }
 
+// ---- 帧解耦接口 ------------------------------------------------------------
+// 模型 Draw 仅录制命令；帧流程（acquire/clear/present）由 Python 每帧驱动：
+//   vkGetHandles() -> {"physical_device", "device", "color_format",
+//                      "frames_in_flight"}（vkInit 之后调用）
+//   vkBeginFrame() -> (cmd, frame_index, width, height) 或 None（交换链失效，
+//                      本帧应跳过；cmd 为帧命令缓冲指针，区间已打开并清屏）
+//   vkEndFrame()   -> None（结束区间 → 提交等待 imageAvailable → present）
+//   vkSubmitOnce(fn) -> 在 rendering 区间外的一次性命令缓冲上执行 fn(cmd: int)，
+//                       提交并等待完成（纹理上传等一次性 GPU 操作）
+static PyObject* live2d_vk_get_handles(PyObject* /*self*/, PyObject* /*args*/) {
+#ifdef CSM_TARGET_VULKAN
+    VulkanManager* vkManager = VulkanManager::GetInstance();
+    if (!vkManager->IsInitialized()) {
+        PyErr_SetString(PyExc_RuntimeError, "Vulkan is not initialized (call vkInit first)");
+        return NULL;
+    }
+    SwapchainManager* swapchain = vkManager->GetSwapchainManager();
+    return Py_BuildValue(
+        "{s:K,s:K,s:i,s:I}",
+        "physical_device", (unsigned long long)vkManager->GetPhysicalDevice(),
+        "device", (unsigned long long)vkManager->GetDevice(),
+        "color_format", (int)swapchain->GetSwapchainImageFormat(),
+        "frames_in_flight", (unsigned int)vkManager->GetFramesInFlight());
+#else
+    LOGE("vkGetHandles called but Vulkan backend is not enabled in this build");
+    std::abort();
+#endif
+}
+
+static PyObject* live2d_vk_begin_frame(PyObject* /*self*/, PyObject* /*args*/) {
+#ifdef CSM_TARGET_VULKAN
+    VulkanManager* vkManager = VulkanManager::GetInstance();
+    if (!vkManager->BeginFrame()) {
+        Py_RETURN_NONE;   // 交换链失效/重建，本帧跳过
+    }
+    VkExtent2D extent = vkManager->GetSwapchainManager()->GetExtent();
+    return Py_BuildValue(
+        "(KIII)",
+        (unsigned long long)vkManager->GetFrameCommandBuffer(),
+        (unsigned int)vkManager->GetCurrentImageIndex(),
+        (unsigned int)extent.width,
+        (unsigned int)extent.height);
+#else
+    LOGE("vkBeginFrame called but Vulkan backend is not enabled in this build");
+    std::abort();
+#endif
+}
+
+static PyObject* live2d_vk_end_frame(PyObject* /*self*/, PyObject* /*args*/) {
+#ifdef CSM_TARGET_VULKAN
+    VulkanManager::GetInstance()->EndFrame();
+#else
+    LOGE("vkEndFrame called but Vulkan backend is not enabled in this build");
+    std::abort();
+#endif
+    Py_RETURN_NONE;
+}
+
+static PyObject* live2d_vk_submit_once(PyObject* /*self*/, PyObject* args) {
+#ifdef CSM_TARGET_VULKAN
+    PyObject* callback = NULL;
+    if (!PyArg_ParseTuple(args, "O", &callback) || !PyCallable_Check(callback)) {
+        PyErr_SetString(PyExc_TypeError, "expected a callable");
+        return NULL;
+    }
+    VulkanManager* vkManager = VulkanManager::GetInstance();
+    if (!vkManager->IsInitialized()) {
+        PyErr_SetString(PyExc_RuntimeError, "Vulkan is not initialized (call vkInit first)");
+        return NULL;
+    }
+
+    VkCommandBuffer cmd = vkManager->BeginSingleTimeCommands();
+    PyObject* cmdObj = PyLong_FromUnsignedLongLong((unsigned long long)cmd);
+    if (!cmdObj) {
+        return NULL;
+    }
+    PyObject* ret = PyObject_CallFunctionObjArgs(callback, cmdObj, NULL);
+    Py_DECREF(cmdObj);
+    if (!ret) {
+        return NULL;   // 回调抛出的异常向上传递
+    }
+    Py_DECREF(ret);
+
+    vkManager->SubmitCommand(cmd);
+#else
+    LOGE("vkSubmitOnce called but Vulkan backend is not enabled in this build");
+    std::abort();
+#endif
+    Py_RETURN_NONE;
+}
+
 static PyObject* live2d_enable_log(PyObject* self, PyObject* args) {
     bool enable;
     if (!PyArg_ParseTuple(args, "b", &enable)) {
@@ -254,6 +345,10 @@ static PyMethodDef live2d_methods[] = {
     {"clearBuffer", (PyCFunction)live2d_clear_buffer, METH_VARARGS, ""},
     {"vkInit", (PyCFunction)live2d_vk_init, METH_VARARGS, ""},
     {"vkDestroy", (PyCFunction)live2d_vk_destroy, METH_VARARGS, ""},
+    {"vkGetHandles", (PyCFunction)live2d_vk_get_handles, METH_NOARGS, ""},
+    {"vkBeginFrame", (PyCFunction)live2d_vk_begin_frame, METH_NOARGS, ""},
+    {"vkEndFrame", (PyCFunction)live2d_vk_end_frame, METH_NOARGS, ""},
+    {"vkSubmitOnce", (PyCFunction)live2d_vk_submit_once, METH_VARARGS, ""},
     {"enableLog", (PyCFunction)live2d_enable_log, METH_VARARGS, ""},
     {"isLogEnabled", (PyCFunction)live2d_is_log_enabled, METH_VARARGS, ""},
     {"setLogLevel", (PyCFunction)live2d_set_log_level, METH_VARARGS, ""},

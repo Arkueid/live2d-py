@@ -208,6 +208,53 @@ public:
      */
     void RecreateSwapchain();
 
+    // ---- 帧解耦接口（由 Python 侧每帧驱动） ----
+
+    /**
+     * @brief   开始一帧
+     *          获取 swapchain 图像 → 开始录制帧命令缓冲 →
+     *          开始主 rendering 区间（loadOp=CLEAR）
+     * @return  false: swapchain 失效并已重建，本帧应跳过
+     */
+    bool BeginFrame();
+
+    /**
+     * @brief   结束一帧
+     *          结束主 rendering 区间 → present 布局迁移 → 提交 → 呈现
+     */
+    void EndFrame();
+
+    /**
+     * @brief   挂起主 rendering 区间（用于向 mask 等其他目标录制，
+     *          在帧命令缓冲上执行 vkCmdEndRendering）
+     */
+    void SuspendMainRegion();
+
+    /**
+     * @brief   恢复主 rendering 区间（loadOp=LOAD，保留已有内容）
+     */
+    void ResumeMainRegion();
+
+    /**
+     * @brief   帧是否正在录制中
+     */
+    bool IsFrameActive() const { return _frameActive; }
+
+    /**
+     * @brief   获取当前帧命令缓冲（纯录制模式用）
+     */
+    VkCommandBuffer GetFrameCommandBuffer() const { return _frameCmd; }
+
+    /**
+     * @brief   本帧获取到的 swapchain 图像索引
+     */
+    uint32_t GetCurrentImageIndex() const { return _imageIndex; }
+
+    /**
+     * @brief   可同时飞行的帧数（swapchain 图像数量）
+     */
+    uint32_t GetFramesInFlight() const;
+
     /**
      * @brief   リソースを破棄する
      */
@@ -308,6 +355,8 @@ private:
     VkFormat _depthFormat;                                      // 深度フォーマット
     const VkFormat _surfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;   // イメージフォーマット
     bool _framebufferResized = false;                           // フレームバッファのサイズが変わったか
+    VkCommandBuffer _frameCmd = VK_NULL_HANDLE;                 // 帧解耦模式的常驻命令缓冲
+    bool _frameActive = false;                                  // 是否处于 BeginFrame~EndFrame 之间
 #ifdef CSM_DEBUG
     bool _enableValidationLayers = true;                        // 検証レイヤーを有効にするか
 #else

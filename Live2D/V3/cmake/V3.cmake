@@ -12,11 +12,6 @@ if (${GR_BACKEND} MATCHES "Vulkan")
 else()
   include(${CMAKE_CURRENT_LIST_DIR}/Framework.OpenGL.cmake)
 endif()
-# 在配置阶段立即执行文件修改脚本
-include(${CMAKE_CURRENT_LIST_DIR}/PatchCubismShader_OpenGLES2.cmake)
-if (${GR_BACKEND} MATCHES "Vulkan")
-  include(${CMAKE_CURRENT_LIST_DIR}/PatchCubismRenderer_Vulkan.cmake)
-endif()
 
 add_subdirectory(${LIVE2D_ROOT}/V3/src)
 

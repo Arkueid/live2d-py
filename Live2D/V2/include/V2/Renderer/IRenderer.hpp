@@ -33,6 +33,11 @@ public:
     virtual void draw(ModelContext* context) = 0;
 
     /**
+     * @brief 标记裁剪遮罩内容已变化需重渲（仅 Vulkan 后端使用，GL 默认每帧重渲）
+     */
+    virtual void setMaskDirty() {}
+
+    /**
      * @brief 绘制单个 drawable（mesh）
      */
     virtual void drawTexture(int texNo, const std::array<float, 4>& screenColor,

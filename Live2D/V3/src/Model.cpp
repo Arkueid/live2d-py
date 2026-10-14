@@ -13,6 +13,7 @@
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
 #else
 #include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
+#include <Rendering/Vulkan/CubismRendererFrameDecouple.hpp>
 #include <Rendering/Vulkan/CubismDeviceInfo_Vulkan.hpp>
 #include <VulkanManager.hpp>
 #endif
@@ -1050,60 +1051,26 @@ void Model::Draw() {
         return;
     }
 
-    // --- スワップチェーンイメージの取得 ---
-    vkManager->UpdateDrawFrame();
-    if (vkManager->GetIsWindowSizeChanged()) {
-        vkManager->RecreateSwapchain();
-        vkManager->SetIsWindowSizeChanged(false);
-        // このフレームは破棄（次フレームで再取得）
+    // 帧解耦：acquire/clear/present 由外部 vkBeginFrame/vkEndFrame 驱动，
+    // Draw 仅向帧命令缓冲录制；mask/自有区间由渲染器经挂起/恢复钩子自管
+    if (!vkManager->IsFrameActive()) {
         return;
     }
 
     SwapchainManager* swapchain = vkManager->GetSwapchainManager();
 
-    // --- PreModelDraw: スワップチェーンイメージのクリア ---
-    {
-        VkCommandBuffer commandBuffer = vkManager->BeginSingleTimeCommands();
-
-        // レイアウト変更
-        VkImageMemoryBarrier memoryBarrier{};
-        memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        memoryBarrier.srcAccessMask = 0;
-        memoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        memoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        memoryBarrier.image = vkManager->GetSwapchainImage();
-        memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
-                             nullptr, 1, &memoryBarrier);
-
-        VkRenderingAttachmentInfoKHR colorAttachment{};
-        colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-        colorAttachment.imageView = vkManager->GetSwapchainImageView();
-        colorAttachment.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.clearValue = {{0.0f, 0.0f, 0.0f, 1.0f}};
-
-        VkRenderingInfo renderingInfo{};
-        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-        renderingInfo.renderArea = {{0, 0}, swapchain->GetExtent()};
-        renderingInfo.layerCount = 1;
-        renderingInfo.colorAttachmentCount = 1;
-        renderingInfo.pColorAttachments = &colorAttachment;
-
-        vkCmdBeginRendering(commandBuffer, &renderingInfo);
-        vkCmdEndRendering(commandBuffer);
-        // 最初の提出はイメージ取得セマフォを待つ
-        vkManager->SubmitCommand(commandBuffer, true);
-    }
-
+    // 每帧刷新渲染目标（swapchain 图像随帧轮转）
     Rendering::CubismRenderer_Vulkan::SetRenderTarget(
         vkManager->GetSwapchainImage(), vkManager->GetSwapchainImageView(),
         swapchain->GetSwapchainImageFormat(), swapchain->GetExtent());
 
     renderer->SetMvpMatrix(&matrix);
+
+    // 注册外部帧录制：帧命令缓冲 + 主区间挂起/恢复钩子（每次 Draw 刷新）
+    Rendering::SetExternalFrameRecording(
+        vkManager->GetFrameCommandBuffer(),
+        [](VkCommandBuffer) { VulkanManager::GetInstance()->SuspendMainRegion(); },
+        [](VkCommandBuffer) { VulkanManager::GetInstance()->ResumeMainRegion(); });
 
     // モデルで使用するオフスクリーン管理の開始
     Rendering::CubismDeviceInfo_Vulkan* deviceInfo =
@@ -1113,28 +1080,6 @@ void Model::Draw() {
     renderer->DrawModel();
 
     deviceInfo->GetOffscreenManager()->EndFrameProcess();
-
-    // --- PostModelDraw: 表示用レイアウトへ変更 ---
-    {
-        VkCommandBuffer commandBuffer = vkManager->BeginSingleTimeCommands();
-
-        VkImageMemoryBarrier memoryBarrier{};
-        memoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        memoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        memoryBarrier.dstAccessMask = 0;
-        memoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        memoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        memoryBarrier.image = vkManager->GetSwapchainImage();
-        memoryBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
-                             &memoryBarrier);
-
-        vkManager->SubmitCommand(commandBuffer);
-    }
-
-    // --- 表示 ---
-    vkManager->PostDraw();
 #endif
 }
 

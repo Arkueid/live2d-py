@@ -3,7 +3,8 @@
 与 OpenGL 版示例的区别：
 1. 窗口 hint 使用 CLIENT_API = NO_API（不创建 GL 上下文）；
 2. 不调用 live2d.glInit / clearBuffer / swap_buffers ——
-   Vulkan 的 acquire/clear/draw/present 全部在 model.Draw() 内部完成；
+   帧流程由 Python 驱动：每帧 vkBeginFrame()（acquire → 清屏 → 打开主区间）
+   → model.Draw()（仅录制命令）→ vkEndFrame()（提交 → present）；
 3. live2d.vkInit 由 Python 侧传入原生窗口句柄（Windows 下为 HWND），
    surface 创建由 VulkanManager 内部的 vkCreateWin32SurfaceKHR 完成，
    不需要注入 glfwCreateWindowSurface 函数指针。
@@ -31,7 +32,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_WARN)
 
 
-LIVE2D_VERSION = 2
+LIVE2D_VERSION = 3
 
 if LIVE2D_VERSION == 2:
     from live2d import StandardParamsV2 as StandardParams
@@ -83,7 +84,7 @@ def main():
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn_min.model3.json"), create_renderer=False)
     elif LIVE2D_VERSION == 2:
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
@@ -233,8 +234,13 @@ def main():
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
-        # Vulkan 帧（acquire → clear → 绘制 → present）全部封装在 Draw() 内
-        model.Draw()
+        # 帧解耦：BeginFrame 打开主区间并清屏，Draw 仅录制命令，
+        # 多模型/自定义绘制可在各 Draw() 之间直接向 cmd 注入命令
+        frame = live2d.vkBeginFrame()
+        if frame is not None:
+            _cmd, _frame_index, width, height = frame
+            model.Draw()
+            live2d.vkEndFrame()
 
         if model.IsMotionFinished():
             model.StartRandomMotion(priority=3)

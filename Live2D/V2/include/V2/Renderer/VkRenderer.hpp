@@ -25,8 +25,8 @@ class ClippingManagerVulkan;
  *  - FBO 裁剪遮罩 → 256x256 offscreen image（mask pass 动态渲染 → barrier → 主 pass 采样）
  *  - glViewport → 负高度 viewport（保持 GL NDC/y 语义，矩阵无需翻转）
  *
- * 帧流程（由 V2::Model::Draw 驱动，见 Model.cpp）：
- *  UpdateDrawFrame → clear pass → preDraw(mask pass) → draw(main pass) → present barrier
+ * 帧流程（帧解耦，由外部 vkBeginFrame/vkEndFrame 驱动，见 VulkanManager）：
+ *  preDraw（mask 脏时：挂起帧主区间 → 录制 mask 区间 → 恢复）→ draw（纯录制进帧主区间）
  */
 class VkRenderer : public IRenderer {
 public:
@@ -41,6 +41,7 @@ public:
 
     void preDraw(ModelContext* modelContext) override;
     void draw(ModelContext* modelContext) override;
+    void setMaskDirty() override { mMaskDirty = true; }
 
     void drawTexture(int texNo, const std::array<float, 4>& screenColor,
                      const std::vector<int16_t>& indices, const std::vector<float>& vertices,
@@ -132,6 +133,7 @@ private:
     static constexpr uint32_t MASK_SIZE = 256;
 
     VkCommandBuffer mCurrentCmd = VK_NULL_HANDLE;   // 当前录制目标
+    bool mMaskDirty = true;   // mask 需重渲（首次为 true，此后由 setMaskDirty 标记）
 
     std::shared_ptr<ClippingManagerVulkan> mClipManager;
 };

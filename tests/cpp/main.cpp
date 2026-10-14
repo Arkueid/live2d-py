@@ -475,8 +475,14 @@ int main(int argc, char* argv[]) {
             glViewport(0, 0, winW, winH);
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
-#endif
             model->Draw();
+#else
+            // 帧解耦：帧流程由 BeginFrame/EndFrame 驱动，Draw 仅录制命令
+            if (VulkanManager::GetInstance()->BeginFrame()) {
+                model->Draw();
+                VulkanManager::GetInstance()->EndFrame();
+            }
+#endif
             frameCount++;
             fpsFrames++;
 #ifndef CSM_TARGET_VULKAN

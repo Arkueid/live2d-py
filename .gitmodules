@@ -7,3 +7,6 @@
 [submodule "wiki"]
 	path = wiki
 	url = https://github.com/EasyLive2D/live2d-py.wiki.git
+[submodule "Live2D/V3/Framework"]
+	path = Live2D/V3/Framework
+	url = https://github.com/Arkueid/CubismNativeFramework.git

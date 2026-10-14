@@ -590,6 +590,195 @@ void VulkanManager::RecreateSwapchain()
     _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
 }
 
+// ---- 帧解耦接口实现 ----
+
+bool VulkanManager::BeginFrame()
+{
+    if (!IsInitialized())
+    {
+        LOGE("VulkanManager is not initialized");
+        return false;
+    }
+
+    if (_frameActive)
+    {
+        LOGE("BeginFrame called while a frame is already active");
+        return false;
+    }
+
+    // 上一帧 present 后标记的失效：先重建，让调用方本帧跳过
+    if (_isSwapchainInvalid)
+    {
+        RecreateSwapchain();
+        _isSwapchainInvalid = false;
+        return false;
+    }
+
+    // 获取 swapchain 图像；失效时先重建，让调用方本帧跳过
+    UpdateDrawFrame();
+    if (_isSwapchainInvalid)
+    {
+        _isSwapchainInvalid = false;
+        RecreateSwapchain();
+        return false;
+    }
+
+    // 常驻帧命令缓冲：分配一次，每帧重置复用
+    if (_frameCmd == VK_NULL_HANDLE)
+    {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = _commandPool;
+        allocInfo.commandBufferCount = 1;
+        if (vkAllocateCommandBuffers(_device, &allocInfo, &_frameCmd) != VK_SUCCESS)
+        {
+            LOGE("failed to allocate frame command buffer!");
+        }
+    }
+
+    vkResetCommandBuffer(_frameCmd, 0);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    vkBeginCommandBuffer(_frameCmd, &beginInfo);
+
+    // 布局迁移：UNDEFINED → COLOR_ATTACHMENT_OPTIMAL（present 后布局视为 UNDEFINED）
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = _swapchainManager->GetImages()[_imageIndex];
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    vkCmdPipelineBarrier(_frameCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
+                         0, nullptr, 0, nullptr, 1, &barrier);
+
+    // 开始主 rendering 区间：清屏为透明（premultiplied-alpha 下正确叠加模型）
+    VkRenderingAttachmentInfo colorAttachment{};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.imageView = _swapchainManager->GetImageViews()[_imageIndex];
+    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.clearValue.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
+
+    VkExtent2D extent = _swapchainManager->GetExtent();
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.renderArea.offset = {0, 0};
+    renderingInfo.renderArea.extent = extent;
+    renderingInfo.layerCount = 1;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &colorAttachment;
+    vkCmdBeginRendering(_frameCmd, &renderingInfo);
+
+    _frameActive = true;
+    return true;
+}
+
+void VulkanManager::EndFrame()
+{
+    if (!_frameActive)
+    {
+        LOGE("EndFrame called without an active frame");
+        return;
+    }
+    _frameActive = false;
+
+    // 结束主 rendering 区间
+    vkCmdEndRendering(_frameCmd);
+
+    // 布局迁移：COLOR_ATTACHMENT_OPTIMAL → PRESENT_SRC_KHR
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = _swapchainManager->GetImages()[_imageIndex];
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = 0;
+    vkCmdPipelineBarrier(_frameCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0,
+                         0, nullptr, 0, nullptr, 1, &barrier);
+
+    vkEndCommandBuffer(_frameCmd);
+
+    // 提交：等待帧首 acquire 发出的 imageAvailable 信号量
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &_frameCmd;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &_imageAvailableSemaphore;
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.pWaitDstStageMask = waitStages;
+    vkQueueSubmit(_graphicQueue, 1, &submitInfo, VK_NULL_HANDLE);
+
+    PostDraw();
+
+    // 与原逐段提交行为保持一致：帧末等待 GPU 完成，
+    // 保证下一帧帧首复位 arena / 复用 mask 图像内容时无竞争
+    vkQueueWaitIdle(_graphicQueue);
+}
+
+void VulkanManager::SuspendMainRegion()
+{
+    if (!_frameActive)
+    {
+        LOGE("SuspendMainRegion called without an active frame");
+        return;
+    }
+    vkCmdEndRendering(_frameCmd);
+}
+
+void VulkanManager::ResumeMainRegion()
+{
+    if (!_frameActive)
+    {
+        LOGE("ResumeMainRegion called without an active frame");
+        return;
+    }
+
+    // 挂起期间图像布局保持 COLOR_ATTACHMENT_OPTIMAL，恢复区间无需 barrier；
+    // loadOp=LOAD 保留挂起前已绘制的内容
+    VkRenderingAttachmentInfo colorAttachment{};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.imageView = _swapchainManager->GetImageViews()[_imageIndex];
+    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+    VkExtent2D extent = _swapchainManager->GetExtent();
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.renderArea.offset = {0, 0};
+    renderingInfo.renderArea.extent = extent;
+    renderingInfo.layerCount = 1;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &colorAttachment;
+    vkCmdBeginRendering(_frameCmd, &renderingInfo);
+}
+
+uint32_t VulkanManager::GetFramesInFlight() const
+{
+    if (_swapchainManager == nullptr)
+    {
+        return 0;
+    }
+    return static_cast<uint32_t>(_swapchainManager->GetImageCount());
+}
+
 void VulkanManager::Destroy()
 {
     if (!IsInitialized())
@@ -597,6 +786,10 @@ void VulkanManager::Destroy()
         return;
     }
     vkDeviceWaitIdle(_device);
+
+    // 释放帧解耦模式的常驻命令缓冲（随 command pool 一并销毁，仅复位指针）
+    _frameCmd = VK_NULL_HANDLE;
+    _frameActive = false;
 
     if (_swapchainManager != NULL)
     {
