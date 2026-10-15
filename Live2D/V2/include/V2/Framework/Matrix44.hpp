@@ -9,13 +9,13 @@ class Matrix44 {
 public:
     Matrix44();
 
-    void identity();
-    void setMatrix(const float m[16]);
-    void multTranslate(float x, float y, float z);
-    void multScale(float sx, float sy, float sz);
-    std::array<float, 16>& getArray() { return mMatrix; }
+    void Identity();
+    void SetMatrix(const float m[16]);
+    void MultTranslate(float x, float y, float z);
+    void MultScale(float sx, float sy, float sz);
+    std::array<float, 16>& GetArray() { return mMatrix; }
 
-    static Matrix44 mul(const Matrix44& a, const Matrix44& b);
+    static Matrix44 Mul(const Matrix44& a, const Matrix44& b);
 
 private:
     std::array<float, 16> mMatrix;

@@ -1,11 +1,8 @@
 #include "GLRenderer.hpp"
 #include "Log.hpp"
 #include "ClippingManagerOpenGL.hpp"
-#include "PartsData.hpp"
-#include "PartsDataContext.hpp"
-#include "Mesh.hpp"
-#include "MeshContext.hpp"
-#include "ModelContext.hpp"
+#include "ClipContext.hpp"
+#include "Moc.hpp"
 #include <cstdio>
 #include <cstring>
 #ifdef __ANDROID__
@@ -109,7 +106,7 @@ static const char* sFragMask = SHADER_VER
     "    gl_FragColor = col_formask;"
     "}";
 
-GLRenderer::GLRenderer(ModelContext* modelContext, int textureCount)
+GLRenderer::GLRenderer(Moc* moc, int textureCount)
     : mShaderNormal(0)
     , mShaderMask(0)
     , mFramebuffer(0)
@@ -119,18 +116,14 @@ GLRenderer::GLRenderer(ModelContext* modelContext, int textureCount)
     , mEBO(0)
     , mCulling(false) {
     mTextures.resize(textureCount, 0);
-    init(modelContext);
+    Init(moc);
 }
 
-void GLRenderer::init(ModelContext* modelContext) {
-    initShaders();
+void GLRenderer::Init(Moc* moc) {
+    InitShaders();
 
     mClipManager = std::make_unique<ClippingManagerOpenGL>(*this);
-    std::vector<MeshContext*> rawDrawCtxs;
-    rawDrawCtxs.reserve(modelContext->mDrawContextList.size());
-    for (auto& ctx : modelContext->mDrawContextList)
-        rawDrawCtxs.push_back(ctx.get());
-    mClipManager->init(modelContext, modelContext->mDrawDataList, rawDrawCtxs);
+    mClipManager->Init(moc);
 }
 
 GLRenderer::~GLRenderer() {
@@ -153,7 +146,7 @@ GLRenderer::~GLRenderer() {
             glDeleteTextures(1, &t);
 }
 
-GLuint GLRenderer::compileShader(GLenum type, const char* src) {
+GLuint GLRenderer::CompileShader(GLenum type, const char* src) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &src, nullptr);
     glCompileShader(shader);
@@ -169,10 +162,10 @@ GLuint GLRenderer::compileShader(GLenum type, const char* src) {
     return shader;
 }
 
-void GLRenderer::initShaders() {
+void GLRenderer::InitShaders() {
     // Normal program: aK vertex + aM fragment
-    GLuint vsNorm = compileShader(GL_VERTEX_SHADER, sVertNormal);
-    GLuint fsNorm = compileShader(GL_FRAGMENT_SHADER, sFragNormal);
+    GLuint vsNorm = CompileShader(GL_VERTEX_SHADER, sVertNormal);
+    GLuint fsNorm = CompileShader(GL_FRAGMENT_SHADER, sFragNormal);
     mShaderNormal = glCreateProgram();
     glAttachShader(mShaderNormal, vsNorm);
     glAttachShader(mShaderNormal, fsNorm);
@@ -192,8 +185,8 @@ void GLRenderer::initShaders() {
     glDeleteShader(fsNorm);
 
     // Mask program: aL vertex + aJ fragment
-    GLuint vsMask = compileShader(GL_VERTEX_SHADER, sVertMask);
-    GLuint fsMask = compileShader(GL_FRAGMENT_SHADER, sFragMask);
+    GLuint vsMask = CompileShader(GL_VERTEX_SHADER, sVertMask);
+    GLuint fsMask = CompileShader(GL_FRAGMENT_SHADER, sFragMask);
     mShaderMask = glCreateProgram();
     glAttachShader(mShaderMask, vsMask);
     glAttachShader(mShaderMask, fsMask);
@@ -229,7 +222,7 @@ void GLRenderer::initShaders() {
     mUniforms.maskTexture1 = glGetUniformLocation(mShaderMask, "s_texture1");
 }
 
-GLuint GLRenderer::createVBO(const std::vector<float>& data, int loc, int size) {
+GLuint GLRenderer::CreateVBO(const std::vector<float>& data, int loc, int size) {
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -239,7 +232,7 @@ GLuint GLRenderer::createVBO(const std::vector<float>& data, int loc, int size) 
     return vbo;
 }
 
-GLuint GLRenderer::createEBO(const std::vector<int16_t>& data) {
+GLuint GLRenderer::CreateEBO(const std::vector<int16_t>& data) {
     GLuint ebo;
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -248,12 +241,12 @@ GLuint GLRenderer::createEBO(const std::vector<int16_t>& data) {
     return ebo;
 }
 
-void GLRenderer::clearBuffer(float r, float g, float b, float a) {
+void GLRenderer::ClearBuffer(float r, float g, float b, float a) {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void GLRenderer::setupDraw(ModelContext* modelContext) {
+void GLRenderer::SetupDraw(Moc* moc) {
     glGetIntegerv(GL_CURRENT_PROGRAM, reinterpret_cast<GLint*>(&mCurrentProgram));
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&mCurrentFBO));
     glDisable(GL_SCISSOR_TEST);
@@ -266,7 +259,7 @@ void GLRenderer::setupDraw(ModelContext* modelContext) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void GLRenderer::endDraw() {
+void GLRenderer::EndDraw() {
     glBindFramebuffer(GL_FRAMEBUFFER, mCurrentFBO);
     // When changing model: v2cpp => v3,
     // v3 may get save the wrong program id to `lastProgramId`
@@ -276,15 +269,15 @@ void GLRenderer::endDraw() {
     glUseProgram(mCurrentProgram);
 }
 
-void GLRenderer::setMatrix(const float m[16]) {
+void GLRenderer::SetMatrix(const float m[16]) {
     std::memcpy(mMatrix4x4.data(), m, 16 * sizeof(float));
 }
 
-void GLRenderer::setClipMatrix(const float m[16]) {
+void GLRenderer::SetClipMatrix(const float m[16]) {
     std::memcpy(mClipMatrix.data(), m, 16 * sizeof(float));
 }
 
-int GLRenderer::createFramebuffer() {
+int GLRenderer::CreateFramebuffer() {
     if (mFramebuffer == 0)
         glGenFramebuffers(1, &mFramebuffer);
     if (mFramebufferTexture == 0)
@@ -305,27 +298,28 @@ int GLRenderer::createFramebuffer() {
     return (int)mFramebuffer;
 }
 
-void GLRenderer::bindFramebuffer(int fb) {
+void GLRenderer::BindFramebuffer(int fb) {
     if (fb == -1)
         fb = mFramebuffer;
     glBindFramebuffer(GL_FRAMEBUFFER, fb ? fb : mCurrentFBO);
 }
 
-void GLRenderer::setTexture(int no, GLuint texId) {
+void GLRenderer::SetTexture(int no, GLuint texId) {
     if (no >= (int)mTextures.size())
         mTextures.resize(no + 1, 0);
     mTextures[no] = texId;
 }
 
-GLuint GLRenderer::getTexture(int no) const {
+GLuint GLRenderer::GetTexture(int no) const {
     if (no >= 0 && no < (int)mTextures.size())
         return mTextures[no];
     return 0;
 }
 
-void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
-                             const std::vector<int16_t>& indices,
-                             const std::vector<float>& vertices, const std::vector<float>& uvs,
+void GLRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
+                             const uint16_t* indices, int indexCount,
+                             const float* vertices, int vertexFloatCount,
+                             const float* uvs, int uvFloatCount,
                              float opacity, int compositionType,
                              const std::array<float, 4>& multiplyColor) {
     if (opacity < 0.01f && !mClipMaskMode)
@@ -359,7 +353,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         glUniform4f(mUniforms.normScreenColor, 0, 0, 0, 0);
         glUniform4f(mUniforms.normMultiplyColor, 1, 1, 1, 0);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, getTexture(texNo));
+        glBindTexture(GL_TEXTURE_2D, GetTexture(texNo));
         glUniform1i(mUniforms.normTexture0, 1);
     } else if (mClipDrawMode) {
         // Path 2: Clipped DRAW — uses mask FBO
@@ -381,7 +375,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
               chB = (mClipChannel == 2) ? 1.0f : 0, chA = (mClipChannel == 3) ? 1.0f : 0;
         glUniform4f(mUniforms.maskChannelFlag, chR, chG, chB, chA);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, getTexture(texNo));
+        glBindTexture(GL_TEXTURE_2D, GetTexture(texNo));
         glUniform1i(mUniforms.maskTexture0, 1);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, mFramebufferTexture);
@@ -405,7 +399,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
                     multiplyColor[3]);
         glUniform4f(mUniforms.normChannelFlag, 0, 0, 0, 0);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, getTexture(texNo));
+        glBindTexture(GL_TEXTURE_2D, GetTexture(texNo));
         glUniform1i(mUniforms.normTexture0, 1);
     }
 
@@ -482,7 +476,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         glGenBuffers(1, &mPosVBO);
     glBindBuffer(GL_ARRAY_BUFFER, mPosVBO);
     glBufferData(
-        GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
+        GL_ARRAY_BUFFER, vertexFloatCount * sizeof(float), vertices, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
@@ -490,7 +484,7 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     if (!mUVVBO)
         glGenBuffers(1, &mUVVBO);
     glBindBuffer(GL_ARRAY_BUFFER, mUVVBO);
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(float), uvs.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, uvFloatCount * sizeof(float), uvs, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
@@ -499,9 +493,9 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
         glGenBuffers(1, &mEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
     glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int16_t), indices.data(), GL_DYNAMIC_DRAW);
+        GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint16_t), indices, GL_DYNAMIC_DRAW);
 
-    glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLES, (GLsizei)indexCount, GL_UNSIGNED_SHORT, 0);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -511,43 +505,52 @@ void GLRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 }
-void GLRenderer::resize(int w, int h) {
+void GLRenderer::Resize(int w, int h) {
     (void)w;
     (void)h;
 }
 
-void GLRenderer::preDraw(ModelContext* context) {
+void GLRenderer::PreDraw(Moc* moc) {
     if (mClipManager) {
-        setupDraw(context);
-        mClipManager->setupClip(context);
+        SetupDraw(moc);
+        mClipManager->SetupClip(moc);
     }
 }
 
-void GLRenderer::draw(ModelContext* context) {
-    if (context->mOrderListFirstDrawIndex.empty())
-        return;
-    setupDraw(context);
-    for (size_t i = 0; i < context->mOrderListFirstDrawIndex.size(); i++) {
-        int idx = context->mOrderListFirstDrawIndex[i];
-        if (idx == ModelContext::NOT_USED_ORDER)
-            continue;
-        while (true) {
-            auto* dd = static_cast<Mesh*>(context->mDrawDataList[idx]);
-            auto* ctx = context->mDrawContextList[idx].get();
-            const char* pid =
-                context->mPartsContextList[ctx->mPartsIndex]->mPartsData->getId()->str().c_str();
-            if (ctx->mAvailable) {
-                ctx->mPartsOpacity =
-                    context->mPartsContextList[ctx->mPartsIndex]->getPartsOpacity();
-                dd->draw(this, context, ctx);
-            }
-            int next = context->mNextListDrawIndex[idx];
-            if (next <= idx || next == ModelContext::NO_NEXT)
-                break;
-            idx = next;
+void GLRenderer::DrawDrawable(Moc* moc, int idx) {
+    // clip 状态切换仅正常绘制路径需要；mask 渲染路径不消费（旧路径 mask 源自身
+    // 带 clip 时会覆盖 matrixForMask，属无人触发角落，此处不再复现）
+    if (!mClipMaskMode) {
+        ClipContext* cc = mClipManager ? mClipManager->GetClipForDrawable(idx) : nullptr;
+        if (cc) {
+            SetClipChannel(cc->mLayoutChannelNo);
+            SetClipMatrix(cc->mMatrixForDraw.data());
         }
+        SetClipDrawMode(cc != nullptr);
     }
-    endDraw();
+    SetCulling(moc->GetDrawableCulling(idx));
+
+    int vertexFloatCount = moc->GetDrawableVertexCount(idx) * 2;
+    DrawTexture(moc->GetDrawableTextureIndex(idx),
+                moc->GetDrawableScreenColor(idx),
+                moc->GetDrawableVertexIndices(idx),
+                moc->GetDrawableVertexIndexCount(idx),
+                moc->GetDrawableVertices(idx), vertexFloatCount,
+                moc->GetDrawableVertexUvs(idx), vertexFloatCount,
+                moc->GetDrawableOpacity(idx),
+                moc->GetDrawableColorComposition(idx),
+                moc->GetDrawableMultiplyColor(idx));
+}
+
+void GLRenderer::Draw(Moc* moc) {
+    if (moc->GetDrawableCount() == 0)
+        return;
+    SetupDraw(moc);
+    int seqCount = 0;
+    const int* seq = moc->GetRenderSequence(seqCount);
+    for (int i = 0; i < seqCount; i++)
+        DrawDrawable(moc, seq[i]);
+    EndDraw();
 }
 
 }   // namespace V2

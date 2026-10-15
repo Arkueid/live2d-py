@@ -7,33 +7,33 @@ namespace V2 {
 ModelMatrix::ModelMatrix(float w, float h)
     : mWidth(w)
     , mHeight(h) {
-    identity();
+    Identity();
 }
 
-void ModelMatrix::identity() {
+void ModelMatrix::Identity() {
     mMat.fill(0);
     mMat[0] = mMat[5] = mMat[10] = mMat[15] = 1.0f;
 }
 
-void ModelMatrix::setWidth(float w) {
+void ModelMatrix::SetWidth(float w) {
     float sx = w / mWidth;
     float sy = -sx;
-    scale(sx, sy);
+    Scale(sx, sy);
 }
 
-void ModelMatrix::setHeight(float h) {
+void ModelMatrix::SetHeight(float h) {
     float sx = h / mHeight;
     float sy = -sx;
-    scale(sx, sy);
+    Scale(sx, sy);
 }
 
-void ModelMatrix::setCenterPosition(float x, float y) {
-    float w = mWidth * getScaleX();
-    float h = mHeight * getScaleY();
-    translate(x - w * 0.5f, y - h * 0.5f);
+void ModelMatrix::SetCenterPosition(float x, float y) {
+    float w = mWidth * GetScaleX();
+    float h = mHeight * GetScaleY();
+    Translate(x - w * 0.5f, y - h * 0.5f);
 }
 
-void ModelMatrix::translate(float x, float y) {
+void ModelMatrix::Translate(float x, float y) {
     // Match Python: absolute assignment, not relative accumulation
     mMat[12] = x;
     mMat[13] = y;
@@ -41,7 +41,7 @@ void ModelMatrix::translate(float x, float y) {
     mMat[15] = 1;
 }
 
-void ModelMatrix::scale(float sx, float sy) {
+void ModelMatrix::Scale(float sx, float sy) {
     // Match Python: assignment, NOT multiplication
     mMat[0] = sx;
     mMat[1] = 0;

@@ -1,6 +1,6 @@
 #include "Pose.hpp"
 #include "Id.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "UtSystem.hpp"
 #include "PartsParam.hpp"
 #include "nlohmann/json.hpp"
@@ -15,15 +15,15 @@ using json = nlohmann::json;
 
 Pose::Pose() = default;
 
-void PartData::initIndex(ModelContext* context) {
+void PartData::InitIndex(Moc* moc) {
     std::string paramId = "VISIBLE:" + id;
-    paramIndex = context->getParamIndex(&Id::getID(paramId));
-    partsIndex = context->getPartsDataIndex(&Id::getID(id));
+    paramIndex = moc->GetParamIndex(&Id::GetID(paramId));
+    partsIndex = moc->GetPartIndex(&Id::GetID(id));
     for (auto& l : link)
-        l.initIndex(context);
+        l.InitIndex(moc);
 }
 
-static void normalizeGroup(ModelContext* context, PosePartGroup& group, float deltaSec) {
+static void normalizeGroup(Moc* moc, PosePartGroup& group, float deltaSec) {
     int visibleIdx = -1;
     float visibleOpacity = 1.0f;
     float clearSec = 0.5f;
@@ -34,13 +34,13 @@ static void normalizeGroup(ModelContext* context, PosePartGroup& group, float de
         int pi = group.parts[i].paramIndex;
         if (pi < 0)
             continue;
-        if (context->getParamFloat(pi) != 0) {
+        if (moc->GetParamFloat(pi) != 0) {
             if (visibleIdx >= 0)
                 break;
             visibleIdx = i;
             int pIdx = group.parts[i].partsIndex;
             if (pIdx >= 0) {
-                visibleOpacity = context->getPartsOpacity(pIdx);
+                visibleOpacity = moc->GetPartsOpacity(pIdx);
                 visibleOpacity += deltaSec / clearSec;
                 if (visibleOpacity > 1.0f)
                     visibleOpacity = 1.0f;
@@ -58,9 +58,9 @@ static void normalizeGroup(ModelContext* context, PosePartGroup& group, float de
         if (pIdx < 0)
             continue;
         if (i == visibleIdx) {
-            context->setPartsOpacity(pIdx, visibleOpacity);
+            moc->SetPartsOpacity(pIdx, visibleOpacity);
         } else {
-            float cur = context->getPartsOpacity(pIdx);
+            float cur = moc->GetPartsOpacity(pIdx);
             float a1;
             if (visibleOpacity < phi)
                 a1 = visibleOpacity * (phi - 1.0f) / phi + 1.0f;
@@ -71,47 +71,47 @@ static void normalizeGroup(ModelContext* context, PosePartGroup& group, float de
             if (backOp > maxBack)
                 a1 = 1.0f - maxBack / (1.0f - visibleOpacity);
             cur = std::min(cur, a1);
-            context->setPartsOpacity(pIdx, cur);
+            moc->SetPartsOpacity(pIdx, cur);
         }
     }
 }
 
-static void copyOpacityOtherParts(ModelContext* context, PosePartGroup& group) {
+static void copyOpacityOtherParts(Moc* moc, PosePartGroup& group) {
     for (auto& p : group.parts) {
         if (p.partsIndex < 0)
             continue;
-        float op = context->getPartsOpacity(p.partsIndex);
+        float op = moc->GetPartsOpacity(p.partsIndex);
         for (auto& lp : p.link) {
             if (lp.partsIndex < 0)
                 continue;
-            context->setPartsOpacity(lp.partsIndex, op);
+            moc->SetPartsOpacity(lp.partsIndex, op);
         }
     }
 }
 
-void Pose::initParam(ModelContext* context) {
+void Pose::InitParam(Moc* moc) {
     // Python: initParam runs once per model instance (l2d_pose.py:27-42),
     // not per frame — the per-frame opacity hard-set was wiping the fade.
     for (auto& g : mMGroups) {
         for (auto& p : g.parts) {
-            p.initIndex(context);
+            p.InitIndex(moc);
             if (p.partsIndex < 0)
                 continue;
-            bool v = (context->getParamFloat(p.paramIndex) != 0);
-            context->setPartsOpacity(p.partsIndex, v ? 1.0f : 0.0f);
-            context->setParamFloat(p.paramIndex, v ? 1.0f : 0.0f);
+            bool v = (moc->GetParamFloat(p.paramIndex) != 0);
+            moc->SetPartsOpacity(p.partsIndex, v ? 1.0f : 0.0f);
+            moc->SetParamFloat(p.paramIndex, v ? 1.0f : 0.0f);
         }
     }
 }
 
-void Pose::updateParam(ModelContext* context, float dtSec) {
+void Pose::UpdateParam(Moc* moc, float dtSec) {
     for (auto& g : mMGroups) {
-        normalizeGroup(context, g, dtSec);
-        copyOpacityOtherParts(context, g);
+        normalizeGroup(moc, g, dtSec);
+        copyOpacityOtherParts(moc, g);
     }
 }
 
-Pose* Pose::load(const std::vector<uint8_t>& data) {
+Pose* Pose::Load(const std::vector<uint8_t>& data) {
     auto* pose = new Pose();
     if (data.empty())
         return pose;

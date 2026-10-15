@@ -1,6 +1,6 @@
 #include "PhysicsHair.hpp"
 #include "Id.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "UtMath.hpp"
 #include <cmath>
 
@@ -8,43 +8,43 @@ namespace Live2D {
 namespace V2 {
 
 // ---- PhysicsSrc ----
-void PhysicsSrc::update(ModelContext* context, PhysicsHair* ctx) {
-    int idx = context->getParamIndex(&Id::getID(paramId));
+void PhysicsSrc::Update(Moc* moc, PhysicsHair* ctx) {
+    int idx = moc->GetParamIndex(&Id::GetID(paramId));
     if (idx < 0)
         return;
-    float scaledValue = scale * context->getParamFloat(idx);
-    auto& p1 = ctx->getP1();
+    float scaledValue = scale * moc->GetParamFloat(idx);
+    auto& p1 = ctx->GetP1();
 
     if (type == SRC_TO_X)
         p1.x += (scaledValue - p1.x) * weight;
     else if (type == SRC_TO_Y)
         p1.y += (scaledValue - p1.y) * weight;
     else if (type == SRC_TO_G_ANGLE) {
-        float a = ctx->getAngle();
+        float a = ctx->GetAngle();
         a += (scaledValue - a) * weight;
-        ctx->setAngle(a);
+        ctx->SetAngle(a);
     }
 }
 
 // ---- PhysicsTarget ----
-void PhysicsTarget::update(ModelContext* context, PhysicsHair* ctx) {
-    int idx = context->getParamIndex(&Id::getID(paramId));
+void PhysicsTarget::Update(Moc* moc, PhysicsHair* ctx) {
+    int idx = moc->GetParamIndex(&Id::GetID(paramId));
     if (idx < 0)
         return;
     if (type == TARGET_FROM_ANGLE)
-        context->setParamFloat(idx, scale * ctx->getLastAngle());
+        moc->SetParamFloat(idx, scale * ctx->GetLastAngle());
     else if (type == TARGET_FROM_ANGLE_V)
-        context->setParamFloat(idx, scale * ctx->getLastAngleVelocity());
+        moc->SetParamFloat(idx, scale * ctx->GetLastAngleVelocity());
 }
 
 // ---- PhysicsHair ----
 PhysicsHair::PhysicsHair() {
-    setup(0.3f, 0.5f, 0.1f);
+    Setup(0.3f, 0.5f, 0.1f);
 }
 
-void PhysicsHair::setup(float l, float stiff, float mass) {
-    currentAngle = calcAngle();
-    p2.setupLast();
+void PhysicsHair::Setup(float l, float stiff, float mass) {
+    currentAngle = CalcAngle();
+    p2.SetupLast();
     length = l;
     stiffness = stiff;
     p1.mass = mass;
@@ -52,19 +52,19 @@ void PhysicsHair::setup(float l, float stiff, float mass) {
     p2.y = l;
 }
 
-float PhysicsHair::calcAngle() const {
+float PhysicsHair::CalcAngle() const {
     return -180.0f * std::atan2(p1.x - p2.x, -(p1.y - p2.y)) / 3.14159265f;
 }
 
-void PhysicsHair::addSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight) {
+void PhysicsHair::AddSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight) {
     sourceParams.push_back({t, id, scale, weight});
 }
-void PhysicsHair::addTargetParam(PhysicsTargetType t, const std::string& id, float scale,
+void PhysicsHair::AddTargetParam(PhysicsTargetType t, const std::string& id, float scale,
                                  float weight) {
     targetParams.push_back({t, id, scale, weight});
 }
 
-void PhysicsHair::update(ModelContext* context, long long timeMs) {
+void PhysicsHair::Update(Moc* moc, long long timeMs) {
     if (lastTime == 0) {
         lastTime = currentTime = timeMs;
         float dx = p1.x - p2.x, dy = p1.y - p2.y;
@@ -74,18 +74,18 @@ void PhysicsHair::update(ModelContext* context, long long timeMs) {
     float deltaSec = (float)(timeMs - currentTime) / 1000.0f;
     if (deltaSec != 0) {
         for (auto& s : sourceParams)
-            s.update(context, this);
-        updatePhysics(context, deltaSec);
-        lastAngle = calcAngle();
+            s.Update(moc, this);
+        UpdatePhysics(moc, deltaSec);
+        lastAngle = CalcAngle();
         angleVelocity = (lastAngle - currentAngle) / deltaSec;
         currentAngle = lastAngle;
     }
     for (auto& t : targetParams)
-        t.update(context, this);
+        t.Update(moc, this);
     currentTime = timeMs;
 }
 
-void PhysicsHair::updatePhysics(ModelContext*, float deltaSec) {
+void PhysicsHair::UpdatePhysics(Moc*, float deltaSec) {
     if (deltaSec < 0.033f)
         deltaSec = 0.033f;
     float inv = 1.0f / deltaSec;
@@ -96,7 +96,7 @@ void PhysicsHair::updatePhysics(ModelContext*, float deltaSec) {
     p1.ay = (p1.vy - p1.lastVY) * inv;
     p1.fx = p1.ax * p1.mass;
     p1.fy = p1.ay * p1.mass;
-    p1.setupLast();
+    p1.SetupLast();
 
     float a = -std::atan2(p1.y - p2.y, p1.x - p2.x);
     float cs = std::cos(a), sn = std::sin(a);
@@ -125,7 +125,7 @@ void PhysicsHair::updatePhysics(ModelContext*, float deltaSec) {
     p2.y = p1.y + length * (p2.y - p1.y) / dist;
     p2.vx = (p2.x - p2.lastX) * inv;
     p2.vy = (p2.y - p2.lastY) * inv;
-    p2.setupLast();
+    p2.SetupLast();
 }
 
 }   // namespace V2

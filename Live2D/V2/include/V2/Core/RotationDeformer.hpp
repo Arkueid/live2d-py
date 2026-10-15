@@ -15,17 +15,21 @@ public:
     RotationDeformer() = default;
     ~RotationDeformer() override;
 
-    int getType() const override { return TYPE_ROTATION; }
-    void read(class BinaryReader& br) override;
-    DeformerContext* init(ModelContext* mc) override;
-    void setupInterpolate(ModelContext* mc, DeformerContext* dc) override;
-    bool setupTransform(ModelContext* mc, DeformerContext* dc) override;
-    void transformPoints(ModelContext* mc, DeformerContext* dc, const std::vector<float>& srcPoints,
+    int GetType() const override { return TYPE_ROTATION; }
+    void Read(class BinaryReader& br) override;
+    void InitRuntimeState() override;
+    void SetupInterpolate(Moc* moc) override;
+    bool SetupTransform(Moc* moc) override;
+    void TransformPoints(const std::vector<float>& srcPoints,
                          std::vector<float>& dstPoints, int numPoint, int ptOffset,
                          int ptStep) override;
 
     std::unique_ptr<PivotManager> mPivotManager;
     std::vector<std::unique_ptr<AffineEnt>> mAffines;
+
+    // ---- 运行时状态（原 RotationContext）----
+    std::unique_ptr<AffineEnt> mInterpolatedAffine;
+    std::unique_ptr<AffineEnt> mTransformedAffine;
 };
 
 }   // namespace V2

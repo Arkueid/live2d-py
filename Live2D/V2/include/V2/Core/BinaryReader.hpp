@@ -28,41 +28,44 @@ public:
     ~BinaryReader();
 
     // -- Basic types (big-endian binary format) --
-    int readNumber();
-    int readType() { return readNumber(); }
-    double readDouble();
-    float readFloat32();
-    int32_t readInt32();
-    uint8_t readByte();
-    int16_t readUShort();
-    bool readBoolean();
-    std::string readUTF8String();
+    int ReadNumber();
+    int ReadType() { return ReadNumber(); }
+    double ReadDouble();
+    float ReadFloat32();
+    int32_t ReadInt32();
+    uint8_t ReadByte();
+    int16_t ReadUShort();
+    bool ReadBoolean();
+    std::string ReadUTF8String();
 
     // -- Array readers --
-    std::vector<int32_t> readInt32Array();
-    std::vector<float> readFloat32Array();
-    std::vector<double> readFloat64Array();
+    std::vector<int32_t> ReadInt32Array();
+    std::vector<float> ReadFloat32Array();
+    std::vector<double> ReadFloat64Array();
 
     // -- Bit-level reading --
-    bool readBit();
-    void checkBits();
+    bool ReadBit();
+    void CheckBits();
 
     // -- Polymorphic object reader --
     // Handles: T* (ISerializable subclass), const Id*, std::vector<U*> (object arrays)
     // Use readInt32Array/readFloat32Array/readFloat64Array for primitive arrays
     template<typename T>
-    T readObject(int type = -1);
+    T ReadObject(int type = -1);
 
-    void* readObjectRaw(int type = -1);
+    void* ReadObjectRaw(int type = -1);
+
+    // 手动消费多态对象头后，向对象表补偿一个槽位（保持 OBJECT_REF 索引对齐）
+    void AlignObjectTable(void* placeholder) { mObjects.push_back(placeholder); }
 
     // -- Accessors --
-    int getFormatVersion() const { return mFormatVersion; }
-    void setFormatVersion(int version) { mFormatVersion = version; }
-    size_t getOffset() const { return mOffset; }
+    int GetFormatVersion() const { return mFormatVersion; }
+    void SetFormatVersion(int version) { mFormatVersion = version; }
+    size_t GetOffset() const { return mOffset; }
 
 private:
-    void* readKnownTypeObject(int type);
-    void* readObjectUntyped(int type = -1);
+    void* ReadKnownTypeObject(int type);
+    void* ReadObjectUntyped(int type = -1);
 
     std::vector<uint8_t> mBuf;
     size_t mOffset;
@@ -80,60 +83,60 @@ private:
 
     // Tag-dispatched implementations
     template<typename T>
-    T readObjectVector(int type);
+    T ReadObjectVector(int type);
 
     template<typename T>
-    T readObjectPtr(int type);
+    T ReadObjectPtr(int type);
 
     template<typename T>
-    T readObjectDispatch(std::true_type, int type);
+    T ReadObjectDispatch(std::true_type, int type);
 
     template<typename T>
-    T readObjectDispatch(std::false_type, int type);
+    T ReadObjectDispatch(std::false_type, int type);
 };
 
 // -- Tag dispatch --
 
 template<typename T>
-inline T BinaryReader::readObject(int type) {
-    return readObjectDispatch<T>(is_vector<T>{}, type);
+inline T BinaryReader::ReadObject(int type) {
+    return ReadObjectDispatch<T>(is_vector<T>{}, type);
 }
 
 template<typename T>
-inline T BinaryReader::readObjectDispatch(std::true_type /*is_vector*/, int type) {
-    return readObjectVector<T>(type);
+inline T BinaryReader::ReadObjectDispatch(std::true_type /*is_vector*/, int type) {
+    return ReadObjectVector<T>(type);
 }
 
 template<typename T>
-inline T BinaryReader::readObjectDispatch(std::false_type /*is_vector*/, int type) {
-    return readObjectPtr<T>(type);
+inline T BinaryReader::ReadObjectDispatch(std::false_type /*is_vector*/, int type) {
+    return ReadObjectPtr<T>(type);
 }
 
 // Helper: reads a primitive-typed array directly (type code already consumed)
 template<typename ElemType>
-inline std::vector<ElemType> readPrimitiveArray(BinaryReader* /*br*/) {
+inline std::vector<ElemType> ReadPrimitiveArray(BinaryReader* /*br*/) {
     LOGE("Unsupported primitive array type");
     return {};
 }
 
 template<>
-inline std::vector<float> readPrimitiveArray<float>(BinaryReader* br) {
-    return br->readFloat32Array();
+inline std::vector<float> ReadPrimitiveArray<float>(BinaryReader* br) {
+    return br->ReadFloat32Array();
 }
 template<>
-inline std::vector<int32_t> readPrimitiveArray<int32_t>(BinaryReader* br) {
-    return br->readInt32Array();
+inline std::vector<int32_t> ReadPrimitiveArray<int32_t>(BinaryReader* br) {
+    return br->ReadInt32Array();
 }
 template<>
-inline std::vector<double> readPrimitiveArray<double>(BinaryReader* br) {
-    return br->readFloat64Array();
+inline std::vector<double> ReadPrimitiveArray<double>(BinaryReader* br) {
+    return br->ReadFloat64Array();
 }
 
 template<typename T>
-inline T BinaryReader::readObjectVector(int type) {
+inline T BinaryReader::ReadObjectVector(int type) {
     using ElemType = typename T::value_type;
-    checkBits();
-    int actualType = (type < 0) ? readType() : type;
+    CheckBits();
+    int actualType = (type < 0) ? ReadType() : type;
 
     if (actualType == 0) {
         mObjects.push_back(nullptr);
@@ -143,7 +146,7 @@ inline T BinaryReader::readObjectVector(int type) {
     if constexpr (std::is_pointer_v<ElemType>) {
         // Pointer-element arrays (type 15 or OBJECT_REF)
         if (actualType == OBJECT_REF) {
-            int index = readInt32();
+            int index = ReadInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
                 LOGE("Invalid object ref index in vector: %d", index);
                 return T{};
@@ -157,19 +160,19 @@ inline T BinaryReader::readObjectVector(int type) {
             return T{};
         }
 
-        int count = readType();
+        int count = ReadType();
         T* resultPtr = new T();
         mDeleters.push_back([resultPtr]() { delete resultPtr; });
         resultPtr->reserve(count);
         for (int i = 0; i < count; i++) {
-            resultPtr->push_back(readObject<ElemType>());
+            resultPtr->push_back(ReadObject<ElemType>());
         }
         mObjects.push_back(resultPtr);   // store for OBJECT_REF
         return *resultPtr;
     } else if constexpr (is_vector<ElemType>::value) {
         // Nested vector (e.g. vector<vector<float>>) — stored as type 15
         if (actualType == OBJECT_REF) {
-            int index = readInt32();
+            int index = ReadInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
                 LOGE("OBJECT_REF invalid for nested vec at %d", index);
                 return T{};
@@ -180,35 +183,35 @@ inline T BinaryReader::readObjectVector(int type) {
             LOGE("Expected array type (15) for nested vec, got %d", actualType);
             return T{};
         }
-        int count = readType();
+        int count = ReadType();
         T* resultPtr = new T();
         mDeleters.push_back([resultPtr]() { delete resultPtr; });
         resultPtr->reserve(count);
         for (int i = 0; i < count; i++) {
-            resultPtr->push_back(readObject<ElemType>());
+            resultPtr->push_back(ReadObject<ElemType>());
         }
         mObjects.push_back(resultPtr);
         return *resultPtr;
     } else {
         // Primitive-element arrays — use readKnownTypeObject which stores in mObjects
         if (actualType == OBJECT_REF) {
-            int index = readInt32();
+            int index = ReadInt32();
             if (index < 0 || index >= static_cast<int>(mObjects.size())) {
                 LOGE("Invalid object ref index for primitive: %d", index);
                 return T{};
             }
             return *static_cast<T*>(mObjects[index]);
         }
-        void* obj = readKnownTypeObject(actualType);
+        void* obj = ReadKnownTypeObject(actualType);
         mObjects.push_back(obj);
         return *static_cast<T*>(obj);
     }
 }
 
 template<typename T>
-inline T BinaryReader::readObjectPtr(int type) {
-    checkBits();
-    int actualType = (type < 0) ? readType() : type;
+inline T BinaryReader::ReadObjectPtr(int type) {
+    CheckBits();
+    int actualType = (type < 0) ? ReadType() : type;
 
     if (actualType == 0) {
         mObjects.push_back(nullptr);   // Python stores None for OBJECT_REF alignment
@@ -216,7 +219,7 @@ inline T BinaryReader::readObjectPtr(int type) {
     }
 
     if (actualType == OBJECT_REF) {
-        int index = readInt32();
+        int index = ReadInt32();
         if (index < 0 || index >= static_cast<int>(mObjects.size())) {
             LOGE("Invalid object reference index: %d size=%zu", index, mObjects.size());
             return nullptr;
@@ -224,7 +227,7 @@ inline T BinaryReader::readObjectPtr(int type) {
         return static_cast<T>(mObjects[index]);
     }
 
-    void* obj = readKnownTypeObject(actualType);
+    void* obj = ReadKnownTypeObject(actualType);
     mObjects.push_back(obj);
     return static_cast<T>(obj);
 }

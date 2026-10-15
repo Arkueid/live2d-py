@@ -11,13 +11,13 @@ using json = nlohmann::json;
 
 Physics::Physics() = default;
 
-void Physics::updateParam(ModelContext* context, long long dtMs) {
+void Physics::UpdateParam(Moc* moc, long long dtMs) {
     mElapsedMs += dtMs;
     for (auto& ph : mPhysicsList)
-        ph->update(context, mElapsedMs);
+        ph->Update(moc, mElapsedMs);
 }
 
-Physics* Physics::load(const std::vector<uint8_t>& data) {
+Physics* Physics::Load(const std::vector<uint8_t>& data) {
     auto* ret = new Physics();
     if (data.empty())
         return ret;
@@ -36,7 +36,7 @@ Physics* Physics::load(const std::vector<uint8_t>& data) {
         if (setup != param.end() && setup->is_object()) {
             // PARITY QUIRK (l2d_physics.py:27): Python uses float(len(setup)) — the
             // number of keys in "setup" (3 for every real file) — NOT setup["length"].
-            hair->setup((float)setup->size(),
+            hair->Setup((float)setup->size(),
                         setup->value("regist", 0.5f),   // Cubism 2 spelling of "resist"
                         setup->value("mass", 0.1f));
         }
@@ -56,7 +56,7 @@ Physics* Physics::load(const std::vector<uint8_t>& data) {
                     t = SRC_TO_G_ANGLE;
                 else
                     continue;   // Python raises here; skip instead
-                hair->addSrcParam(t,
+                hair->AddSrcParam(t,
                                   src.value("id", std::string()),
                                   src.value("scale", 1.0f),
                                   src.value("weight", 1.0f));
@@ -76,7 +76,7 @@ Physics* Physics::load(const std::vector<uint8_t>& data) {
                     t = TARGET_FROM_ANGLE_V;
                 else
                     continue;   // Python raises here; skip instead
-                hair->addTargetParam(t,
+                hair->AddTargetParam(t,
                                      target.value("id", std::string()),
                                      target.value("scale", 1.0f),
                                      target.value("weight", 1.0f));

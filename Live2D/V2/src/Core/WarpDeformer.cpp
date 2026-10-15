@@ -1,10 +1,8 @@
 #include "WarpDeformer.hpp"
 #include "BinaryReader.hpp"
 #include "PivotManager.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "UtInterpolate.hpp"
-#include "DeformerContext.hpp"
-#include "WarpContext.hpp"
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
@@ -14,83 +12,74 @@ namespace V2 {
 
 WarpDeformer::~WarpDeformer() = default;
 
-void WarpDeformer::read(BinaryReader& br) {
-    Deformer::read(br);
-    mCol = br.readInt32();
-    mRow = br.readInt32();
-    mPivotMgr.reset(br.readObject<PivotManager*>());
-    mPivotPoints = br.readObject<std::vector<std::vector<float>>>();
-    Deformer::readOpacity(br);
+void WarpDeformer::Read(BinaryReader& br) {
+    Deformer::Read(br);
+    mCol = br.ReadInt32();
+    mRow = br.ReadInt32();
+    mPivotMgr.reset(br.ReadObject<PivotManager*>());
+    mPivotPoints = br.ReadObject<std::vector<std::vector<float>>>();
+    Deformer::ReadOpacity(br);
 }
 
-DeformerContext* WarpDeformer::init(ModelContext* mc) {
-    (void)mc;
-    return new WarpContext(this);
+void WarpDeformer::InitRuntimeState() {
+    int pointCount = GetPointCount();
+    mInterpolatedPoints.resize(pointCount * 2);
+    if (NeedTransform()) {
+        mTransformedPoints.resize(pointCount * 2);
+    }
 }
 
-void WarpDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
-    auto* wctx = static_cast<WarpContext*>(dc);
-    if (!mPivotMgr->checkParamUpdated(mc))
-        return;
-
-    int pointCount = getPointCount();
+void WarpDeformer::SetupInterpolate(Moc* moc) {
+    int pointCount = GetPointCount();
     bool success = false;
-    UtInterpolate::interpolatePoints(
-        mc, mPivotMgr.get(), success, pointCount, mPivotPoints, wctx->mInterpolatedPoints, 0, 2);
-    wctx->setOutsideParam(success);
-    interpolateOpacity(mc, mPivotMgr.get(), wctx, success);
+    UtInterpolate::InterpolatePoints(
+        moc, mPivotMgr.get(), success, pointCount, mPivotPoints, mInterpolatedPoints, 0, 2);
+    SetOutsideParam(success);
+    InterpolateOpacity(moc, mPivotMgr.get(), success);
 }
 
-bool WarpDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
-    auto* wctx = static_cast<WarpContext*>(dc);
-    wctx->setAvailable(true);
+bool WarpDeformer::SetupTransform(Moc* moc) {
+    SetAvailable(true);
 
-    if (!needTransform()) {
-        wctx->setTotalOpacity(wctx->getInterpolatedOpacity());
+    if (!NeedTransform()) {
+        SetTotalOpacity(GetInterpolatedOpacity());
     } else {
-        auto* targetId = getTargetId();
-        if (wctx->mTmpDeformerIndex == DEFORMER_INDEX_NOT_INIT)
-            wctx->mTmpDeformerIndex = mc->getDeformerIndex(targetId);
+        auto* targetId = GetTargetId();
+        if (mTmpDeformerIndex == DEFORMER_INDEX_NOT_INIT)
+            mTmpDeformerIndex = moc->GetDeformerIndex(targetId);
 
-        if (wctx->mTmpDeformerIndex < 0) {
-            printf("deformer is not reachable\n");
-            wctx->setAvailable(false);
+        if (mTmpDeformerIndex < 0) {
+            LOGE("deformer is not reachable\n");
+            SetAvailable(false);
         } else {
-            auto* parentDef = mc->getDeformer(wctx->mTmpDeformerIndex);
-            auto* parentCtx = mc->getDeformerContext(wctx->mTmpDeformerIndex);
-            if (parentDef && parentCtx->isAvailable()) {
-                float ps = parentCtx->getTotalScale();
-                wctx->setTotalScale_notForClient(ps);
-                wctx->setTotalOpacity(parentCtx->getTotalOpacity() *
-                                      wctx->getInterpolatedOpacity());
-                parentDef->transformPoints(mc,
-                                           parentCtx,
-                                           wctx->mInterpolatedPoints,
-                                           wctx->mTransformedPoints,
-                                           getPointCount(),
+            auto* parentDef = moc->GetDeformer(mTmpDeformerIndex);
+            if (parentDef && parentDef->IsAvailable()) {
+                float ps = parentDef->GetTotalScale();
+                SetTotalScale_notForClient(ps);
+                SetTotalOpacity(parentDef->GetTotalOpacity() * GetInterpolatedOpacity());
+                parentDef->TransformPoints(mInterpolatedPoints,
+                                           mTransformedPoints,
+                                           GetPointCount(),
                                            0,
                                            2);
-                wctx->setAvailable(true);
+                SetAvailable(true);
             } else {
-                wctx->setAvailable(false);
+                SetAvailable(false);
             }
         }
     }
-    return wctx->isAvailable();
+    return IsAvailable();
 }
 
-void WarpDeformer::transformPoints(ModelContext* mc, DeformerContext* dc,
-                                   const std::vector<float>& srcPoints,
+void WarpDeformer::TransformPoints(const std::vector<float>& srcPoints,
                                    std::vector<float>& dstPoints, int numPoint, int ptOffset,
                                    int ptStep) {
-    auto* wctx = static_cast<WarpContext*>(dc);
-    auto& pivot =
-        !wctx->mTransformedPoints.empty() ? wctx->mTransformedPoints : wctx->mInterpolatedPoints;
-    transformPoints_sdk2(srcPoints, dstPoints, numPoint, ptOffset, ptStep, pivot, mRow, mCol);
+    auto& pivot = !mTransformedPoints.empty() ? mTransformedPoints : mInterpolatedPoints;
+    TransformPoints_sdk2(srcPoints, dstPoints, numPoint, ptOffset, ptStep, pivot, mRow, mCol);
 }
 
 // Static grid-based vertex transform (ported 1:1 from Python WarpDeformer)
-void WarpDeformer::transformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
+void WarpDeformer::TransformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
                                         int pointCount, int srcOffset, int srcStep,
                                         const std::vector<float>& grid, int row, int col) {
 

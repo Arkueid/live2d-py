@@ -11,7 +11,7 @@
 namespace Live2D {
 namespace V2 {
 
-class ModelContext;
+class Moc;
 class ClippingManagerVulkan;
 
 /**
@@ -34,33 +34,39 @@ public:
     static constexpr int COLOR_COMPOSITION_SCREEN = 1;
     static constexpr int COLOR_COMPOSITION_MULTIPLY = 2;
 
-    VkRenderer(ModelContext* modelContext, int textureCount);
+    VkRenderer(Moc* moc, int textureCount);
     ~VkRenderer() override;
 
-    bool isVulkan() const override { return true; }
+    bool IsVulkan() const override { return true; }
 
-    void preDraw(ModelContext* modelContext) override;
-    void draw(ModelContext* modelContext) override;
-    void setMaskDirty() override { mMaskDirty = true; }
+    void PreDraw(Moc* moc) override;
+    void Draw(Moc* moc) override;
+    void SetMaskDirty() override { mMaskDirty = true; }
 
-    void drawTexture(int texNo, const std::array<float, 4>& screenColor,
-                     const std::vector<int16_t>& indices, const std::vector<float>& vertices,
-                     const std::vector<float>& uvs, float opacity, int compositionType,
-                     const std::array<float, 4>& multiplyColor) override;
-
-    void setMatrix(const float m[16]) override;
-    void setClipMatrix(const float m[16]) override;
-    void setClipChannel(int channel) override { mClipChannel = channel; }
-    void setClipDrawMode(bool on) override { mClipDrawMode = on; }
-    void setClipMaskMode(bool on) override { mClipMaskMode = on; }
-    void setCulling(bool cull) override { mCulling = cull; }
-    void resize(int w, int h) override;
+    void SetMatrix(const float m[16]) override;
+    void Resize(int w, int h) override;
 
     /// 绑定外部创建的纹理（VkUtil::CreateTextureFromPixels 产物），资源所有权移交本类并在析构释放
-    void setTexture(int no, VkImage image, VkDeviceMemory memory, VkImageView view,
+    void SetTexture(int no, VkImage image, VkDeviceMemory memory, VkImageView view,
                     VkSampler sampler);
 
+    // ---- 以下为渲染器内部 API（ClippingManager / draw 使用），不属于 IRenderer 接口 ----
+    /// 按 Moc 数据面提交单个 drawable（mask 模式下跳过 clip 状态切换）
+    void DrawDrawable(Moc* moc, int index);
+    void SetClipMatrix(const float m[16]);
+    void SetClipChannel(int channel) { mClipChannel = channel; }
+    void SetClipDrawMode(bool on) { mClipDrawMode = on; }
+    void SetClipMaskMode(bool on) { mClipMaskMode = on; }
+    void SetCulling(bool cull) { mCulling = cull; }
+
 private:
+    void DrawTexture(int texNo, const std::array<float, 4>& screenColor,
+                     const uint16_t* indices, int indexCount,
+                     const float* vertices, int vertexFloatCount,
+                     const float* uvs, int uvFloatCount,
+                     float opacity, int compositionType,
+                     const std::array<float, 4>& multiplyColor);
+
     // std140 与 shader UBO 块布局一一对应
     struct UBO {
         float mvp[16];          // 0
@@ -81,12 +87,12 @@ private:
         bool valid = false;
     };
 
-    void createLayoutsAndPipelines();
-    VkShaderModule loadShaderModule(const char* path);
-    VkPipeline createPipeline(VkShaderModule vert, VkShaderModule frag,
+    void CreateLayoutsAndPipelines();
+    VkShaderModule LoadShaderModule(const char* path);
+    VkPipeline CreatePipeline(VkShaderModule vert, VkShaderModule frag,
                               const VkPipelineColorBlendAttachmentState& blend);
-    void createMaskTarget();
-    void imageBarrier(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout,
+    void CreateMaskTarget();
+    void ImageBarrier(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout,
                       VkImageLayout newLayout);
 
     VkDevice mDevice = VK_NULL_HANDLE;

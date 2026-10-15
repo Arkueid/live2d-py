@@ -1,6 +1,6 @@
 #pragma once
 #include "AMotion.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include <vector>
 namespace Live2D {
 namespace V2 {
@@ -17,16 +17,16 @@ struct MotionQueueEntry {
 class MotionManager {
 public:
     MotionManager();
-    int startMotion(AMotion* motion, bool autoPriority);
+    int StartMotion(AMotion* motion, bool autoPriority);
     // 时间由外部传入（时钟只由 Model 管理）: dtMs 为本次时间步长（毫秒），内部累计 elapsed
-    bool updateParam(ModelContext* context, float dtMs);
-    bool isFinished() const;
-    void stopAllMotions();
+    bool UpdateParam(Moc* moc, float dtMs);
+    bool IsFinished() const;
+    void StopAllMotions();
     int mCurrentPriority = 0, mReservePriority = 0;
     std::vector<MotionQueueEntry> mMotions;
-    bool reserveMotion(int priority);
-    void setReservePriority(int val) { mReservePriority = val; }
-    int startMotionPrio(AMotion* motion, int priority);
+    bool ReserveMotion(int priority);
+    void SetReservePriority(int val) { mReservePriority = val; }
+    int StartMotionPrio(AMotion* motion, int priority);
 };
 }   // namespace V2
 }   // namespace Live2D

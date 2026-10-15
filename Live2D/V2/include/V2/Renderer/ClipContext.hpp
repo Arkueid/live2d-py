@@ -1,21 +1,16 @@
 #pragma once
 
 #include <array>
-#include <string>
 #include <vector>
 
 namespace Live2D {
 namespace V2 {
 
-class ModelContext;
-
+// 一组共享同一 mask 索引集合的 clipped drawable 及其遮罩布局状态
 class ClipContext {
 public:
-    ClipContext(ModelContext* mc, const std::vector<std::string>& clipIDs);
+    ClipContext() = default;
 
-    void addClippedDrawData(const std::string& drawId, int drawIdx);
-
-    std::vector<std::string> mClipIDList;
     std::vector<int> mClippedDrawIndexList;
     std::vector<int> mClippingMaskDrawIndexList;
     bool mIsUsing = false;

@@ -5,7 +5,7 @@ namespace V2 {
 
 class UtSystem {
 public:
-    static double getUserTimeMSec();
+    static double GetUserTimeMSec();
 };
 
 }   // namespace V2

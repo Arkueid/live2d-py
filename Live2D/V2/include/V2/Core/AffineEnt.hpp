@@ -9,7 +9,7 @@ class AffineEnt final : public ISerializable {
 public:
     AffineEnt() = default;
 
-    void read(class BinaryReader& br) override;
+    void Read(class BinaryReader& br) override;
 
     float mOriginX = 0.0f;
     float mOriginY = 0.0f;

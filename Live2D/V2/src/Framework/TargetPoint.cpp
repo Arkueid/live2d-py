@@ -14,11 +14,11 @@ constexpr float FRAME_TO_MAX_SPEED = TIME_TO_MAX_SPEED * FRAME_RATE;
 constexpr float EPSILON = 0.01f;
 }   // namespace
 
-void TargetPoint::update(float deltaSec) {
-    updateByWeight(deltaSec * FRAME_RATE);
+void TargetPoint::Update(float deltaSec) {
+    UpdateByWeight(deltaSec * FRAME_RATE);
 }
 
-void TargetPoint::updateByWeight(float deltaTimeWeight) {
+void TargetPoint::UpdateByWeight(float deltaTimeWeight) {
     float dx = mTargetX - mX;
     float dy = mTargetY - mY;
     if (std::abs(dx) <= EPSILON && std::abs(dy) <= EPSILON)

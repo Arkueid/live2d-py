@@ -1,17 +1,17 @@
 #include "EyeBlink.hpp"
 #include "Id.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "UtSystem.hpp"
 #include <cstdlib>
 namespace Live2D {
 namespace V2 {
 EyeBlink::EyeBlink() {}
-void EyeBlink::setEyeMotion(int closeMs, int closedMs, int openMs) {
+void EyeBlink::SetEyeMotion(int closeMs, int closedMs, int openMs) {
     mClosingMs = static_cast<float>(closeMs);
     mClosedMs = static_cast<float>(closedMs);
     mOpeningMs = static_cast<float>(openMs);
 }
-void EyeBlink::updateParam(ModelContext* context, float deltaMs) {
+void EyeBlink::UpdateParam(Moc* moc, float deltaMs) {
     mCurrentTime += deltaMs;
     float now = mCurrentTime;
 
@@ -34,13 +34,13 @@ void EyeBlink::updateParam(ModelContext* context, float deltaMs) {
                 mState = CLOSED;
                 mStateStartTime = now;
             }
-            context->setParamFloat(context->getParamIndex(&Id::getID(mEyeLId)), v);
-            context->setParamFloat(context->getParamIndex(&Id::getID(mEyeRId)), v);
+            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeLId)), v);
+            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeRId)), v);
             break;
         }
         case CLOSED: {
-            context->setParamFloat(context->getParamIndex(&Id::getID(mEyeLId)), 0);
-            context->setParamFloat(context->getParamIndex(&Id::getID(mEyeRId)), 0);
+            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeLId)), 0);
+            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeRId)), 0);
             float elapsed = now - mStateStartTime;
             if (elapsed >= mClosedMs) {
                 mState = OPENING;
@@ -57,8 +57,8 @@ void EyeBlink::updateParam(ModelContext* context, float deltaMs) {
                 mNextBlinkTime =
                     now + mBlinkIntervalMs + static_cast<float>(rand() % (int)mBlinkIntervalMs);
             }
-            context->setParamFloat(context->getParamIndex(&Id::getID(mEyeLId)), v);
-            context->setParamFloat(context->getParamIndex(&Id::getID(mEyeRId)), v);
+            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeLId)), v);
+            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeRId)), v);
             break;
         }
     }

@@ -1,7 +1,6 @@
 #pragma once
-#include "ModelImpl.hpp"
+#include "Moc.hpp"
 #include "ModelMatrix.hpp"
-#include "ModelContext.hpp"
 #include <IModel.hpp>
 #include <memory>
 #include <string>
@@ -19,30 +18,30 @@ class BaseModel : public IModel {
 public:
     BaseModel();
     ~BaseModel() override;
-    void loadModelData(const std::vector<uint8_t>& data, int version);
-    AMotion* loadMotion(const std::string& name, const std::vector<uint8_t>& data);
-    AMotion* loadExpression(const std::string& name, const std::vector<uint8_t>& data);
-    Pose* loadPose(const std::vector<uint8_t>& data);
-    void loadPhysics(const std::vector<uint8_t>& data);
-    bool hitTestSimple(const std::string& drawID, float x, float y);
-    ModelMatrix& getModelMatrix() { return mModelMatrix; }
-    MotionManager* getMainMotionManager() const { return mMainMotionMgr.get(); }
-    MotionManager* getExpressionManager() const { return mExpressionMgr.get(); }
-    void setAlpha(float a) { mAlpha = (a < 0 ? 0 : (a > 1 ? 1 : a)); }
-    float getAlpha() const { return mAlpha; }
-    void setAccel(float x, float y, float z) {
+    void LoadModelData(const std::vector<uint8_t>& data, int version);
+    AMotion* LoadMotion(const std::string& name, const std::vector<uint8_t>& data);
+    AMotion* LoadExpression(const std::string& name, const std::vector<uint8_t>& data);
+    Pose* LoadPose(const std::vector<uint8_t>& data);
+    void LoadPhysics(const std::vector<uint8_t>& data);
+    bool HitTestSimple(const std::string& drawID, float x, float y);
+    ModelMatrix& GetModelMatrix() { return mModelMatrix; }
+    MotionManager* GetMainMotionManager() const { return mMainMotionMgr.get(); }
+    MotionManager* GetExpressionManager() const { return mExpressionMgr.get(); }
+    void SetAlpha(float a) { mAlpha = (a < 0 ? 0 : (a > 1 ? 1 : a)); }
+    float GetAlpha() const { return mAlpha; }
+    void SetAccel(float x, float y, float z) {
         mAccelX = x;
         mAccelY = y;
         mAccelZ = z;
     }
-    void setDrag(float x, float y) {
+    void SetDrag(float x, float y) {
         mDragX = x;
         mDragY = y;
     }
-    bool isInitialized() const { return mInitialized; }
-    void setInitialized(bool v) { mInitialized = v; }
-    bool isUpdating() const { return mUpdating; }
-    void setUpdating(bool v) { mUpdating = v; }
+    bool IsInitialized() const { return mInitialized; }
+    void SetInitialized(bool v) { mInitialized = v; }
+    bool IsUpdating() const { return mUpdating; }
+    void SetUpdating(bool v) { mUpdating = v; }
 
 protected:
     ModelMatrix mModelMatrix;
@@ -55,8 +54,7 @@ protected:
     std::unordered_map<std::string, std::unique_ptr<AMotion>> mExpressions;
     float mAlpha = 1.0f, mAccelX = 0, mAccelY = 0, mAccelZ = 0, mDragX = 0, mDragY = 0;
     bool mInitialized = false, mUpdating = false;
-    std::unique_ptr<ModelImpl> mModelImpl;
-    std::unique_ptr<ModelContext> mModelContext;
+    std::unique_ptr<Moc> mMoc;
 };
 }   // namespace V2
 }   // namespace Live2D

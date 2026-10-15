@@ -15,7 +15,7 @@
 namespace Live2D {
 namespace V2 {
 
-class ModelContext;
+class Moc;
 
 class GLRenderer : public IRenderer {
 public:
@@ -25,47 +25,53 @@ public:
     static constexpr int COLOR_COMPOSITION_SCREEN = 1;
     static constexpr int COLOR_COMPOSITION_MULTIPLY = 2;
 
-    GLRenderer(ModelContext* modelContext, int textureCount);
+    GLRenderer(Moc* moc, int textureCount);
     ~GLRenderer() override;
 
-    void setupDraw(ModelContext* modelContext);
-    void endDraw();
+    void SetupDraw(Moc* moc);
+    void EndDraw();
 
-    void preDraw(ModelContext* modelContext) override;
-    void draw(ModelContext* modelContext) override;
+    void PreDraw(Moc* moc) override;
+    void Draw(Moc* moc) override;
 
-    bool isVulkan() const override { return false; }
-    void setClipDrawMode(bool on) override { mClipDrawMode = on; }
-    void setClipMaskMode(bool on) override { mClipMaskMode = on; }
-    void setClipChannel(int channel) override { mClipChannel = channel; }
-    void setCulling(bool cull) override { mCulling = cull; }
-    static void clearBuffer(float r, float g, float b, float a);
+    bool IsVulkan() const override { return false; }
+    static void ClearBuffer(float r, float g, float b, float a);
 
-    void drawTexture(int texNo, const std::array<float, 4>& screenColor,
-                     const std::vector<int16_t>& indices, const std::vector<float>& vertices,
-                     const std::vector<float>& uvs, float opacity, int compositionType,
-                     const std::array<float, 4>& multiplyColor) override;
+    int CreateFramebuffer();
+    void BindFramebuffer(int fb = -1);
+    void SetTexture(int no, GLuint texId);
+    GLuint GetTexture(int no) const;
 
-    int createFramebuffer();
-    void bindFramebuffer(int fb = -1);
-    void setTexture(int no, GLuint texId);
-    GLuint getTexture(int no) const;
+    void SetMatrix(const float m[16]) override;
 
-    void setMatrix(const float m[16]) override;
-    void setClipMatrix(const float m[16]) override;
+    void Resize(int w, int h) override;
 
-    void resize(int w, int h) override;
+    // ---- 以下为渲染器内部 API（ClippingManager / draw 使用），不属于 IRenderer 接口 ----
+    /// 按 Moc 数据面提交单个 drawable（mask 模式下跳过 clip 状态切换）
+    void DrawDrawable(Moc* moc, int index);
+    void SetClipDrawMode(bool on) { mClipDrawMode = on; }
+    void SetClipMaskMode(bool on) { mClipMaskMode = on; }
+    void SetClipChannel(int channel) { mClipChannel = channel; }
+    void SetCulling(bool cull) { mCulling = cull; }
+    void SetClipMatrix(const float m[16]);
 
 private:
-    void init(ModelContext* modelContext);
+    void Init(Moc* moc);
 
-    void initShaders();
-    GLuint compileShader(GLenum type, const char* src);
-    GLuint createVBO(const std::vector<float>& data, int loc, int size);
-    GLuint createEBO(const std::vector<int16_t>& data);
+    void DrawTexture(int texNo, const std::array<float, 4>& screenColor,
+                     const uint16_t* indices, int indexCount,
+                     const float* vertices, int vertexFloatCount,
+                     const float* uvs, int uvFloatCount,
+                     float opacity, int compositionType,
+                     const std::array<float, 4>& multiplyColor);
+
+    void InitShaders();
+    GLuint CompileShader(GLenum type, const char* src);
+    GLuint CreateVBO(const std::vector<float>& data, int loc, int size);
+    GLuint CreateEBO(const std::vector<int16_t>& data);
 
     GLuint mShaderNormal = 0, mShaderMask = 0;
-    // Uniform locations resolved once per program in initShaders()
+    // Uniform locations resolved once per program in InitShaders()
     // (avoid per-draw glGetUniformLocation driver lookups)
     struct UniformLocs {
         GLint normMvp = -1, normMaskFlag = -1, normBaseColor = -1, normChannelFlag = -1,

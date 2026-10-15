@@ -11,7 +11,7 @@ namespace V2 {
 // -- Helper for big-endian conversion --
 namespace {
 
-inline float readBigFloat(const uint8_t* buf, size_t offset) {
+inline float ReadBigFloat(const uint8_t* buf, size_t offset) {
     uint32_t raw;
     memcpy(&raw, buf + offset, 4);
     // Big-endian to native
@@ -22,14 +22,14 @@ inline float readBigFloat(const uint8_t* buf, size_t offset) {
     return result;
 }
 
-inline int32_t readBigInt32(const uint8_t* buf, size_t offset) {
+inline int32_t ReadBigInt32(const uint8_t* buf, size_t offset) {
     uint32_t raw;
     memcpy(&raw, buf + offset, 4);
     return static_cast<int32_t>(((raw & 0x000000FFU) << 24) | ((raw & 0x0000FF00U) << 8) |
                                 ((raw & 0x00FF0000U) >> 8) | ((raw & 0xFF000000U) >> 24));
 }
 
-inline int16_t readBigShort(const uint8_t* buf, size_t offset) {
+inline int16_t ReadBigShort(const uint8_t* buf, size_t offset) {
     uint16_t raw;
     memcpy(&raw, buf + offset, 2);
     return static_cast<int16_t>(((raw & 0x00FFU) << 8) | ((raw & 0xFF00U) >> 8));
@@ -56,20 +56,20 @@ BinaryReader::~BinaryReader() {
         del();
 }
 
-int BinaryReader::readNumber() {
-    int b1 = readByte();
+int BinaryReader::ReadNumber() {
+    int b1 = ReadByte();
     if ((b1 & 128) == 0)
         return b1 & 255;
 
-    int b2 = readByte();
+    int b2 = ReadByte();
     if ((b2 & 128) == 0)
         return ((b1 & 127) << 7) | (b2 & 127);
 
-    int b3 = readByte();
+    int b3 = ReadByte();
     if ((b3 & 128) == 0)
         return ((b1 & 127) << 14) | ((b2 & 127) << 7) | (b3 & 255);
 
-    int b4 = readByte();
+    int b4 = ReadByte();
     if ((b4 & 128) == 0)
         return ((b1 & 127) << 21) | ((b2 & 127) << 14) | ((b3 & 127) << 7) | (b4 & 255);
 
@@ -77,87 +77,87 @@ int BinaryReader::readNumber() {
     return 0;
 }
 
-double BinaryReader::readDouble() {
-    checkBits();
+double BinaryReader::ReadDouble() {
+    CheckBits();
     double result = readBigDouble(mBuf.data(), mOffset);
     mOffset += 8;
     return result;
 }
 
-float BinaryReader::readFloat32() {
-    checkBits();
-    float result = readBigFloat(mBuf.data(), mOffset);
+float BinaryReader::ReadFloat32() {
+    CheckBits();
+    float result = ReadBigFloat(mBuf.data(), mOffset);
     mOffset += 4;
     return result;
 }
 
-int32_t BinaryReader::readInt32() {
-    checkBits();
-    int32_t result = readBigInt32(mBuf.data(), mOffset);
+int32_t BinaryReader::ReadInt32() {
+    CheckBits();
+    int32_t result = ReadBigInt32(mBuf.data(), mOffset);
     mOffset += 4;
     return result;
 }
 
-uint8_t BinaryReader::readByte() {
-    checkBits();
+uint8_t BinaryReader::ReadByte() {
+    CheckBits();
     return mBuf[mOffset++];
 }
 
-int16_t BinaryReader::readUShort() {
-    checkBits();
-    int16_t result = readBigShort(mBuf.data(), mOffset);
+int16_t BinaryReader::ReadUShort() {
+    CheckBits();
+    int16_t result = ReadBigShort(mBuf.data(), mOffset);
     mOffset += 2;
     return result;
 }
 
-bool BinaryReader::readBoolean() {
-    checkBits();
+bool BinaryReader::ReadBoolean() {
+    CheckBits();
     return mBuf[mOffset++] != 0;
 }
 
-std::string BinaryReader::readUTF8String() {
-    checkBits();
-    int length = readType();
+std::string BinaryReader::ReadUTF8String() {
+    CheckBits();
+    int length = ReadType();
     std::string result(reinterpret_cast<const char*>(&mBuf[mOffset]), length);
     mOffset += length;
     return result;
 }
 
-std::vector<int32_t> BinaryReader::readInt32Array() {
-    checkBits();
-    int count = readType();
+std::vector<int32_t> BinaryReader::ReadInt32Array() {
+    CheckBits();
+    int count = ReadType();
     std::vector<int32_t> result(count);
     for (int i = 0; i < count; i++) {
-        result[i] = readInt32();
+        result[i] = ReadInt32();
     }
     return result;
 }
 
-std::vector<float> BinaryReader::readFloat32Array() {
-    checkBits();
-    int count = readType();
+std::vector<float> BinaryReader::ReadFloat32Array() {
+    CheckBits();
+    int count = ReadType();
     std::vector<float> result(count);
     for (int i = 0; i < count; i++) {
-        result[i] = readFloat32();
+        result[i] = ReadFloat32();
     }
     return result;
 }
 
-std::vector<double> BinaryReader::readFloat64Array() {
-    checkBits();
-    int count = readType();
+std::vector<double> BinaryReader::ReadFloat64Array() {
+    CheckBits();
+    int count = ReadType();
     std::vector<double> result(count);
     for (int i = 0; i < count; i++) {
-        result[i] = readDouble();
+        result[i] = ReadDouble();
     }
     return result;
 }
 
-bool BinaryReader::readBit() {
+bool BinaryReader::ReadBit() {
     if (mOffset8Bit == 0) {
-        mCurrent8Bit = readByte();
+        mCurrent8Bit = ReadByte();
     } else if (mOffset8Bit == 8) {
-        mCurrent8Bit = readByte();
+        mCurrent8Bit = ReadByte();
         mOffset8Bit = 0;
     }
 
@@ -166,20 +166,20 @@ bool BinaryReader::readBit() {
     return result;
 }
 
-void BinaryReader::checkBits() {
+void BinaryReader::CheckBits() {
     if (mOffset8Bit != 0) {
         mOffset8Bit = 0;
     }
 }
 
-void* BinaryReader::readObjectRaw(int type) {
-    return readObjectUntyped(type);
+void* BinaryReader::ReadObjectRaw(int type) {
+    return ReadObjectUntyped(type);
 }
 
-void* BinaryReader::readObjectUntyped(int type) {
-    checkBits();
+void* BinaryReader::ReadObjectUntyped(int type) {
+    CheckBits();
     if (type < 0)
-        type = readType();
+        type = ReadType();
 
     if (type == 0) {
         mObjects.push_back(nullptr);
@@ -187,7 +187,7 @@ void* BinaryReader::readObjectUntyped(int type) {
     }
 
     if (type == OBJECT_REF) {
-        int index = readInt32();
+        int index = ReadInt32();
         if (index < 0 || index >= static_cast<int>(mObjects.size())) {
             LOGE("Invalid object reference index: %d (size=%zu)", index, mObjects.size());
             return nullptr;
@@ -195,55 +195,55 @@ void* BinaryReader::readObjectUntyped(int type) {
         return mObjects[index];
     }
 
-    void* obj = readKnownTypeObject(type);
+    void* obj = ReadKnownTypeObject(type);
     mObjects.push_back(obj);
     return obj;
 }
 
-void* BinaryReader::readKnownTypeObject(int type) {
+void* BinaryReader::ReadKnownTypeObject(int type) {
     if (type == 0) {
         return nullptr;
     }
     // String-to-Id types: 50, 51, 134, 60
     if (type == 50 || type == 51 || type == 134 || type == 60) {
-        std::string idStr = readUTF8String();
-        return const_cast<Id*>(&Id::getID(idStr));
+        std::string idStr = ReadUTF8String();
+        return const_cast<Id*>(&Id::GetID(idStr));
     }
     // Factory-created ISerializable subclasses (type >= 48)
     if (type >= 48) {
-        auto obj = ObjectFactory::create(type);
-        obj->read(*this);   // may throw — unique_ptr still owns
+        auto obj = ObjectFactory::Create(type);
+        obj->Read(*this);   // may throw — unique_ptr still owns
         ISerializable* rawPtr = obj.release();
         return rawPtr;   // ownership transferred to caller
     }
     // Primitive types
     if (type == 1) {
-        auto* s = new std::string(readUTF8String());
+        auto* s = new std::string(ReadUTF8String());
         mDeleters.push_back([s]() { delete s; });
         return s;
     }
     if (type == 15) {
-        int count = readType();
+        int count = ReadType();
         auto* arr = new std::vector<void*>();
         mDeleters.push_back([arr]() { delete arr; });
         arr->reserve(count);
         for (int i = 0; i < count; i++) {
-            arr->push_back(readObjectUntyped());
+            arr->push_back(ReadObjectUntyped());
         }
         return arr;
     }
     if (type == 16 || type == 25) {
-        auto* arr = new std::vector<int32_t>(readInt32Array());
+        auto* arr = new std::vector<int32_t>(ReadInt32Array());
         mDeleters.push_back([arr]() { delete arr; });
         return arr;
     }
     if (type == 26) {
-        auto* arr = new std::vector<double>(readFloat64Array());
+        auto* arr = new std::vector<double>(ReadFloat64Array());
         mDeleters.push_back([arr]() { delete arr; });
         return arr;
     }
     if (type == 27) {
-        auto* arr = new std::vector<float>(readFloat32Array());
+        auto* arr = new std::vector<float>(ReadFloat32Array());
         mDeleters.push_back([arr]() { delete arr; });
         return arr;
     }

@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
         model->SetScale(1.0f);
         CHECK(model->GetMvp() != nullptr);
 
-        // update + draw (deformer chain) so drawable vertices are available
+        // update + Draw (deformer chain) so drawable vertices are available
         model->Update();
         model->Draw();
 

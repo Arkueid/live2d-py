@@ -1,10 +1,8 @@
 #include "V2/Model.hpp"
 #include "IModel.hpp"
 #include "Id.hpp"
-#include "PartsData.hpp"
-#include "PartsDataContext.hpp"
-#include "Mesh.hpp"
-#include "MeshContext.hpp"
+#include "Part.hpp"
+#include "Drawable.hpp"
 #include "ExpressionMotion.hpp"
 #include "EyeBlink.hpp"
 #include "MotionManager.hpp"
@@ -17,7 +15,7 @@
 #include "VkUtil.hpp"
 #endif
 #include "Log.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "Live2DMotion.hpp"
 #include "UtSystem.hpp"
 #include "nlohmann/json.hpp"
@@ -117,11 +115,11 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         LOGE("Failed to read .moc file: %s", mocPath.c_str());
         return;
     }
-    loadModelData(mocData, 0);
-    mModelMatrix.mWidth = (float)mModelImpl->getCanvasWidth();
-    mModelMatrix.mHeight = (float)mModelImpl->getCanvasHeight();
+    LoadModelData(mocData, 0);
+    mModelMatrix.mWidth = (float)mMoc->GetCanvasWidth();
+    mModelMatrix.mHeight = (float)mMoc->GetCanvasHeight();
     // 画布适配参数在模型生命周期内不变，加载时设置一次
-    mMatrixManager.setFit({mModelMatrix.mWidth, mModelMatrix.mHeight, true, true});
+    mMatrixManager.SetFit({mModelMatrix.mWidth, mModelMatrix.mHeight, true, true});
     LOGI("Load model: %s", mocPath.c_str());
 
     // Load texture paths from JSON
@@ -134,7 +132,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         auto phyData = readFile(JoinPath(mModelHomeDir, phyFile));
         if (!phyData.empty()) {
             LOGD("Load physics: %s", phyFile.c_str());
-            loadPhysics(phyData);
+            LoadPhysics(phyData);
         }
     }
 
@@ -147,11 +145,11 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         auto poseData = readFile(posePath);
         if (!poseData.empty()) {
             LOGI("Load pose: %s", poseFile.c_str());
-            mPose.reset(Pose::load(poseData));
+            mPose.reset(Pose::Load(poseData));
             // Initialize part/param indices once (PartData::initIndex uses the
             // "VISIBLE:" prefix; a bare-id pre-pass here used to append phantom
             // parameters via getParamIndex's extend-on-miss).
-            mPose->initParam(mModelContext.get());
+            mPose->InitParam(mMoc.get());
         }
     }
 
@@ -165,7 +163,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
                 auto motPath = JoinPath(mModelHomeDir, motFile);
                 auto motData = readFile(motPath);
                 if (!motData.empty()) {
-                    auto* motion = Live2DMotion::load(motData);
+                    auto* motion = Live2DMotion::Load(motData);
                     LOGD("Load motion: %s", motFile.c_str());
                     motVec.emplace_back(motion);
 
@@ -190,7 +188,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
             auto expData = readFile(expPath);
             auto expName = expEntry["name"].get<std::string>();
             if (!expData.empty()) {
-                auto* expr = ExpressionMotion::load(expData);
+                auto* expr = ExpressionMotion::Load(expData);
                 LOGD("Load expression: %s", expName.c_str());
                 mExpressions[expName].reset(expr);
                 mExpressionFiles[expName] = expFile;
@@ -211,55 +209,55 @@ int Model::Version() const {
 }
 
 void Model::Resize(int w, int h) {
-    mMatrixManager.onResize(w, h);
+    mMatrixManager.OnResize(w, h);
 }
 void Model::Drag(float x, float y) {
     // Convert screen coords to scene coords (match Python MatrixManager.screenToScene)
-    float w = (float)mMatrixManager.getWidth();
-    float h = (float)mMatrixManager.getHeight();
+    float w = (float)mMatrixManager.GetWidth();
+    float h = (float)mMatrixManager.GetHeight();
     float sx = (x - w * 0.5f) * 2.0f / h;
     float sy = (y - h * 0.5f) * -2.0f / h;
-    mDragMgr.set(sx, sy);
+    mDragMgr.Set(sx, sy);
 }
 bool Model::IsMotionFinished() {
-    return mMainMotionMgr->isFinished();
+    return mMainMotionMgr->IsFinished();
 }
 void Model::SetOffset(float dx, float dy) {
     mOffsetX = dx;
     mOffsetY = dy;
-    mMatrixManager.setOffset(dx, dy);
+    mMatrixManager.SetOffset(dx, dy);
 }
 void Model::SetOffsetX(float x) {
     mOffsetX = x;
-    mMatrixManager.setOffset(mOffsetX, mOffsetY);
+    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
 }
 void Model::SetOffsetY(float y) {
     mOffsetY = y;
-    mMatrixManager.setOffset(mOffsetX, mOffsetY);
+    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
 }
 void Model::SetScale(float s) {
-    mMatrixManager.setScale(s);
+    mMatrixManager.SetScale(s);
 }
 void Model::SetParameterValue(const char* id, float val, float weight) {
-    int idx = mModelContext->getParamIndex(&Id::getID(id));
-    mModelContext->setParamFloat(idx, val, weight);
-    // Match Python: also update savedParamValues so loadParam() doesn't revert
-    if (idx >= 0 && idx < (int)mModelContext->mSavedParamValues.size())
-        mModelContext->mSavedParamValues[idx] =
-            mModelContext->mSavedParamValues[idx] * (1.0f - weight) + val * weight;
+    int idx = mMoc->GetParamIndex(&Id::GetID(id));
+    mMoc->SetParamFloat(idx, val, weight);
+    // Match Python: also update savedParamValues so LoadParam() doesn't revert
+    if (idx >= 0 && idx < (int)mMoc->mSavedParamValues.size())
+        mMoc->mSavedParamValues[idx] =
+            mMoc->mSavedParamValues[idx] * (1.0f - weight) + val * weight;
 }
 void Model::SetParameterValue(int index, float val, float weight) {
     SetParameterValue(GetParameterId(index), val, weight);
 }
 void Model::AddParameterValue(const char* id, float val) {
-    int idx = mModelContext->getParamIndex(&Id::getID(id));
-    mModelContext->setParamFloat(idx, mModelContext->getParamFloat(idx) + val);
+    int idx = mMoc->GetParamIndex(&Id::GetID(id));
+    mMoc->SetParamFloat(idx, mMoc->GetParamFloat(idx) + val);
 }
 void Model::AddParameterValue(int index, float val) {
     AddParameterValue(GetParameterId(index), val);
 }
 int Model::GetParameterCount() {
-    return (int)mModelContext->mParamValues.size();
+    return (int)mMoc->mParamValues.size();
 }
 void Model::GetParameterIds(void* collector, void (*collect)(void* collector, const char* id)) {
     const int count = GetParameterCount();
@@ -268,49 +266,49 @@ void Model::GetParameterIds(void* collector, void (*collect)(void* collector, co
     }
 }
 const char* Model::GetParameterId(int index) {
-    auto& ids = mModelContext->mParamIdList;
+    auto& ids = mMoc->mParamIdList;
     if (index >= 0 && index < (int)ids.size() && ids[index])
-        return ids[index]->str().c_str();
+        return ids[index]->Str().c_str();
     return "";
 }
 float Model::GetParameterValue(int index) {
-    return mModelContext->getParamFloat(index);
+    return mMoc->GetParamFloat(index);
 }
 float Model::GetParameterMinimumValue(int index) {
-    return mModelContext->getParamMin(index);
+    return mMoc->GetParamMin(index);
 }
 float Model::GetParameterMaximumValue(int index) {
-    return mModelContext->getParamMax(index);
+    return mMoc->GetParamMax(index);
 }
 float Model::GetParameterDefaultValue(int index) {
-    return mModelContext->getParamDefault(index);
+    return mMoc->GetParamDefault(index);
 }
 int Model::GetPartCount() const {
-    return (int)mModelContext->mPartsDataList.size();
+    return (int)mMoc->mPartsList.size();
 }
 void Model::GetPartIds(void* collector, void (*collect)(void* collector, const char* id)) const {
-    auto& parts = mModelContext->mPartsDataList;
+    auto& parts = mMoc->mPartsList;
     const int count = (int)parts.size();
     for (int i = 0; i < count; i++) {
-        if (parts[i]->getId())
-            collect(collector, parts[i]->getId()->str().c_str());
+        if (parts[i]->GetId())
+            collect(collector, parts[i]->GetId()->Str().c_str());
     }
 }
 const char* Model::GetPartId(int index) const {
-    auto& parts = mModelContext->mPartsDataList;
-    if (index >= 0 && index < (int)parts.size() && parts[index]->getId())
-        return parts[index]->getId()->str().c_str();
+    auto& parts = mMoc->mPartsList;
+    if (index >= 0 && index < (int)parts.size() && parts[index]->GetId())
+        return parts[index]->GetId()->Str().c_str();
     return "";
 }
 void Model::SetPartOpacity(int index, float val) {
-    mModelContext->setPartsOpacity(index, val);
+    mMoc->SetPartsOpacity(index, val);
 }
 void Model::Update(float deltaSecs) {
     // Model 是唯一读墙钟的地方，且只做一件事: 每帧算一次 dt
     float dt;
     if (deltaSecs < 0.0f) {
         // 墙钟路径（Python v2 1:1）
-        float now = (float)UtSystem::getUserTimeMSec();
+        float now = (float)UtSystem::GetUserTimeMSec();
         dt = (mLastFrameTimeMs != 0.0f) ? (now - mLastFrameTimeMs) / 1000.0f : 0.0f;
         mLastFrameTimeMs = now;
     } else {
@@ -320,29 +318,29 @@ void Model::Update(float deltaSecs) {
     float dtMs = dt * 1000.0f;
     mBreathTimeMs += dtMs;
 
-    mDragMgr.update(dt);
-    setDrag(mDragMgr.getX(), mDragMgr.getY());
+    mDragMgr.Update(dt);
+    SetDrag(mDragMgr.GetX(), mDragMgr.GetY());
 
-    // Match v2 Python update() flow
+    // Match v2 Python Update() flow
     bool updated = false;
     if (mClearFlag) {
-        mMainMotionMgr->stopAllMotions();
+        mMainMotionMgr->StopAllMotions();
         if (mPose) {
             for (auto& g : mPose->mMGroups)
                 for (auto& p : g.parts)
-                    p.initIndex(mModelContext.get());
+                    p.InitIndex(mMoc.get());
         }
         mClearFlag = false;
     } else {
-        mModelContext->loadParam();
-        updated = mMainMotionMgr->updateParam(mModelContext.get(), dtMs);
+        mMoc->LoadParam();
+        updated = mMainMotionMgr->UpdateParam(mMoc.get(), dtMs);
     }
-    mModelContext->saveParam();
+    mMoc->SaveParam();
 
     // Check motion finish callback
     // Save and clear BEFORE calling, so re-entrant StartMotion
     // (called from within the callback) can set new callbacks safely.
-    if (mCallbacksPending && mMainMotionMgr->isFinished()) {
+    if (mCallbacksPending && mMainMotionMgr->IsFinished()) {
         auto onFinish = std::move(mOnFinishMotion);
         auto onStart = std::move(mOnStartMotion);
         auto group = mCurrentGroup;
@@ -357,16 +355,16 @@ void Model::Update(float deltaSecs) {
 
     // Python suppresses eye-blink while a main motion is active
     if (!updated && mAutoBlink && mEyeBlink)
-        mEyeBlink->updateParam(mModelContext.get(), dtMs);
+        mEyeBlink->UpdateParam(mMoc.get(), dtMs);
 
     UpdateExpression(dt);
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
-        int idx = mModelContext->getParamIndex(&Id::getID(id));
+        int idx = mMoc->GetParamIndex(&Id::GetID(id));
         if (idx >= 0) {
-            float cur = mModelContext->getParamFloat(idx);
-            mModelContext->setParamFloat(idx, cur + value * weight);
+            float cur = mMoc->GetParamFloat(idx);
+            mMoc->SetParamFloat(idx, cur + value * weight);
         }
     };
     addParam("PARAM_ANGLE_X", mDragX * 30, 1);
@@ -383,34 +381,36 @@ void Model::Update(float deltaSecs) {
         addParam("PARAM_ANGLE_Y", 8.0f * sinf(t / 3.5345f), 0.5f);
         addParam("PARAM_ANGLE_Z", 10.0f * sinf(t / 5.5345f), 0.5f);
         addParam("PARAM_BODY_ANGLE_X", 4.0f * sinf(t / 15.5345f), 0.5f);
-        int breathIdx = mModelContext->getParamIndex(&Id::getID("PARAM_BREATH"));
+        int breathIdx = mMoc->GetParamIndex(&Id::GetID("PARAM_BREATH"));
         if (breathIdx >= 0)
-            mModelContext->setParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
+            mMoc->SetParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
     }
 
     if (mPhysics)
-        mPhysics->updateParam(mModelContext.get(), (long long)dtMs);
+        mPhysics->UpdateParam(mMoc.get(), (long long)dtMs);
     if (mPose)
-        mPose->updateParam(mModelContext.get(), dt);
+        mPose->UpdateParam(mMoc.get(), dt);
 
 #ifdef CSM_TARGET_VULKAN
     // 本帧参数发生过变化，裁剪遮罩内容需重渲
-    if (mRenderer && mRenderer->isVulkan())
-        mRenderer->setMaskDirty();
+    if (mRenderer && mRenderer->IsVulkan())
+        mRenderer->SetMaskDirty();
 #endif
 }
 void Model::Draw() {
-    // Match v2 Python: process deformer chain in draw(), not update()
+    // Match v2 Python: process deformer chain in Draw(), not Update()
     // This allows SetParameterValue between Update() and Draw() to take effect
-    mModelContext->update();
+    mMoc->Update();
+    // 解析渲染派生数据（opacity/可见性/渲染序列），供 Moc 数据面 getter 使用
+    mMoc->Resolve();
 
     if (!mRenderer) {
         LOGE("Renderer not initialized");
         return;
     }
-    mRenderer->setMatrix(mMatrixManager.getMvp());
+    mRenderer->SetMatrix(mMatrixManager.GetMvp());
 #ifdef CSM_TARGET_VULKAN
-    if (mRenderer->isVulkan()) {
+    if (mRenderer->IsVulkan()) {
         // 帧解耦：acquire/clear/present 由外部 vkBeginFrame/vkEndFrame 驱动，
         // Draw 仅向帧命令缓冲录制；mask 区间由渲染器自管（挂起/恢复）
         VulkanManager* vkMgr = VulkanManager::GetInstance();
@@ -418,23 +418,23 @@ void Model::Draw() {
             return;
     }
 #endif
-    mRenderer->preDraw(mModelContext.get());
-    mRenderer->draw(mModelContext.get());
+    mRenderer->PreDraw(mMoc.get());
+    mRenderer->Draw(mMoc.get());
 }
 bool Model::IsAreaHit(const char* area, float x, float y) {
     // Convert screen pixels → scene coords (match Python screenToScene)
-    float w = (float)mMatrixManager.getWidth();
-    float h = (float)mMatrixManager.getHeight();
+    float w = (float)mMatrixManager.GetWidth();
+    float h = (float)mMatrixManager.GetHeight();
     float sx = (x - w * 0.5f) * 2.0f / h;
     float sy = (y - h * 0.5f) * -2.0f / h;
-    return hitTestSimple(area, sx, sy);
+    return HitTestSimple(area, sx, sy);
 }
 void Model::SetExpression(const char* name, float fadeoutMs) {
     auto it = mExpressions.find(name);
     if (it == mExpressions.end())
         return;
     LOGI("Set expression: %s", name);
-    mExpressionMgr->startMotion(it->second.get(), false);
+    mExpressionMgr->StartMotion(it->second.get(), false);
 
     // fadeout 语义: >=0 为临时表情（到时恢复上一个持久表情），<0 为持久表情
     if (fadeoutMs >= 0.0f) {
@@ -450,7 +450,7 @@ std::string Model::SetRandomExpression(float fadeoutMs) {
         auto it = mExpressions.begin();
         std::advance(it, rand() % mExpressions.size());
         LOGI("Start random expression: %s", it->first.c_str());
-        mExpressionMgr->startMotion(it->second.get(), false);
+        mExpressionMgr->StartMotion(it->second.get(), false);
         if (fadeoutMs >= 0.0f) {
             mFadeoutMs = fadeoutMs;
             mFadeoutElapsedMs = 0;
@@ -474,8 +474,8 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
         // Priority check (match Python v2)
         if (priority == MotionPriority::Force) {
             LOGI("Start motion (force): group=%s no=%d priority=%d", group.c_str(), no, priority);
-            mMainMotionMgr->setReservePriority(priority);
-        } else if (!mMainMotionMgr->reserveMotion(priority)) {
+            mMainMotionMgr->SetReservePriority(priority);
+        } else if (!mMainMotionMgr->ReserveMotion(priority)) {
             // Lower priority than current motion — don't play
             LOGI("Start motion rejected (low priority): group=%s no=%d priority=%d current=%d",
                  group.c_str(),
@@ -497,7 +497,7 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
         if (mOnStartMotion)
             mOnStartMotion(group, no);
         LOGD("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
-        mMainMotionMgr->startMotionPrio(it->second[no].get(), priority);
+        mMainMotionMgr->StartMotionPrio(it->second[no].get(), priority);
     } else {
         LOGD("Start motion: group=%s not found or empty", group.c_str());
         if (mOnStartMotion)
@@ -533,38 +533,38 @@ void Model::ResetExpression() {
     mFadeoutMs = -1.0f;
     mFadeoutElapsedMs = 0;
     mLastExpression.clear();
-    mExpressionMgr->stopAllMotions();
+    mExpressionMgr->StopAllMotions();
     LOGI("Reset expression");
 }
 void Model::ResetPose() {
     if (mPose) {
         for (auto& g : mPose->mMGroups)
             for (auto& p : g.parts)
-                p.initIndex(mModelContext.get());
+                p.InitIndex(mMoc.get());
     }
 }
 void Model::Rotate(float deg) {
-    mMatrixManager.rotate(deg);
+    mMatrixManager.Rotate(deg);
 }
 void Model::SetPartScreenColor(int index, float r, float g, float b, float a) {
-    mModelContext->setPartScreenColor(index, r, g, b, a);
+    mMoc->SetPartScreenColor(index, r, g, b, a);
 }
 void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a) {
-    mModelContext->setPartMultiplyColor(index, r, g, b, a);
+    mMoc->SetPartMultiplyColor(index, r, g, b, a);
 }
 void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const {
-    auto* ctx = mModelContext->getPartsContext(index);
-    r = ctx->mScreenColor[0];
-    g = ctx->mScreenColor[1];
-    b = ctx->mScreenColor[2];
-    a = ctx->mScreenColor[3];
+    auto* part = mMoc->GetPart(index);
+    r = part->mScreenColor[0];
+    g = part->mScreenColor[1];
+    b = part->mScreenColor[2];
+    a = part->mScreenColor[3];
 }
 void Model::GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const {
-    auto* ctx = mModelContext->getPartsContext(index);
-    r = ctx->mMultiplyColor[0];
-    g = ctx->mMultiplyColor[1];
-    b = ctx->mMultiplyColor[2];
-    a = ctx->mMultiplyColor[3];
+    auto* part = mMoc->GetPart(index);
+    r = part->mMultiplyColor[0];
+    g = part->mMultiplyColor[1];
+    b = part->mMultiplyColor[2];
+    a = part->mMultiplyColor[3];
 }
 static bool isInTriangle(float px, float py, float ax, float ay, float bx, float by, float cx,
                          float cy) {
@@ -584,21 +584,21 @@ static bool isInTriangle(float px, float py, float ax, float ay, float bx, float
     return (u >= 0) && (v >= 0) && (u + v <= 1);
 }
 
-std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool wantDrawableId) {
+std::vector<std::string> Model::HitIds(float x, float y, bool topOnly, bool wantDrawableId) {
     // Step 1: screen pixels → scene coords (match Python MatrixManager.screenToScene)
-    float w = (float)mMatrixManager.getWidth();
-    float h = (float)mMatrixManager.getHeight();
+    float w = (float)mMatrixManager.GetWidth();
+    float h = (float)mMatrixManager.GetHeight();
     float sx = (x - w * 0.5f) * 2.0f / h;
     float sy = (y - h * 0.5f) * -2.0f / h;
 
     // Step 2: scene → canvas via MVP inverse (match Python MatrixManager.invertTransform)
-    const float* mvp = mMatrixManager.getMvp();
+    const float* mvp = mMatrixManager.GetMvp();
     float mx = (sx - mvp[12]) / mvp[0];
     float my = (sy - mvp[13]) / mvp[5];
 
-    auto& drawCtxs = mModelContext->mDrawContextList;
-    auto& nextList = mModelContext->mNextListDrawIndex;
-    auto& firstList = mModelContext->mOrderListFirstDrawIndex;
+    auto& drawList = mMoc->mDrawableList;
+    auto& nextList = mMoc->mNextListDrawIndex;
+    auto& firstList = mMoc->mOrderListFirstDrawIndex;
     int range = (int)firstList.size();
 
     std::vector<std::string> result;
@@ -608,11 +608,11 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
         if ((int)firstList.size() <= order)
             continue;
         int idx = firstList[order];
-        if (idx < 0 || idx >= (int)drawCtxs.size())
+        if (idx < 0 || idx >= (int)drawList.size())
             continue;
         while (true) {
-            auto* dctx = drawCtxs[idx].get();
-            if (!dctx || !dctx->mAvailable) {
+            auto* dd = drawList[idx];
+            if (!dd || !dd->mAvailable) {
                 if (nextList.size() > (size_t)idx)
                     idx = nextList[idx];
                 else
@@ -623,8 +623,8 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
             }
 
             // Check part visibility
-            auto* pctx = mModelContext->getPartsContext(dctx->mPartsIndex);
-            if (pctx && pctx->mPartsData && !pctx->mPartsData->isVisible()) {
+            auto* part = mMoc->GetPart(dd->mPartsIndex);
+            if (part && !part->IsVisible()) {
                 if (nextList.size() > (size_t)idx)
                     idx = nextList[idx];
                 else
@@ -633,7 +633,7 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
                     break;
                 continue;
             }
-            if (pctx && pctx->getPartsOpacity() < 0.1f) {
+            if (part && part->GetPartsOpacity() < 0.1f) {
                 if (nextList.size() > (size_t)idx)
                     idx = nextList[idx];
                 else
@@ -646,12 +646,11 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
             // Get hit id: part id (default) or drawData id
             std::string hitId;
             if (wantDrawableId) {
-                auto* dd0 = static_cast<Mesh*>(mModelContext->getDrawData(idx));
-                if (dd0 && dd0->getId())
-                    hitId = dd0->getId()->str();
+                if (dd && dd->GetId())
+                    hitId = dd->GetId()->Str();
             } else {
-                if (pctx && pctx->mPartsData && pctx->mPartsData->getId())
-                    hitId = pctx->mPartsData->getId()->str();
+                if (part && part->GetId())
+                    hitId = part->GetId()->Str();
             }
 
             // Skip duplicate ids
@@ -672,11 +671,10 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
             }
 
             // Triangle hit test against drawable vertices
-            auto& verts = !dctx->mTransformedPoints.empty() ? dctx->mTransformedPoints
-                                                            : dctx->mInterpolatedPoints;
-            auto* dd = static_cast<Mesh*>(mModelContext->getDrawData(idx));
+            auto& verts = !dd->mTransformedPoints.empty() ? dd->mTransformedPoints
+                                                          : dd->mInterpolatedPoints;
             if (dd && !verts.empty()) {
-                auto& indices = dd->getIndexArray();
+                auto& indices = dd->GetIndexArray();
                 for (size_t i = 0; i + 2 < indices.size(); i += 3) {
                     int i0 = indices[i] * 2, i1 = indices[i + 1] * 2, i2 = indices[i + 2] * 2;
                     if (i0 < 0 || i1 < 0 || i2 < 0)
@@ -713,7 +711,7 @@ std::vector<std::string> Model::hitIds(float x, float y, bool topOnly, bool want
 
 void Model::HitPart(float x, float y, void* collector,
                     void (*collect)(void* collector, const char* id), bool topOnly) {
-    auto ids = hitIds(x, y, topOnly, false);
+    auto ids = HitIds(x, y, topOnly, false);
     for (auto& id : ids)
         collect(collector, id.c_str());
 }
@@ -727,7 +725,7 @@ void Model::CreateRenderer(int maskBufferCount) {
 #ifdef CSM_TARGET_VULKAN
     // 与 V3 一致：Vulkan 已初始化时创建 Vulkan 渲染器；未初始化则跳过（无头模式安全）
     if (VulkanManager::GetInstance()->IsInitialized()) {
-        auto* vkRenderer = new VkRenderer(mModelContext.get(), (int)mTexturePaths.size());
+        auto* vkRenderer = new VkRenderer(mMoc.get(), (int)mTexturePaths.size());
         mRenderer.reset(vkRenderer);
         for (size_t i = 0; i < mTexturePaths.size(); i++) {
             std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
@@ -750,7 +748,7 @@ void Model::CreateRenderer(int maskBufferCount) {
                                                 VulkanManager::GetInstance()->GetPhysicalDevice(),
                                                 pixels, w, h, &image, &memory, &view, &sampler,
                                                 1.0f)) {
-                vkRenderer->setTexture((int)i, image, memory, view, sampler);
+                vkRenderer->SetTexture((int)i, image, memory, view, sampler);
             } else {
                 LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
             }
@@ -761,7 +759,7 @@ void Model::CreateRenderer(int maskBufferCount) {
     LOGW("Vulkan is not initialized, skipping renderer creation");
     return;
 #else
-    mRenderer = std::make_unique<GLRenderer>(mModelContext.get(), (int)mTexturePaths.size());
+    mRenderer = std::make_unique<GLRenderer>(mMoc.get(), (int)mTexturePaths.size());
     for (size_t i = 0; i < mTexturePaths.size(); i++) {
         std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
         int w, h, n;
@@ -784,7 +782,7 @@ void Model::CreateRenderer(int maskBufferCount) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
-        static_cast<GLRenderer*>(mRenderer.get())->setTexture((int)i, (int)texId);
+        static_cast<GLRenderer*>(mRenderer.get())->SetTexture((int)i, (int)texId);
         stbi_image_free(pixels);
     }
 #endif
@@ -798,8 +796,8 @@ void Model::DestroyRenderer() {
 }
 
 void Model::GetCanvasSize(float& w, float& h) {
-    w = (float)mModelImpl->getCanvasWidth();
-    h = (float)mModelImpl->getCanvasHeight();
+    w = (float)mMoc->GetCanvasWidth();
+    h = (float)mMoc->GetCanvasHeight();
 }
 void Model::GetCanvasSizePixel(float& w, float& h) {
     GetCanvasSize(w, h);   // v2 pixelsPerUnit == 1
@@ -823,27 +821,27 @@ int Model::GetExpressionCount() {
     return (int)mExpressions.size();
 }
 const float* Model::GetMvp() {
-    return mMatrixManager.getMvp();
+    return mMatrixManager.GetMvp();
 }
 
 // ---- 细化更新（dt 由外部传入，与 Update(deltaSecs) 的 delta 路径同构）----
 
 bool Model::UpdateMotion(float deltaSecs) {
-    mModelContext->loadParam();
-    bool updated = mMainMotionMgr->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
-    mModelContext->saveParam();
+    mMoc->LoadParam();
+    bool updated = mMainMotionMgr->UpdateParam(mMoc.get(), deltaSecs * 1000.0f);
+    mMoc->SaveParam();
     return updated;
 }
 void Model::UpdateDrag(float deltaSecs) {
-    mDragMgr.update(deltaSecs);
-    setDrag(mDragMgr.getX(), mDragMgr.getY());
+    mDragMgr.Update(deltaSecs);
+    SetDrag(mDragMgr.GetX(), mDragMgr.GetY());
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
-        int idx = mModelContext->getParamIndex(&Id::getID(id));
+        int idx = mMoc->GetParamIndex(&Id::GetID(id));
         if (idx >= 0) {
-            float cur = mModelContext->getParamFloat(idx);
-            mModelContext->setParamFloat(idx, cur + value * weight);
+            float cur = mMoc->GetParamFloat(idx);
+            mMoc->SetParamFloat(idx, cur + value * weight);
         }
     };
     addParam("PARAM_ANGLE_X", mDragX * 30, 1);
@@ -857,10 +855,10 @@ void Model::UpdateBreath(float deltaSecs) {
     mBreathTimeMs += deltaSecs * 1000.0f;
     // Auto-breath animation (match v2 Python periods)
     auto addParam = [&](const char* id, float value, float weight) {
-        int idx = mModelContext->getParamIndex(&Id::getID(id));
+        int idx = mMoc->GetParamIndex(&Id::GetID(id));
         if (idx >= 0) {
-            float cur = mModelContext->getParamFloat(idx);
-            mModelContext->setParamFloat(idx, cur + value * weight);
+            float cur = mMoc->GetParamFloat(idx);
+            mMoc->SetParamFloat(idx, cur + value * weight);
         }
     };
     float t = mBreathTimeMs / 1000.0f;
@@ -868,17 +866,17 @@ void Model::UpdateBreath(float deltaSecs) {
     addParam("PARAM_ANGLE_Y", 8.0f * sinf(t / 3.5345f), 0.5f);
     addParam("PARAM_ANGLE_Z", 10.0f * sinf(t / 5.5345f), 0.5f);
     addParam("PARAM_BODY_ANGLE_X", 4.0f * sinf(t / 15.5345f), 0.5f);
-    int breathIdx = mModelContext->getParamIndex(&Id::getID("PARAM_BREATH"));
+    int breathIdx = mMoc->GetParamIndex(&Id::GetID("PARAM_BREATH"));
     if (breathIdx >= 0)
-        mModelContext->setParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
+        mMoc->SetParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
 }
 void Model::UpdateBlink(float deltaSecs) {
     if (mEyeBlink)
-        mEyeBlink->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
+        mEyeBlink->UpdateParam(mMoc.get(), deltaSecs * 1000.0f);
 }
 void Model::UpdateExpression(float deltaSecs) {
     if (!mExpressions.empty())
-        mExpressionMgr->updateParam(mModelContext.get(), deltaSecs * 1000.0f);
+        mExpressionMgr->UpdateParam(mMoc.get(), deltaSecs * 1000.0f);
     // 表情 fadeout: 到期恢复上一个持久表情
     if (mFadeoutMs >= 0.0f) {
         mFadeoutElapsedMs += deltaSecs * 1000;
@@ -894,11 +892,11 @@ void Model::UpdateExpression(float deltaSecs) {
 }
 void Model::UpdatePhysics(float deltaSecs) {
     if (mPhysics)
-        mPhysics->updateParam(mModelContext.get(), (long long)(deltaSecs * 1000.0f));
+        mPhysics->UpdateParam(mMoc.get(), (long long)(deltaSecs * 1000.0f));
 }
 void Model::UpdatePose(float deltaSecs) {
     if (mPose)
-        mPose->updateParam(mModelContext.get(), deltaSecs);
+        mPose->UpdateParam(mMoc.get(), deltaSecs);
 }
 
 // ---- 参数保存/恢复 ----
@@ -913,38 +911,38 @@ void Model::SetAndSaveParameterValue(int index, float value, float weight) {
 void Model::AddAndSaveParameterValue(const char* id, float value) {
     AddParameterValue(id, value);
     // 只保存被加的参数（等价 V3 的逐参数保存，不做全量快照）
-    int idx = mModelContext->getParamIndex(&Id::getID(id));
-    if (idx >= 0 && idx < (int)mModelContext->mSavedParamValues.size())
-        mModelContext->mSavedParamValues[idx] = mModelContext->getParamFloat(idx);
+    int idx = mMoc->GetParamIndex(&Id::GetID(id));
+    if (idx >= 0 && idx < (int)mMoc->mSavedParamValues.size())
+        mMoc->mSavedParamValues[idx] = mMoc->GetParamFloat(idx);
 }
 void Model::AddAndSaveParameterValue(int index, float value) {
     AddParameterValue(index, value);
-    if (index >= 0 && index < (int)mModelContext->mSavedParamValues.size())
-        mModelContext->mSavedParamValues[index] = mModelContext->getParamFloat(index);
+    if (index >= 0 && index < (int)mMoc->mSavedParamValues.size())
+        mMoc->mSavedParamValues[index] = mMoc->GetParamFloat(index);
 }
 void Model::LoadParameters() {
-    mModelContext->loadParam();
+    mMoc->LoadParam();
 }
 void Model::SaveParameters() {
-    mModelContext->saveParam();
+    mMoc->SaveParam();
 }
 void Model::ResetAllParameters() {
     const int count = GetParameterCount();
     for (int i = 0; i < count; i++) {
-        float def = mModelContext->getParamDefault(i);
-        mModelContext->setParamFloat(i, def);
-        if (i < (int)mModelContext->mSavedParamValues.size())
-            mModelContext->mSavedParamValues[i] = def;
+        float def = mMoc->GetParamDefault(i);
+        mMoc->SetParamFloat(i, def);
+        if (i < (int)mMoc->mSavedParamValues.size())
+            mMoc->mSavedParamValues[i] = def;
     }
 }
 
 // ---- 变换 ----
 
 void Model::SetScaleX(float scaleX) {
-    mMatrixManager.setScaleX(scaleX);
+    mMatrixManager.SetScaleX(scaleX);
 }
 void Model::SetScaleY(float scaleY) {
-    mMatrixManager.setScaleY(scaleY);
+    mMatrixManager.SetScaleY(scaleY);
 }
 
 // ---- 动作组 ----
@@ -955,7 +953,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
         LOGE("Failed to read motion file: %s", motionJsonPath);
         return -1;
     }
-    auto* motion = Live2DMotion::load(motData);
+    auto* motion = Live2DMotion::Load(motData);
     if (!motion) {
         LOGE("Failed to load motion: %s", motionJsonPath);
         return -1;
@@ -993,7 +991,7 @@ void Model::GetMotions(void* collector,
 
 void Model::HitDrawable(float x, float y, void* collector,
                         void (*collect)(void* collector, const char* id), bool topOnly) {
-    auto ids = hitIds(x, y, topOnly, true);
+    auto ids = HitIds(x, y, topOnly, true);
     for (auto& id : ids)
         collect(collector, id.c_str());
 }
@@ -1001,18 +999,18 @@ bool Model::IsPartHit(int index, float x, float y) {
     const char* id = GetPartId(index);
     if (id[0] == '\0')
         return false;
-    auto ids = hitIds(x, y, false, false);
+    auto ids = HitIds(x, y, false, false);
     for (auto& hit : ids)
         if (hit == id)
             return true;
     return false;
 }
 bool Model::IsDrawableHit(int index, float x, float y) {
-    auto* dd = static_cast<Mesh*>(mModelContext->getDrawData(index));
-    if (!dd || !dd->getId())
+    auto* dd = mMoc->GetDrawable(index);
+    if (!dd || !dd->GetId())
         return false;
-    std::string id = dd->getId()->str();
-    auto ids = hitIds(x, y, false, true);
+    std::string id = dd->GetId()->Str();
+    auto ids = HitIds(x, y, false, true);
     for (auto& hit : ids)
         if (hit == id)
             return true;
@@ -1022,24 +1020,24 @@ bool Model::IsDrawableHit(int index, float x, float y) {
 // ---- drawable ----
 
 int Model::GetDrawableCount() {
-    return (int)mModelContext->mDrawContextList.size();
+    return (int)mMoc->mDrawableList.size();
 }
 void Model::GetDrawableIds(void* collector, void (*collect)(void* collector, const char* id)) {
     const int count = GetDrawableCount();
     for (int i = 0; i < count; i++) {
-        auto* dd = mModelContext->getDrawData(i);
-        if (dd && dd->getId())
-            collect(collector, dd->getId()->str().c_str());
+        auto* dd = mMoc->GetDrawable(i);
+        if (dd && dd->GetId())
+            collect(collector, dd->GetId()->Str().c_str());
     }
 }
 const float* Model::GetDrawableVertices(int index) {
-    auto* ctx = mModelContext->getDrawContext(index);
-    if (!ctx) {
+    auto* dd = mMoc->GetDrawable(index);
+    if (!dd) {
         mDrawableVertexCache.clear();
         return mDrawableVertexCache.data();
     }
-    auto& verts = !ctx->mTransformedPoints.empty() ? ctx->mTransformedPoints
-                                                   : ctx->mInterpolatedPoints;
+    auto& verts = !dd->mTransformedPoints.empty() ? dd->mTransformedPoints
+                                                  : dd->mInterpolatedPoints;
     mDrawableVertexCache = verts;
     return mDrawableVertexCache.data();
 }
@@ -1048,34 +1046,34 @@ int Model::GetDrawableVertexCount(int index) {
     return (int)mDrawableVertexCache.size() / 2;
 }
 int Model::GetDrawableVertexIndexCount(int index) {
-    auto* dd = static_cast<Mesh*>(mModelContext->getDrawData(index));
+    auto* dd = mMoc->GetDrawable(index);
     if (!dd)
         return 0;
-    return (int)dd->getIndexArray().size();
+    return (int)dd->GetIndexArray().size();
 }
 const unsigned short* Model::GetDrawableIndices(int index) {
-    auto* dd = static_cast<Mesh*>(mModelContext->getDrawData(index));
+    auto* dd = mMoc->GetDrawable(index);
     if (!dd) {
         mDrawableIndexCache.clear();
         return mDrawableIndexCache.data();
     }
-    auto& indices = dd->getIndexArray();
+    auto& indices = dd->GetIndexArray();
     mDrawableIndexCache.assign(indices.begin(), indices.end());
     return mDrawableIndexCache.data();
 }
 void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a) {
     // v2 没有 drawable 级颜色，作用于该 drawable 所属的 part
-    auto* ctx = mModelContext->getDrawContext(index);
-    if (!ctx)
+    auto* dd = mMoc->GetDrawable(index);
+    if (!dd)
         return;
-    mModelContext->setPartMultiplyColor(ctx->mPartsIndex, r, g, b, a);
+    mMoc->SetPartMultiplyColor(dd->mPartsIndex, r, g, b, a);
 }
 void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a) {
     // v2 没有 drawable 级颜色，作用于该 drawable 所属的 part
-    auto* ctx = mModelContext->getDrawContext(index);
-    if (!ctx)
+    auto* dd = mMoc->GetDrawable(index);
+    if (!dd)
         return;
-    mModelContext->setPartScreenColor(ctx->mPartsIndex, r, g, b, a);
+    mMoc->SetPartScreenColor(dd->mPartsIndex, r, g, b, a);
 }
 
 // ---- 表情 ----
@@ -1087,13 +1085,13 @@ void Model::AddExpression(const char* expressionId) {
 void Model::RemoveExpression(const char* expressionId) {
     (void)expressionId;
     // v2 只有一个表情管理器，无法移除单个表情，停止全部
-    mExpressionMgr->stopAllMotions();
+    mExpressionMgr->StopAllMotions();
 }
 void Model::ResetExpressions() {
     mFadeoutMs = -1.0f;
     mFadeoutElapsedMs = 0;
     mLastExpression.clear();
-    mExpressionMgr->stopAllMotions();
+    mExpressionMgr->StopAllMotions();
 }
 void Model::GetExpressions(void* collector,
                            void (*collect)(void* collector, const char* id, const char* file)) {
@@ -1107,7 +1105,7 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
         LOGE("Failed to read expression file: %s", expressionJsonPath);
         return;
     }
-    auto* expr = ExpressionMotion::load(expData);
+    auto* expr = ExpressionMotion::Load(expData);
     if (!expr) {
         LOGE("Failed to load expression: %s", expressionJsonPath);
         return;

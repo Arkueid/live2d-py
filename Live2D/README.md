@@ -17,8 +17,8 @@ Live2D/
     src/
       CMakeLists.txt      # Source file list for static lib
       LAppModel.cpp/hpp   # High-level model: loading, update, draw
-      Core/               # BinaryReader, Id, ParamDef, PivotManager, ...
-      Model/              # ModelContext, Live2DModelOpenGL, ALive2DModel
+      Core/               # BinaryReader, Id, Parameter, PivotManager, ...
+      Model/              # Core, Live2DModelOpenGL, ALive2DModel
       Deformer/           # RotationDeformer, WarpDeformer, AffineEnt
       Draw/               # Mesh, IDrawData
       Graphics/           # DrawParamOpenGL, ClippingManagerOpenGL

@@ -1,6 +1,6 @@
 #include "Live2DMotion.hpp"
 #include "Id.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -11,7 +11,7 @@ namespace V2 {
 
 Live2DMotion::Live2DMotion() = default;
 
-void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weight) {
+void Live2DMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
     if (mDurationMs <= 0 || mMotions.empty())
         return;
     float timeMs = timeSec * 1000.0f;
@@ -49,26 +49,26 @@ void Live2DMotion::updateParam(ModelContext* context, float timeSec, float weigh
             // Match Python: set the "VISIBLE:xxx" parameter so the pose system
             // (Pose::updateParam) can read it and apply smooth fade transitions.
             std::string paramId = "VISIBLE:" + m.mSecondaryId;
-            int pi = context->getParamIndex(&Id::getID(paramId));
+            int pi = moc->GetParamIndex(&Id::GetID(paramId));
             if (pi >= 0)
-                context->setParamFloat(pi, val);
+                moc->SetParamFloat(pi, val);
         } else {
-            int pi = context->getParamIndex(&Id::getID(m.mParamId));
+            int pi = moc->GetParamIndex(&Id::GetID(m.mParamId));
             if (pi >= 0) {
-                context->setParamFloat(pi, val, weight);
+                moc->SetParamFloat(pi, val, weight);
             }
         }
     }
 }
 
-float Live2DMotion::getDurationSec() const {
+float Live2DMotion::GetDurationSec() const {
     return mDurationMs / 1000.0f;
 }
-bool Live2DMotion::isLoop() const {
+bool Live2DMotion::IsLoop() const {
     return mLoop;
 }
 
-Live2DMotion* Live2DMotion::load(const std::vector<uint8_t>& data) {
+Live2DMotion* Live2DMotion::Load(const std::vector<uint8_t>& data) {
     auto* m = new Live2DMotion();
     std::string content((const char*)data.data(), data.size());
     std::istringstream ss(content);

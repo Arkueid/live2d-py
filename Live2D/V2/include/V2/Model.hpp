@@ -143,7 +143,7 @@ private:
         std::string sound;
     };
     // wantDrawableId=false 返回 part id，true 返回 drawData id
-    std::vector<std::string> hitIds(float x, float y, bool topOnly, bool wantDrawableId);
+    std::vector<std::string> HitIds(float x, float y, bool topOnly, bool wantDrawableId);
 
     // jsonText: model json 完整文本；homeDir: 资源根目录（含尾部分隔符，可为空串）
     void LoadModelJsonImpl(const std::string& jsonText, const std::string& homeDir,
