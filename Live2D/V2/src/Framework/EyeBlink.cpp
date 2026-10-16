@@ -1,11 +1,15 @@
 #include "EyeBlink.hpp"
-#include "Id.hpp"
 #include "Moc.hpp"
-#include "UtSystem.hpp"
 #include <cstdlib>
+
+
 namespace Live2D {
 namespace V2 {
-EyeBlink::EyeBlink() {}
+EyeBlink::EyeBlink(Id::IdPool& idPool) {
+    mEyeLId = idPool.Resolve("PARAM_EYE_L_OPEN");
+    mEyeRId = idPool.Resolve("PARAM_EYE_R_OPEN");
+}
+
 void EyeBlink::SetEyeMotion(int closeMs, int closedMs, int openMs) {
     mClosingMs = static_cast<float>(closeMs);
     mClosedMs = static_cast<float>(closedMs);
@@ -34,13 +38,13 @@ void EyeBlink::UpdateParam(Moc* moc, float deltaMs) {
                 mState = CLOSED;
                 mStateStartTime = now;
             }
-            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeLId)), v);
-            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeRId)), v);
+            moc->SetParamValue(moc->GetParamIndex(mEyeLId), v);
+            moc->SetParamValue(moc->GetParamIndex(mEyeRId), v);
             break;
         }
         case CLOSED: {
-            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeLId)), 0);
-            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeRId)), 0);
+            moc->SetParamValue(moc->GetParamIndex(mEyeLId), 0);
+            moc->SetParamValue(moc->GetParamIndex(mEyeRId), 0);
             float elapsed = now - mStateStartTime;
             if (elapsed >= mClosedMs) {
                 mState = OPENING;
@@ -57,8 +61,8 @@ void EyeBlink::UpdateParam(Moc* moc, float deltaMs) {
                 mNextBlinkTime =
                     now + mBlinkIntervalMs + static_cast<float>(rand() % (int)mBlinkIntervalMs);
             }
-            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeLId)), v);
-            moc->SetParamFloat(moc->GetParamIndex(&Id::GetID(mEyeRId)), v);
+            moc->SetParamValue(moc->GetParamIndex(mEyeLId), v);
+            moc->SetParamValue(moc->GetParamIndex(mEyeRId), v);
             break;
         }
     }

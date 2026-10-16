@@ -1,31 +1,33 @@
 #include "BaseModel.hpp"
+#include "AMotion.hpp"
 #include "BinaryReader.hpp"
 #include "Drawable.hpp"
-#include "Moc.hpp"
-#include "AMotion.hpp"
-#include "Live2DMotion.hpp"
-#include "GLRenderer.hpp"
 #include "ExpressionMotion.hpp"
 #include "EyeBlink.hpp"
+#include "GLRenderer.hpp"
+#include "Id.hpp"
+#include "Live2DMotion.hpp"
+#include "Moc.hpp"
 #include "MotionManager.hpp"
 #include "Physics.hpp"
 #include "Pose.hpp"
+#include <memory>
 
 namespace Live2D {
 namespace V2 {
 
-BaseModel::BaseModel()
-    : mMoc(nullptr)
-    , mEyeBlink(std::make_unique<EyeBlink>())
-    , mPhysics(std::make_unique<Physics>())
-    , mPose(std::make_unique<Pose>())
-    , mMainMotionMgr(std::make_unique<MotionManager>())
-    , mExpressionMgr(std::make_unique<MotionManager>()) {}
+BaseModel::BaseModel() :
+    mIdPool(), mMoc(nullptr), mEyeBlink(nullptr), mPhysics(std::make_unique<Physics>()),
+    mPose(std::make_unique<Pose>()), mMainMotionMgr(std::make_unique<MotionManager>()),
+    mExpressionMgr(std::make_unique<MotionManager>()) {
+
+    mEyeBlink = std::make_unique<EyeBlink>(mIdPool);
+}
 
 BaseModel::~BaseModel() = default;
 
 void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
-    BinaryReader br(data);
+    BinaryReader br(data, mIdPool);
     br.ReadByte();
     br.ReadByte();
     br.ReadByte();
@@ -33,34 +35,34 @@ void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
     br.SetFormatVersion(version);
     mMoc.reset(static_cast<Moc*>(br.ReadObjectRaw()));
     mMoc->Init();
-    mModelMatrix =
-        ModelMatrix((float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight());
+    mModelMatrix = ModelMatrix((float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight());
     // 默认按画布高度适配（对齐 Common::MatrixManager 横屏规则），
     // 保证高画布的角色模型默认完整显示；
-    // 渲染适配矩阵由 Common::MatrixManager 每帧按窗口重算，此处仅供 hitTestSimple 反算
+    // 渲染适配矩阵由 Common::MatrixManager 每帧按窗口重算，此处仅供 hitTestSimple
+    // 反算
     mModelMatrix.SetHeight(2);
     mModelMatrix.SetCenterPosition(0, 0);
 }
 AMotion* BaseModel::LoadMotion(const std::string& name, const std::vector<uint8_t>& data) {
-    auto* m = Live2DMotion::Load(data);
+    auto* m = Live2DMotion::Load(data, mIdPool);
     mMotions[name].emplace_back(m);
     return m;
 }
 AMotion* BaseModel::LoadExpression(const std::string& name, const std::vector<uint8_t>& data) {
-    auto* m = ExpressionMotion::Load(data);
+    auto* m = ExpressionMotion::Load(data, mIdPool);
     mExpressions[name].reset(m);
     return m;
 }
 Pose* BaseModel::LoadPose(const std::vector<uint8_t>& data) {
-    mPose.reset(Pose::Load(data));
+    mPose.reset(Pose::Load(data, mIdPool));
     return mPose.get();
 }
 void BaseModel::LoadPhysics(const std::vector<uint8_t>& data) {
-    mPhysics.reset(Physics::Load(data));
+    mPhysics.reset(Physics::Load(data, mIdPool));
 }
 bool BaseModel::HitTestSimple(const std::string& drawID, float x, float y) {
     auto* moc = mMoc.get();
-    int drawIdx = moc->GetDrawableIndex(&Id::GetID(drawID));
+    int drawIdx = moc->GetDrawableIndex(drawID);
     if (drawIdx < 0)
         return false;
 

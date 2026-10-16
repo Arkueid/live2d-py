@@ -3,7 +3,6 @@
 
 #include "ISerializable.hpp"
 #include "Id.hpp"
-#include <string>
 #include <vector>
 
 namespace Live2D {
@@ -42,7 +41,7 @@ public:
     void SetId(const Id* value) { mId = value; }
     const Id* GetTargetId() const { return mTargetId; }
     void SetTargetId(const Id* value) { mTargetId = value; }
-    bool NeedTransform() const { return mTargetId != nullptr && *mTargetId != Id::DST_BASE_ID(); }
+    bool NeedTransform() const { return mTargetId != nullptr && mTargetId != Id::DST_BASE_ID(); }
 
     float GetOpacity() const { return mInterpolatedOpacity; }
     int GetDrawOrder() const { return mInterpolatedDrawOrder; }
@@ -51,7 +50,7 @@ public:
     static int GetTotalMinOrder() { return sTotalMinOrder; }
     static int GetTotalMaxOrder() { return sTotalMaxOrder; }
 
-    const std::vector<std::string>& GetClipIDList() const { return mClipIDList; }
+    const std::vector<Id*>& GetClipIDList() const { return mClipIDList; }
 
     void SetTextureNo(int texNo) { mTextureNo = texNo; }
     int GetTextureNo() const { return mTextureNo; }
@@ -79,7 +78,7 @@ private:
     int mAverageDrawOrder = 0;
     std::vector<int> mPivotDrawOrders;
     std::vector<float> mPivotOpacities;
-    std::vector<std::string> mClipIDList;
+    std::vector<Id*> mClipIDList;
 
     int mTextureNo = -1;
     int mPointCount = 0;

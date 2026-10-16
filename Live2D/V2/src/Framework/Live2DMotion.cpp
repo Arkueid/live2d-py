@@ -1,15 +1,15 @@
 #include "Live2DMotion.hpp"
 #include "Id.hpp"
 #include "Moc.hpp"
-#include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <sstream>
 
 namespace Live2D {
 namespace V2 {
 
-Live2DMotion::Live2DMotion() = default;
+Live2DMotion::Live2DMotion(Id::IdPool& idPool) : mIdPool(idPool) {
+    mVisibleId = mIdPool.Resolve("VISIBLE");
+};
 
 void Live2DMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
     if (mDurationMs <= 0 || mMotions.empty())
@@ -45,17 +45,19 @@ void Live2DMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
             val = v0 + (v1 - v0) * t;
         }
 
-        if (m.mParamId == "VISIBLE") {
+        if (m.mParamId == mVisibleId) {
             // Match Python: set the "VISIBLE:xxx" parameter so the pose system
             // (Pose::updateParam) can read it and apply smooth fade transitions.
-            std::string paramId = "VISIBLE:" + m.mSecondaryId;
-            int pi = moc->GetParamIndex(&Id::GetID(paramId));
+            if (!m.mVisibleSecondaryId) {
+                m.mVisibleSecondaryId = mIdPool.Resolve("VISIBLE:" + m.mSecondaryId->Str());
+            }
+            int pi = moc->GetParamIndex(m.mVisibleSecondaryId);
             if (pi >= 0)
-                moc->SetParamFloat(pi, val);
+                moc->SetParamValue(pi, val);
         } else {
-            int pi = moc->GetParamIndex(&Id::GetID(m.mParamId));
+            int pi = moc->GetParamIndex(m.mParamId);
             if (pi >= 0) {
-                moc->SetParamFloat(pi, val, weight);
+                moc->SetParamValue(pi, val, weight);
             }
         }
     }
@@ -68,8 +70,8 @@ bool Live2DMotion::IsLoop() const {
     return mLoop;
 }
 
-Live2DMotion* Live2DMotion::Load(const std::vector<uint8_t>& data) {
-    auto* m = new Live2DMotion();
+Live2DMotion* Live2DMotion::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
+    auto* m = new Live2DMotion(idPool);
     std::string content((const char*)data.data(), data.size());
     std::istringstream ss(content);
     std::string line;
@@ -102,13 +104,13 @@ Live2DMotion* Live2DMotion::Load(const std::vector<uint8_t>& data) {
         } else {
             Motion motion;
             if (key.find("VISIBLE:") == 0) {
-                motion.mParamId = "VISIBLE";
-                motion.mSecondaryId = key.substr(8);
+                motion.mParamId = idPool.Resolve("VISIBLE");
+                motion.mSecondaryId = idPool.Resolve(key.substr(8));
             } else if (key.find("LAYOUT:") == 0) {
-                motion.mParamId = "LAYOUT";
-                motion.mSecondaryId = key.substr(7);
+                motion.mParamId = idPool.Resolve("LAYOUT");
+                motion.mSecondaryId = idPool.Resolve(key.substr(7));
             } else {
-                motion.mParamId = key;
+                motion.mParamId = idPool.Resolve(key);
             }
             std::istringstream vs(val);
             std::string token;

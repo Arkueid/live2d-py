@@ -1,6 +1,8 @@
 #pragma once
-#include <string>
 #include <vector>
+#include "Id.hpp"
+
+
 namespace Live2D {
 namespace V2 {
 class Moc;
@@ -21,13 +23,13 @@ struct PhysicsPoint {
 
 struct PhysicsSrc {
     PhysicsSrcType type;
-    std::string paramId;
+    Id* paramId;
     float scale = 1, weight = 1;
     void Update(Moc* moc, class PhysicsHair* ctx);
 };
 struct PhysicsTarget {
     PhysicsTargetType type;
-    std::string paramId;
+    Id* paramId;
     float scale = 1, weight = 1;
     void Update(Moc* moc, class PhysicsHair* ctx);
 };
@@ -36,8 +38,8 @@ class PhysicsHair {
 public:
     PhysicsHair();
     void Setup(float length, float stiffness, float mass);
-    void AddSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight);
-    void AddTargetParam(PhysicsTargetType t, const std::string& id, float scale, float weight);
+    void AddSrcParam(PhysicsSrcType t, Id* id, float scale, float weight);
+    void AddTargetParam(PhysicsTargetType t, Id* id, float scale, float weight);
     void Update(Moc* moc, long long timeMs);
 
     PhysicsPoint& GetP1() { return p1; }

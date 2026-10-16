@@ -1,22 +1,22 @@
 #include "V2/Model.hpp"
-#include "IModel.hpp"
-#include "Id.hpp"
-#include "Part.hpp"
 #include "Drawable.hpp"
 #include "ExpressionMotion.hpp"
 #include "EyeBlink.hpp"
+#include "GLRenderer.hpp"
+#include "IModel.hpp"
+#include "Id.hpp"
 #include "MotionManager.hpp"
+#include "Part.hpp"
 #include "Physics.hpp"
 #include "Pose.hpp"
-#include "GLRenderer.hpp"
 #ifdef CSM_TARGET_VULKAN
 #include "VkRenderer.hpp"
-#include "VulkanManager.hpp"
 #include "VkUtil.hpp"
+#include "VulkanManager.hpp"
 #endif
+#include "Live2DMotion.hpp"
 #include "Log.hpp"
 #include "Moc.hpp"
-#include "Live2DMotion.hpp"
 #include "UtSystem.hpp"
 #include "nlohmann/json.hpp"
 #ifdef __ANDROID__
@@ -39,7 +39,8 @@ namespace V2 {
 using json = nlohmann::json;
 using namespace Live2D::Common::Log;
 
-// Helper: read entire file using std::filesystem::u8path for Unicode path support
+// Helper: read entire file using std::filesystem::u8path for Unicode path
+// support
 static std::vector<uint8_t> readFile(const std::string& path) {
     std::filesystem::path fp = std::filesystem::u8path(path);
     std::ifstream f(fp, std::ios::binary | std::ios::ate);
@@ -53,7 +54,8 @@ static std::vector<uint8_t> readFile(const std::string& path) {
     return data;
 }
 
-// homeDir 已含尾部分隔符（可为空串）；rel 为绝对路径（含 '/' '\' 开头）时原样返回
+// homeDir 已含尾部分隔符（可为空串）；rel 为绝对路径（含 '/' '\'
+// 开头）时原样返回
 static std::string JoinPath(const std::string& homeDir, const std::string& rel) {
     if (rel.empty())
         return rel;
@@ -71,8 +73,8 @@ static void parseTexturePaths(const json& data, std::vector<std::string>& texPat
     }
 }
 
-Model::Model()
-    : mRenderer(nullptr) {}
+Model::Model() : BaseModel(), mRenderer(nullptr) {}
+
 Model::~Model() = default;
 
 void Model::LoadModelJson(const char* path, bool createRenderer) {
@@ -145,7 +147,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         auto poseData = readFile(posePath);
         if (!poseData.empty()) {
             LOGI("Load pose: %s", poseFile.c_str());
-            mPose.reset(Pose::Load(poseData));
+            mPose.reset(Pose::Load(poseData, mIdPool));
             // Initialize part/param indices once (PartData::initIndex uses the
             // "VISIBLE:" prefix; a bare-id pre-pass here used to append phantom
             // parameters via getParamIndex's extend-on-miss).
@@ -163,7 +165,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
                 auto motPath = JoinPath(mModelHomeDir, motFile);
                 auto motData = readFile(motPath);
                 if (!motData.empty()) {
-                    auto* motion = Live2DMotion::Load(motData);
+                    auto* motion = Live2DMotion::Load(motData, mIdPool);
                     LOGD("Load motion: %s", motFile.c_str());
                     motVec.emplace_back(motion);
 
@@ -188,7 +190,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
             auto expData = readFile(expPath);
             auto expName = expEntry["name"].get<std::string>();
             if (!expData.empty()) {
-                auto* expr = ExpressionMotion::Load(expData);
+                auto* expr = ExpressionMotion::Load(expData, mIdPool);
                 LOGD("Load expression: %s", expName.c_str());
                 mExpressions[expName].reset(expr);
                 mExpressionFiles[expName] = expFile;
@@ -212,7 +214,8 @@ void Model::Resize(int w, int h) {
     mMatrixManager.OnResize(w, h);
 }
 void Model::Drag(float x, float y) {
-    // Convert screen coords to scene coords (match Python MatrixManager.screenToScene)
+    // Convert screen coords to scene coords (match Python
+    // MatrixManager.screenToScene)
     float w = (float)mMatrixManager.GetWidth();
     float h = (float)mMatrixManager.GetHeight();
     float sx = (x - w * 0.5f) * 2.0f / h;
@@ -239,8 +242,8 @@ void Model::SetScale(float s) {
     mMatrixManager.SetScale(s);
 }
 void Model::SetParameterValue(const char* id, float val, float weight) {
-    int idx = mMoc->GetParamIndex(&Id::GetID(id));
-    mMoc->SetParamFloat(idx, val, weight);
+    int idx = mMoc->GetParamIndex(id);
+    mMoc->SetParamValue(idx, val, weight);
     // Match Python: also update savedParamValues so LoadParam() doesn't revert
     if (idx >= 0 && idx < (int)mMoc->mSavedParamValues.size())
         mMoc->mSavedParamValues[idx] =
@@ -250,8 +253,8 @@ void Model::SetParameterValue(int index, float val, float weight) {
     SetParameterValue(GetParameterId(index), val, weight);
 }
 void Model::AddParameterValue(const char* id, float val) {
-    int idx = mMoc->GetParamIndex(&Id::GetID(id));
-    mMoc->SetParamFloat(idx, mMoc->GetParamFloat(idx) + val);
+    int idx = mMoc->GetParamIndex(id);
+    mMoc->SetParamValue(idx, mMoc->GetParamValue(idx) + val);
 }
 void Model::AddParameterValue(int index, float val) {
     AddParameterValue(GetParameterId(index), val);
@@ -272,7 +275,7 @@ const char* Model::GetParameterId(int index) {
     return "";
 }
 float Model::GetParameterValue(int index) {
-    return mMoc->GetParamFloat(index);
+    return mMoc->GetParamValue(index);
 }
 float Model::GetParameterMinimumValue(int index) {
     return mMoc->GetParamMin(index);
@@ -325,11 +328,6 @@ void Model::Update(float deltaSecs) {
     bool updated = false;
     if (mClearFlag) {
         mMainMotionMgr->StopAllMotions();
-        if (mPose) {
-            for (auto& g : mPose->mMGroups)
-                for (auto& p : g.parts)
-                    p.InitIndex(mMoc.get());
-        }
         mClearFlag = false;
     } else {
         mMoc->LoadParam();
@@ -361,10 +359,10 @@ void Model::Update(float deltaSecs) {
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
-        int idx = mMoc->GetParamIndex(&Id::GetID(id));
+        int idx = mMoc->GetParamIndex(id);
         if (idx >= 0) {
-            float cur = mMoc->GetParamFloat(idx);
-            mMoc->SetParamFloat(idx, cur + value * weight);
+            float cur = mMoc->GetParamValue(idx);
+            mMoc->SetParamValue(idx, cur + value * weight);
         }
     };
     addParam("PARAM_ANGLE_X", mDragX * 30, 1);
@@ -381,9 +379,9 @@ void Model::Update(float deltaSecs) {
         addParam("PARAM_ANGLE_Y", 8.0f * sinf(t / 3.5345f), 0.5f);
         addParam("PARAM_ANGLE_Z", 10.0f * sinf(t / 5.5345f), 0.5f);
         addParam("PARAM_BODY_ANGLE_X", 4.0f * sinf(t / 15.5345f), 0.5f);
-        int breathIdx = mMoc->GetParamIndex(&Id::GetID("PARAM_BREATH"));
+        int breathIdx = mMoc->GetParamIndex("PARAM_BREATH");
         if (breathIdx >= 0)
-            mMoc->SetParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
+            mMoc->SetParamValue(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
     }
 
     if (mPhysics)
@@ -477,7 +475,8 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
             mMainMotionMgr->SetReservePriority(priority);
         } else if (!mMainMotionMgr->ReserveMotion(priority)) {
             // Lower priority than current motion — don't play
-            LOGI("Start motion rejected (low priority): group=%s no=%d priority=%d current=%d",
+            LOGI("Start motion rejected (low priority): group=%s no=%d priority=%d "
+                 "current=%d",
                  group.c_str(),
                  no,
                  priority,
@@ -537,11 +536,8 @@ void Model::ResetExpression() {
     LOGI("Reset expression");
 }
 void Model::ResetPose() {
-    if (mPose) {
-        for (auto& g : mPose->mMGroups)
-            for (auto& p : g.parts)
-                p.InitIndex(mMoc.get());
-    }
+    // 索引在 (pose, moc) 生命周期内稳定（参数表 append-only、parts 表静态、
+    // moc 不热替换），无需重解析；保留 API 占位对齐 IModel 接口。
 }
 void Model::Rotate(float deg) {
     mMatrixManager.Rotate(deg);
@@ -585,13 +581,15 @@ static bool isInTriangle(float px, float py, float ax, float ay, float bx, float
 }
 
 std::vector<std::string> Model::HitIds(float x, float y, bool topOnly, bool wantDrawableId) {
-    // Step 1: screen pixels → scene coords (match Python MatrixManager.screenToScene)
+    // Step 1: screen pixels → scene coords (match Python
+    // MatrixManager.screenToScene)
     float w = (float)mMatrixManager.GetWidth();
     float h = (float)mMatrixManager.GetHeight();
     float sx = (x - w * 0.5f) * 2.0f / h;
     float sy = (y - h * 0.5f) * -2.0f / h;
 
-    // Step 2: scene → canvas via MVP inverse (match Python MatrixManager.invertTransform)
+    // Step 2: scene → canvas via MVP inverse (match Python
+    // MatrixManager.invertTransform)
     const float* mvp = mMatrixManager.GetMvp();
     float mx = (sx - mvp[12]) / mvp[0];
     float my = (sy - mvp[13]) / mvp[5];
@@ -671,8 +669,8 @@ std::vector<std::string> Model::HitIds(float x, float y, bool topOnly, bool want
             }
 
             // Triangle hit test against drawable vertices
-            auto& verts = !dd->mTransformedPoints.empty() ? dd->mTransformedPoints
-                                                          : dd->mInterpolatedPoints;
+            auto& verts =
+                !dd->mTransformedPoints.empty() ? dd->mTransformedPoints : dd->mInterpolatedPoints;
             if (dd && !verts.empty()) {
                 auto& indices = dd->GetIndexArray();
                 for (size_t i = 0; i + 2 < indices.size(); i += 3) {
@@ -723,7 +721,8 @@ void Model::CreateRenderer(int maskBufferCount) {
         return;
     }
 #ifdef CSM_TARGET_VULKAN
-    // 与 V3 一致：Vulkan 已初始化时创建 Vulkan 渲染器；未初始化则跳过（无头模式安全）
+    // 与 V3 一致：Vulkan 已初始化时创建 Vulkan
+    // 渲染器；未初始化则跳过（无头模式安全）
     if (VulkanManager::GetInstance()->IsInitialized()) {
         auto* vkRenderer = new VkRenderer(mMoc.get(), (int)mTexturePaths.size());
         mRenderer.reset(vkRenderer);
@@ -737,8 +736,8 @@ void Model::CreateRenderer(int maskBufferCount) {
                     : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
             if (!pixels)
                 continue;
-            LOGD("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(),
-                 mTexturePaths[i].c_str());
+            LOGD(
+                "Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
 
             VkImage image = VK_NULL_HANDLE;
             VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -746,7 +745,13 @@ void Model::CreateRenderer(int maskBufferCount) {
             VkSampler sampler = VK_NULL_HANDLE;
             if (VkUtil::CreateTextureFromPixels(VulkanManager::GetInstance()->GetDevice(),
                                                 VulkanManager::GetInstance()->GetPhysicalDevice(),
-                                                pixels, w, h, &image, &memory, &view, &sampler,
+                                                pixels,
+                                                w,
+                                                h,
+                                                &image,
+                                                &memory,
+                                                &view,
+                                                &sampler,
                                                 1.0f)) {
                 vkRenderer->SetTexture((int)i, image, memory, view, sampler);
             } else {
@@ -838,10 +843,10 @@ void Model::UpdateDrag(float deltaSecs) {
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
-        int idx = mMoc->GetParamIndex(&Id::GetID(id));
+        int idx = mMoc->GetParamIndex(id);
         if (idx >= 0) {
-            float cur = mMoc->GetParamFloat(idx);
-            mMoc->SetParamFloat(idx, cur + value * weight);
+            float cur = mMoc->GetParamValue(idx);
+            mMoc->SetParamValue(idx, cur + value * weight);
         }
     };
     addParam("PARAM_ANGLE_X", mDragX * 30, 1);
@@ -855,10 +860,10 @@ void Model::UpdateBreath(float deltaSecs) {
     mBreathTimeMs += deltaSecs * 1000.0f;
     // Auto-breath animation (match v2 Python periods)
     auto addParam = [&](const char* id, float value, float weight) {
-        int idx = mMoc->GetParamIndex(&Id::GetID(id));
+        int idx = mMoc->GetParamIndex(id);
         if (idx >= 0) {
-            float cur = mMoc->GetParamFloat(idx);
-            mMoc->SetParamFloat(idx, cur + value * weight);
+            float cur = mMoc->GetParamValue(idx);
+            mMoc->SetParamValue(idx, cur + value * weight);
         }
     };
     float t = mBreathTimeMs / 1000.0f;
@@ -866,9 +871,9 @@ void Model::UpdateBreath(float deltaSecs) {
     addParam("PARAM_ANGLE_Y", 8.0f * sinf(t / 3.5345f), 0.5f);
     addParam("PARAM_ANGLE_Z", 10.0f * sinf(t / 5.5345f), 0.5f);
     addParam("PARAM_BODY_ANGLE_X", 4.0f * sinf(t / 15.5345f), 0.5f);
-    int breathIdx = mMoc->GetParamIndex(&Id::GetID("PARAM_BREATH"));
+    int breathIdx = mMoc->GetParamIndex("PARAM_BREATH");
     if (breathIdx >= 0)
-        mMoc->SetParamFloat(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
+        mMoc->SetParamValue(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
 }
 void Model::UpdateBlink(float deltaSecs) {
     if (mEyeBlink)
@@ -911,14 +916,14 @@ void Model::SetAndSaveParameterValue(int index, float value, float weight) {
 void Model::AddAndSaveParameterValue(const char* id, float value) {
     AddParameterValue(id, value);
     // 只保存被加的参数（等价 V3 的逐参数保存，不做全量快照）
-    int idx = mMoc->GetParamIndex(&Id::GetID(id));
+    int idx = mMoc->GetParamIndex(id);
     if (idx >= 0 && idx < (int)mMoc->mSavedParamValues.size())
-        mMoc->mSavedParamValues[idx] = mMoc->GetParamFloat(idx);
+        mMoc->mSavedParamValues[idx] = mMoc->GetParamValue(idx);
 }
 void Model::AddAndSaveParameterValue(int index, float value) {
     AddParameterValue(index, value);
     if (index >= 0 && index < (int)mMoc->mSavedParamValues.size())
-        mMoc->mSavedParamValues[index] = mMoc->GetParamFloat(index);
+        mMoc->mSavedParamValues[index] = mMoc->GetParamValue(index);
 }
 void Model::LoadParameters() {
     mMoc->LoadParam();
@@ -930,7 +935,7 @@ void Model::ResetAllParameters() {
     const int count = GetParameterCount();
     for (int i = 0; i < count; i++) {
         float def = mMoc->GetParamDefault(i);
-        mMoc->SetParamFloat(i, def);
+        mMoc->SetParamValue(i, def);
         if (i < (int)mMoc->mSavedParamValues.size())
             mMoc->mSavedParamValues[i] = def;
     }
@@ -953,7 +958,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
         LOGE("Failed to read motion file: %s", motionJsonPath);
         return -1;
     }
-    auto* motion = Live2DMotion::Load(motData);
+    auto* motion = Live2DMotion::Load(motData, mIdPool);
     if (!motion) {
         LOGE("Failed to load motion: %s", motionJsonPath);
         return -1;
@@ -977,9 +982,8 @@ const char* Model::GetMotionSound(const char* group, int no) {
         return it->second[no].sound.c_str();
     return "";
 }
-void Model::GetMotions(void* collector,
-                       void (*collect)(void* collector, const char* group, int no, const char* file,
-                                       const char* sound)) {
+void Model::GetMotions(void* collector, void (*collect)(void* collector, const char* group, int no,
+                                                        const char* file, const char* sound)) {
     for (auto& [group, infos] : mMotionInfos) {
         for (int no = 0; no < (int)infos.size(); no++) {
             collect(collector, group.c_str(), no, infos[no].file.c_str(), infos[no].sound.c_str());
@@ -1036,8 +1040,8 @@ const float* Model::GetDrawableVertices(int index) {
         mDrawableVertexCache.clear();
         return mDrawableVertexCache.data();
     }
-    auto& verts = !dd->mTransformedPoints.empty() ? dd->mTransformedPoints
-                                                  : dd->mInterpolatedPoints;
+    auto& verts =
+        !dd->mTransformedPoints.empty() ? dd->mTransformedPoints : dd->mInterpolatedPoints;
     mDrawableVertexCache = verts;
     return mDrawableVertexCache.data();
 }
@@ -1105,7 +1109,7 @@ void Model::LoadExtraExpression(const char* expressionId, const char* expression
         LOGE("Failed to read expression file: %s", expressionJsonPath);
         return;
     }
-    auto* expr = ExpressionMotion::Load(expData);
+    auto* expr = ExpressionMotion::Load(expData, mIdPool);
     if (!expr) {
         LOGE("Failed to load expression: %s", expressionJsonPath);
         return;

@@ -1,7 +1,6 @@
 #include "PhysicsHair.hpp"
 #include "Id.hpp"
 #include "Moc.hpp"
-#include "UtMath.hpp"
 #include <cmath>
 
 namespace Live2D {
@@ -9,10 +8,10 @@ namespace V2 {
 
 // ---- PhysicsSrc ----
 void PhysicsSrc::Update(Moc* moc, PhysicsHair* ctx) {
-    int idx = moc->GetParamIndex(&Id::GetID(paramId));
+    int idx = moc->GetParamIndex(paramId);
     if (idx < 0)
         return;
-    float scaledValue = scale * moc->GetParamFloat(idx);
+    float scaledValue = scale * moc->GetParamValue(idx);
     auto& p1 = ctx->GetP1();
 
     if (type == SRC_TO_X)
@@ -28,13 +27,13 @@ void PhysicsSrc::Update(Moc* moc, PhysicsHair* ctx) {
 
 // ---- PhysicsTarget ----
 void PhysicsTarget::Update(Moc* moc, PhysicsHair* ctx) {
-    int idx = moc->GetParamIndex(&Id::GetID(paramId));
+    int idx = moc->GetParamIndex(paramId);
     if (idx < 0)
         return;
     if (type == TARGET_FROM_ANGLE)
-        moc->SetParamFloat(idx, scale * ctx->GetLastAngle());
+        moc->SetParamValue(idx, scale * ctx->GetLastAngle());
     else if (type == TARGET_FROM_ANGLE_V)
-        moc->SetParamFloat(idx, scale * ctx->GetLastAngleVelocity());
+        moc->SetParamValue(idx, scale * ctx->GetLastAngleVelocity());
 }
 
 // ---- PhysicsHair ----
@@ -56,10 +55,10 @@ float PhysicsHair::CalcAngle() const {
     return -180.0f * std::atan2(p1.x - p2.x, -(p1.y - p2.y)) / 3.14159265f;
 }
 
-void PhysicsHair::AddSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight) {
+void PhysicsHair::AddSrcParam(PhysicsSrcType t, Id* id, float scale, float weight) {
     sourceParams.push_back({t, id, scale, weight});
 }
-void PhysicsHair::AddTargetParam(PhysicsTargetType t, const std::string& id, float scale,
+void PhysicsHair::AddTargetParam(PhysicsTargetType t, Id* id, float scale,
                                  float weight) {
     targetParams.push_back({t, id, scale, weight});
 }

@@ -47,7 +47,7 @@ int PivotManager::CalcPivotValues(Moc* moc, bool& outRet) {
             pp->SetParamIndex(paramIndex, initVersion);
         }
 
-        float paramValue = (paramIndex < 0) ? 0.0f : moc->GetParamFloat(paramIndex);
+        float paramValue = (paramIndex < 0) ? 0.0f : moc->GetParamValue(paramIndex);
         int pivotCount = pp->GetPivotCount();
         auto& pivotValues = pp->GetPivotValues();
 

@@ -2,7 +2,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "../Core/Id.hpp"
+#include "Core/Id.hpp"
 #include "ISerializable.hpp"
 #include <array>
 #include <cstdint>
@@ -33,13 +33,15 @@ class Part;
  * 返回指针的有效窗口为：本次 update/resolve 完成 → 下次 update。
  */
 class Moc : public ISerializable {
+private:
+
 public:
     static constexpr int NOT_USED_ORDER = -1;
     static constexpr int NO_NEXT = -1;
     static constexpr float PARAM_FLOAT_MIN = -1000000.0f;
     static constexpr float PARAM_FLOAT_MAX = 1000000.0f;
 
-    explicit Moc();
+    explicit Moc(Id::IdPool& idPool);
     ~Moc() override;
 
     void Read(BinaryReader& br) override;
@@ -48,12 +50,15 @@ public:
     void Resolve();
 
     int GetParamIndex(const Id* paramId);
+    int GetParamIndex(const std::string& paramIdStr) {
+        return GetParamIndex(mIdPool.Resolve(paramIdStr));
+    }
     int GetDeformerIndex(const Id* id);
     int ExtendAndAddParam(const Id* paramId, float defaultVal, float maxVal, float minVal);
 
-    void SetParamFloat(int index, float value);
-    void SetParamFloat(int index, float value, float weight);
-    float GetParamFloat(int index) const;
+    void SetParamValue(int index, float value);
+    void SetParamValue(int index, float value, float weight);
+    float GetParamValue(int index) const;
     float GetParamMax(int index) const;
     float GetParamMin(int index) const;
     float GetParamDefault(int index) const;
@@ -67,7 +72,13 @@ public:
     Drawable* GetDrawable(int index) const;
     Part* GetPart(int index) const { return mPartsList[index]; }
     int GetDrawableIndex(const Id* drawableId) const;
+    int GetDrawableIndex(const std::string& idStr) const {
+        return GetDrawableIndex(mIdPool.Resolve(idStr));
+    }
     int GetPartIndex(const Id* id) const;
+    int GetPartIndex(const std::string& idStr) const {
+        return GetPartIndex(const_cast<const Id*>(mIdPool.Resolve(idStr)));
+    }
 
     void SetPartsOpacity(int index, float opacity);
     float GetPartsOpacity(int index) const;
@@ -177,6 +188,7 @@ private:
     // moc 解析数据所有权（Read() 填充，生命周期 = Moc）
     std::vector<std::unique_ptr<Parameter>> mParameterOwnerList;
     std::vector<std::unique_ptr<Part>> mPartOwnerList;
+    Id::IdPool& mIdPool;
 };
 
 }   // namespace V2

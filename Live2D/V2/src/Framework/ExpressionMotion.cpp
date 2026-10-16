@@ -20,11 +20,11 @@ void ExpressionMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
         return;
 
     for (auto& p : mParams) {
-        int pi = moc->GetParamIndex(&Id::GetID(p.mId));
+        int pi = moc->GetParamIndex(p.mId);
         if (pi < 0)
             continue;
 
-        float cur = moc->GetParamFloat(pi);
+        float cur = moc->GetParamValue(pi);
         float newVal;
         if (p.mBlendType == 0) {   // TYPE_SET
             newVal = cur * (1.0f - weight) + p.mValue * weight;
@@ -33,7 +33,7 @@ void ExpressionMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
         } else {   // TYPE_ADD (default)
             newVal = cur + p.mValue * weight;
         }
-        moc->SetParamFloat(pi, newVal);
+        moc->SetParamValue(pi, newVal);
         // Expression effects are ephemeral — applied on top of the post-motion
         // snapshot each frame, NOT persisted to savedParamValues.
         // This matches Python v2 where expressionManager.UpdateParam() runs
@@ -41,7 +41,7 @@ void ExpressionMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
     }
 }
 
-ExpressionMotion* ExpressionMotion::Load(const std::vector<uint8_t>& data) {
+ExpressionMotion* ExpressionMotion::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
     auto* exp = new ExpressionMotion();
     if (data.empty())
         return exp;
@@ -62,7 +62,7 @@ ExpressionMotion* ExpressionMotion::Load(const std::vector<uint8_t>& data) {
         if (!p.is_object())
             continue;
         ExpressionParam out;
-        out.mId = p.value("id", std::string());
+        out.mId = idPool.Resolve(p.value("id", std::string()));
         out.mValue = p.value("val", 0.0f);   // required in Python
         std::string calc = p.value("calc", std::string("add"));
         out.mBlendType = (calc == "set") ? 0 : (calc == "mult") ? 2 : 1;   // unknown => TYPE_ADD

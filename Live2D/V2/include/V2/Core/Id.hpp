@@ -1,31 +1,39 @@
 #pragma once
 
-#include <memory>
+#include <functional>
 #include <string>
 #include <unordered_map>
 
 namespace Live2D {
 namespace V2 {
 
+
 class Id {
 public:
-    explicit Id(const std::string& idStr)
-        : mId(idStr) {}
+    class IdPool {
+    public:
+        IdPool();
+        ~IdPool();
+
+        Id* Resolve(const std::string& idStr);
+    private:
+        std::unordered_map<std::string, Id*> mIds;
+    };
 
     const std::string& Str() const { return mId; }
 
-    bool operator==(const Id& other) const { return mId == other.mId; }
-    bool operator!=(const Id& other) const { return mId != other.mId; }
+    // compare pointer equality only
+    bool operator==(const Id& other) = delete;
+    bool operator!=(const Id& other) = delete;
     bool operator==(const std::string& s) const { return mId == s; }
     bool operator!=(const std::string& s) const { return mId != s; }
 
-    static const Id& DST_BASE_ID();
-    static const Id& GetID(const std::string& idStr);
-    static void ReleaseStored();
+    static Id* DST_BASE_ID();
 
 private:
+    Id(const std::string& idStr);
+
     std::string mId;
-    static std::unordered_map<std::string, std::unique_ptr<Id>> sInstances;
 };
 
 }   // namespace V2

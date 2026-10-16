@@ -1,7 +1,5 @@
 #include "Physics.hpp"
-#include "UtSystem.hpp"
 #include "nlohmann/json.hpp"
-#include <cmath>
 #include <string>
 
 namespace Live2D {
@@ -17,7 +15,7 @@ void Physics::UpdateParam(Moc* moc, long long dtMs) {
         ph->Update(moc, mElapsedMs);
 }
 
-Physics* Physics::Load(const std::vector<uint8_t>& data) {
+Physics* Physics::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
     auto* ret = new Physics();
     if (data.empty())
         return ret;
@@ -57,7 +55,7 @@ Physics* Physics::Load(const std::vector<uint8_t>& data) {
                 else
                     continue;   // Python raises here; skip instead
                 hair->AddSrcParam(t,
-                                  src.value("id", std::string()),
+                                  idPool.Resolve(src.value("id", std::string())),
                                   src.value("scale", 1.0f),
                                   src.value("weight", 1.0f));
             }
@@ -77,7 +75,7 @@ Physics* Physics::Load(const std::vector<uint8_t>& data) {
                 else
                     continue;   // Python raises here; skip instead
                 hair->AddTargetParam(t,
-                                     target.value("id", std::string()),
+                                     idPool.Resolve(target.value("id", std::string())),
                                      target.value("scale", 1.0f),
                                      target.value("weight", 1.0f));
             }

@@ -1,11 +1,9 @@
 #include "Pose.hpp"
 #include "Id.hpp"
+#include "Log.hpp"
 #include "Moc.hpp"
-#include "UtSystem.hpp"
-#include "PartsParam.hpp"
 #include "nlohmann/json.hpp"
 #include <algorithm>
-#include <cstring>
 #include <string>
 
 namespace Live2D {
@@ -15,10 +13,9 @@ using json = nlohmann::json;
 
 Pose::Pose() = default;
 
-void PartData::InitIndex(Moc* moc) {
-    std::string paramId = "VISIBLE:" + id;
-    paramIndex = moc->GetParamIndex(&Id::GetID(paramId));
-    partsIndex = moc->GetPartIndex(&Id::GetID(id));
+void PartTarget::InitIndex(Moc* moc) {
+    paramIndex = moc->GetParamIndex("VISIBLE:" + id->Str());
+    partIndex = moc->GetPartIndex(id);
     for (auto& l : link)
         l.InitIndex(moc);
 }
@@ -34,11 +31,11 @@ static void normalizeGroup(Moc* moc, PosePartGroup& group, float deltaSec) {
         int pi = group.parts[i].paramIndex;
         if (pi < 0)
             continue;
-        if (moc->GetParamFloat(pi) != 0) {
+        if (moc->GetParamValue(pi) != 0) {
             if (visibleIdx >= 0)
                 break;
             visibleIdx = i;
-            int pIdx = group.parts[i].partsIndex;
+            int pIdx = group.parts[i].partIndex;
             if (pIdx >= 0) {
                 visibleOpacity = moc->GetPartsOpacity(pIdx);
                 visibleOpacity += deltaSec / clearSec;
@@ -54,7 +51,7 @@ static void normalizeGroup(Moc* moc, PosePartGroup& group, float deltaSec) {
     }
 
     for (int i = 0; i < (int)group.parts.size(); i++) {
-        int pIdx = group.parts[i].partsIndex;
+        int pIdx = group.parts[i].partIndex;
         if (pIdx < 0)
             continue;
         if (i == visibleIdx) {
@@ -78,13 +75,13 @@ static void normalizeGroup(Moc* moc, PosePartGroup& group, float deltaSec) {
 
 static void copyOpacityOtherParts(Moc* moc, PosePartGroup& group) {
     for (auto& p : group.parts) {
-        if (p.partsIndex < 0)
+        if (p.partIndex < 0)
             continue;
-        float op = moc->GetPartsOpacity(p.partsIndex);
+        float op = moc->GetPartsOpacity(p.partIndex);
         for (auto& lp : p.link) {
-            if (lp.partsIndex < 0)
+            if (lp.partIndex < 0)
                 continue;
-            moc->SetPartsOpacity(lp.partsIndex, op);
+            moc->SetPartsOpacity(lp.partIndex, op);
         }
     }
 }
@@ -95,11 +92,11 @@ void Pose::InitParam(Moc* moc) {
     for (auto& g : mMGroups) {
         for (auto& p : g.parts) {
             p.InitIndex(moc);
-            if (p.partsIndex < 0)
+            if (p.partIndex < 0)
                 continue;
-            bool v = (moc->GetParamFloat(p.paramIndex) != 0);
-            moc->SetPartsOpacity(p.partsIndex, v ? 1.0f : 0.0f);
-            moc->SetParamFloat(p.paramIndex, v ? 1.0f : 0.0f);
+            bool v = (moc->GetParamValue(p.paramIndex) != 0);
+            moc->SetPartsOpacity(p.partIndex, v ? 1.0f : 0.0f);
+            moc->SetParamValue(p.paramIndex, v ? 1.0f : 0.0f);
         }
     }
 }
@@ -111,7 +108,7 @@ void Pose::UpdateParam(Moc* moc, float dtSec) {
     }
 }
 
-Pose* Pose::Load(const std::vector<uint8_t>& data) {
+Pose* Pose::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
     auto* pose = new Pose();
     if (data.empty())
         return pose;
@@ -129,16 +126,16 @@ Pose* Pose::Load(const std::vector<uint8_t>& data) {
         for (const auto& partsInfo : *groups) {
             if (!partsInfo.is_object())
                 continue;
-            PartData parts;
-            parts.id = partsInfo.value("id", std::string());
+            PartTarget parts;
+            parts.id = idPool.Resolve(partsInfo.value("id", std::string()));
             // Python: get("link") — missing or null => no links
             auto link = partsInfo.find("link");
             if (link != partsInfo.end() && link->is_array()) {
                 for (const auto& linkId : *link) {
                     if (!linkId.is_string())
                         continue;
-                    PartData linkParts;
-                    linkParts.id = linkId.get<std::string>();
+                    PartTarget linkParts;
+                    linkParts.id = idPool.Resolve(linkId.get<std::string>());
                     parts.link.push_back(std::move(linkParts));
                 }
             }

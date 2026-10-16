@@ -1,6 +1,7 @@
 #include "Moc.hpp"
 #include "DEF.hpp"
 #include "BinaryReader.hpp"
+#include "Id.hpp"
 #include "Parameter.hpp"
 #include "Part.hpp"
 #include "Deformer.hpp"
@@ -12,7 +13,7 @@
 namespace Live2D {
 namespace V2 {
 
-Moc::Moc() {
+Moc::Moc(Id::IdPool& idPool): mIdPool(idPool) {
     mTmpPivotTableIndices.resize(PIVOT_TABLE_SIZE);
     mTempTArray.resize(MAX_INTERPOLATION);
 }
@@ -79,7 +80,6 @@ void Moc::Init() {
     }
 
     // DAG sort deformers
-    const Id& dstBase = Id::DST_BASE_ID();
     size_t nDef = allDefs.size();
     while (true) {
         bool progress = false;
@@ -88,7 +88,7 @@ void Moc::Init() {
             if (!d)
                 continue;
             auto* target = d->GetTargetId();
-            if (!target || *target == dstBase || GetDeformerIndex(target) >= 0) {
+            if (!target || target == Id::DST_BASE_ID() || GetDeformerIndex(target) >= 0) {
                 mDeformerList.push_back(d);
                 allDefs[i] = nullptr;
                 progress = true;
@@ -109,7 +109,7 @@ void Moc::Init() {
     mDrawableMasks.resize(mDrawableList.size());
     for (size_t i = 0; i < mDrawableList.size(); i++) {
         for (auto& cid : mDrawableList[i]->GetClipIDList()) {
-            int maskIdx = GetDrawableIndex(&Id::GetID(cid));
+            int maskIdx = GetDrawableIndex(cid);
             if (maskIdx >= 0)
                 mDrawableMasks[i].push_back(maskIdx);
         }
@@ -261,7 +261,7 @@ int Moc::ExtendAndAddParam(const Id* paramId, float dv, float maxV, float minV) 
     return static_cast<int>(mParamIdList.size()) - 1;
 }
 
-void Moc::SetParamFloat(int index, float value) {
+void Moc::SetParamValue(int index, float value) {
     if (value < mParamMinValues[index])
         value = mParamMinValues[index];
     if (value > mParamMaxValues[index])
@@ -269,18 +269,18 @@ void Moc::SetParamFloat(int index, float value) {
     mParamValues[index] = value;
 }
 
-void Moc::SetParamFloat(int index, float value, float weight) {
+void Moc::SetParamValue(int index, float value, float weight) {
     if (weight <= 0)
         return;
     if (weight >= 1) {
-        SetParamFloat(index, value);
+        SetParamValue(index, value);
         return;
     }
     float v = mParamValues[index] * (1.0f - weight) + value * weight;
-    SetParamFloat(index, v);
+    SetParamValue(index, v);
 }
 
-float Moc::GetParamFloat(int index) const {
+float Moc::GetParamValue(int index) const {
     return (index >= 0 && index < (int)mParamValues.size()) ? mParamValues[index] : 0;
 }
 

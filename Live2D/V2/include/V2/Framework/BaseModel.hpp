@@ -5,14 +5,20 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include "Id.hpp"
+
+
 namespace Live2D {
 namespace V2 {
+
 class Live2DModelOpenGL;
 class MotionManager;
 class EyeBlink;
 class Pose;
 class Physics;
 class AMotion;
+
+
 // 统一模型接口: Model -> BaseModel -> IModel 单继承链
 class BaseModel : public IModel {
 public:
@@ -55,6 +61,7 @@ protected:
     float mAlpha = 1.0f, mAccelX = 0, mAccelY = 0, mAccelZ = 0, mDragX = 0, mDragY = 0;
     bool mInitialized = false, mUpdating = false;
     std::unique_ptr<Moc> mMoc;
+    Id::IdPool mIdPool;
 };
 }   // namespace V2
 }   // namespace Live2D

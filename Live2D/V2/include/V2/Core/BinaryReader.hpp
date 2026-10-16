@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../Common/Log.hpp"
+#include "Log.hpp"
 #include "DEF.hpp"
+#include "Id.hpp"
+
 
 #include <cstdint>
 #include <cstring>
@@ -19,12 +21,9 @@ class ISerializable;
 
 class BinaryReader {
 public:
-    explicit BinaryReader(std::vector<uint8_t> buf)
-        : mBuf(std::move(buf))
-        , mOffset(0)
-        , mFormatVersion(0)
-        , mOffset8Bit(0)
-        , mCurrent8Bit(0) {}
+    explicit BinaryReader(std::vector<uint8_t> buf, Id::IdPool& idPool) :
+        mBuf(std::move(buf)), mOffset(0), mFormatVersion(0), mOffset8Bit(0), mCurrent8Bit(0),
+        mIdPool(idPool) {}
     ~BinaryReader();
 
     // -- Basic types (big-endian binary format) --
@@ -63,6 +62,8 @@ public:
     void SetFormatVersion(int version) { mFormatVersion = version; }
     size_t GetOffset() const { return mOffset; }
 
+    Id* ResolveId(const std::string& idStr) { return mIdPool.Resolve(idStr); }
+    Id::IdPool& GetIdPool() const { return mIdPool; }
 private:
     void* ReadKnownTypeObject(int type);
     void* ReadObjectUntyped(int type = -1);
@@ -74,6 +75,7 @@ private:
     int mCurrent8Bit;
     std::vector<void*> mObjects;
     std::vector<std::function<void()>> mDeleters;
+    Id::IdPool& mIdPool;
 
     // Trait to detect std::vector specializations
     template<typename T>

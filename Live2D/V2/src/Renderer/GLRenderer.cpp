@@ -3,7 +3,6 @@
 #include "ClippingManagerOpenGL.hpp"
 #include "ClipContext.hpp"
 #include "Moc.hpp"
-#include <cstdio>
 #include <cstring>
 #ifdef __ANDROID__
 #include <GLES3/gl3.h>

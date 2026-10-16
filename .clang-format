@@ -133,7 +133,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
  
 # 要使用的构造函数初始化式样式
-BreakConstructorInitializers: BeforeComma
+BreakConstructorInitializers: AfterColon
  
 # 每行字符的限制，0表示没有限制
 ColumnLimit: 100

@@ -40,10 +40,10 @@ void Drawable::Read(BinaryReader& br) {
             const std::string& s = clipId->Str();
             size_t start = 0, end;
             while ((end = s.find(',', start)) != std::string::npos) {
-                mClipIDList.push_back(s.substr(start, end - start));
+                mClipIDList.push_back(br.ResolveId(s.substr(start, end - start)));
                 start = end + 1;
             }
-            mClipIDList.push_back(s.substr(start));
+            mClipIDList.push_back(br.ResolveId(s.substr(start)));
         }
     }
 

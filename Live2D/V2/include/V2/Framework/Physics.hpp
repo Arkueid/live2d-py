@@ -1,8 +1,11 @@
 #pragma once
 #include "PhysicsHair.hpp"
+#include "Id.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
+
+
 namespace Live2D {
 namespace V2 {
 class Moc;
@@ -11,7 +14,7 @@ public:
     Physics();
     // 时间由外部传入（时钟只由 Model 管理）: dtMs 为本次时间步长（毫秒），内部累计 elapsed
     void UpdateParam(Moc* moc, long long dtMs);
-    static Physics* Load(const std::vector<uint8_t>& data);
+    static Physics* Load(const std::vector<uint8_t>& data, Id::IdPool& idPool);
     std::vector<std::unique_ptr<PhysicsHair>> mPhysicsList;
 
 private:

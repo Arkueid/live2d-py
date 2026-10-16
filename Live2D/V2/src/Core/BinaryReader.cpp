@@ -1,7 +1,6 @@
 #include "BinaryReader.hpp"
 #include "DEF.hpp"
 #include "ISerializable.hpp"
-#include "Id.hpp"
 #include "ObjectFactory.hpp"
 #include <cstring>
 
@@ -52,8 +51,9 @@ inline double readBigDouble(const uint8_t* buf, size_t offset) {
 // -- BinaryReader implementation --
 
 BinaryReader::~BinaryReader() {
-    for (auto& del : mDeleters)
+    for (auto& del : mDeleters) {
         del();
+    }
 }
 
 int BinaryReader::ReadNumber() {
@@ -207,11 +207,11 @@ void* BinaryReader::ReadKnownTypeObject(int type) {
     // String-to-Id types: 50, 51, 134, 60
     if (type == 50 || type == 51 || type == 134 || type == 60) {
         std::string idStr = ReadUTF8String();
-        return const_cast<Id*>(&Id::GetID(idStr));
+        return mIdPool.Resolve(idStr);
     }
     // Factory-created ISerializable subclasses (type >= 48)
     if (type >= 48) {
-        auto obj = ObjectFactory::Create(type);
+        auto obj = ObjectFactory::Create(type, mIdPool);
         obj->Read(*this);   // may throw — unique_ptr still owns
         ISerializable* rawPtr = obj.release();
         return rawPtr;   // ownership transferred to caller

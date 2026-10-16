@@ -10,15 +10,13 @@
 #include "Parameter.hpp"
 #include "Part.hpp"
 #include "PivotManager.hpp"
-#include <cstdlib>
-#include <string>
 
 namespace Live2D {
 namespace V2 {
 
 using namespace Live2D::Common::Log;
 
-std::unique_ptr<ISerializable> ObjectFactory::Create(int clsNo) {
+std::unique_ptr<ISerializable> ObjectFactory::Create(int clsNo, Id::IdPool& idPool) {
     if (clsNo < 100) {
         switch (clsNo) {
             case 65:
@@ -43,7 +41,7 @@ std::unique_ptr<ISerializable> ObjectFactory::Create(int clsNo) {
             case 133:
                 return std::make_unique<Part>();
             case 136:
-                return std::make_unique<Moc>();
+                return std::make_unique<Moc>(idPool);
             case 142:
                 // Avatar（旧换装特性）已移除；moc 中出现视为不支持的数据
                 LOGE("Unsupported class ID (Avatar removed): %d", clsNo);

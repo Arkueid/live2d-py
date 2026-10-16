@@ -1,9 +1,11 @@
 #pragma once
-#include <string>
+#include "Id.hpp"
+
+
 namespace Live2D {
 namespace V2 {
 struct ExpressionParam {
-    std::string mId;
+    Id* mId;
     float mValue = 0;
     float mDefValue = 0;
     int mBlendType = 1;

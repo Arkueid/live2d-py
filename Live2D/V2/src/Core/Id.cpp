@@ -1,27 +1,34 @@
 #include "Id.hpp"
 
+
 namespace Live2D {
 namespace V2 {
 
-std::unordered_map<std::string, std::unique_ptr<Id>> Id::sInstances;
+Id::Id(const std::string& idStr) : mId(idStr) {}
 
-const Id& Id::DST_BASE_ID() {
-    return Id::GetID("DST_BASE");
+Id::IdPool::IdPool() {
+    mIds.insert_or_assign("DST_BASE", Id::DST_BASE_ID());
 }
 
-const Id& Id::GetID(const std::string& idStr) {
-    auto it = sInstances.find(idStr);
-    if (it != sInstances.end()) {
-        return *it->second;
+Id::IdPool::~IdPool() {
+    mIds.erase("DST_BASE");
+    for (auto& it : mIds) {
+        delete it.second;
     }
-    auto id = std::make_unique<Id>(idStr);
-    const Id& ref = *id;
-    sInstances[idStr] = std::move(id);
-    return ref;
+    mIds.clear();
 }
 
-void Id::ReleaseStored() {
-    sInstances.clear();
+Id* Id::DST_BASE_ID() {
+    static Id mDSTBaseID("DST_BASE");
+    return &mDSTBaseID;
+}
+
+Id* Id::IdPool::Resolve(const std::string& idStr) {
+    auto [it, inserted] = mIds.try_emplace(idStr, nullptr);
+    if (inserted) {
+        it->second = new Id(idStr);
+    }
+    return it->second;
 }
 
 }   // namespace V2

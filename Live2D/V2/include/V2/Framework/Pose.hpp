@@ -1,27 +1,33 @@
 #pragma once
 #include <cstdint>
-#include <string>
+#include "Id.hpp"
 #include <vector>
+
+
 namespace Live2D {
 namespace V2 {
+
 class Moc;
-struct PartData {
-    int partsIndex = -1;
+
+struct PartTarget {
+    int partIndex = -1;
     int paramIndex = -1;
-    std::string id;
-    std::vector<PartData> link;
+    Id* id;
+    std::vector<PartTarget> link;
     void InitIndex(Moc* moc);
 };
+
 struct PosePartGroup {
-    std::vector<PartData> parts;
+    std::vector<PartTarget> parts;
 };
+
 class Pose {
 public:
     Pose();
     // 时间由外部传入（时钟只由 Model 管理）: dtSec 为本次时间步长（秒）
     void UpdateParam(Moc* moc, float dtSec);
     void InitParam(Moc* moc);
-    static Pose* Load(const std::vector<uint8_t>& data);
+    static Pose* Load(const std::vector<uint8_t>& data, Id::IdPool& idPool);
 
 public:
     std::vector<PosePartGroup> mMGroups;

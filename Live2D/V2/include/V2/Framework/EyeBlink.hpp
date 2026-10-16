@@ -1,11 +1,12 @@
 #pragma once
-#include <string>
+#include "Id.hpp"
+
 namespace Live2D {
 namespace V2 {
 class Moc;
 class EyeBlink {
 public:
-    EyeBlink();
+    EyeBlink(Id::IdPool& idPool);
     void SetInterval(int ms) { mBlinkIntervalMs = ms; }
     void SetEyeMotion(int closeMs, int closedMs, int openMs);
     // 时间由外部传入（时钟只由 Model 管理）: deltaMs 为本次时间步长（毫秒），内部累计 elapsed
@@ -18,7 +19,8 @@ private:
     float mClosingMs = 150, mClosedMs = 80, mOpeningMs = 220;
     float mCurrentTime = 0, mNextBlinkTime = 0, mStateStartTime = 0;
     bool mCloseIfZero = true;
-    std::string mEyeLId = "PARAM_EYE_L_OPEN", mEyeRId = "PARAM_EYE_R_OPEN";
+    Id* mEyeLId;
+    Id* mEyeRId;
 };
 }   // namespace V2
 }   // namespace Live2D

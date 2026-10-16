@@ -29,7 +29,7 @@ void Deformer::InterpolateOpacity(Moc* moc, PivotManager* pivotMgr, bool& ret) {
 }
 
 bool Deformer::NeedTransform() const {
-    return mTargetId != nullptr && *mTargetId != Id::DST_BASE_ID();
+    return mTargetId != nullptr && mTargetId != Id::DST_BASE_ID();
 }
 
 }   // namespace V2
