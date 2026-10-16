@@ -14,18 +14,18 @@ public:
     WarpDeformer() = default;
     ~WarpDeformer() override;
 
-    int getType() const override { return TYPE_WARP; }
-    void read(class BinaryReader& br) override;
-    DeformerContext* init(ModelContext* mc) override;
-    void setupInterpolate(ModelContext* mc, DeformerContext* dc) override;
-    bool setupTransform(ModelContext* mc, DeformerContext* dc) override;
-    void transformPoints(ModelContext* mc, DeformerContext* dc, const std::vector<float>& srcPoints,
+    int GetType() const override { return TYPE_WARP; }
+    void Read(class BinaryReader& br) override;
+    void InitRuntimeState() override;
+    void SetupInterpolate(Moc* moc) override;
+    bool SetupTransform(Moc* moc) override;
+    void TransformPoints(const std::vector<float>& srcPoints,
                          std::vector<float>& dstPoints, int numPoint, int ptOffset,
                          int ptStep) override;
 
-    int getPointCount() const { return (mRow + 1) * (mCol + 1); }
+    int GetPointCount() const { return (mRow + 1) * (mCol + 1); }
 
-    static void transformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
+    static void TransformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
                                      int pointCount, int srcOffset, int srcStep,
                                      const std::vector<float>& grid, int row, int col);
 
@@ -33,6 +33,10 @@ public:
     int mCol = 0;
     std::unique_ptr<PivotManager> mPivotMgr;
     std::vector<std::vector<float>> mPivotPoints;
+
+    // ---- 运行时状态（原 WarpContext）----
+    std::vector<float> mInterpolatedPoints;
+    std::vector<float> mTransformedPoints;
 };
 
 }   // namespace V2

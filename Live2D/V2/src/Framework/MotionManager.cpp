@@ -4,7 +4,7 @@
 namespace Live2D {
 namespace V2 {
 MotionManager::MotionManager() = default;
-bool MotionManager::reserveMotion(int priority) {
+bool MotionManager::ReserveMotion(int priority) {
     if (priority < mReservePriority)
         return false;
     if (priority < mCurrentPriority)
@@ -12,7 +12,7 @@ bool MotionManager::reserveMotion(int priority) {
     mReservePriority = priority;
     return true;
 }
-int MotionManager::startMotion(AMotion* motion, bool autoPriority) {
+int MotionManager::StartMotion(AMotion* motion, bool autoPriority) {
     // Fade out existing motions, matching Python v2: shorter end time wins
     for (auto& e : mMotions) {
         if (e.mFadeOut > 0) {
@@ -21,15 +21,15 @@ int MotionManager::startMotion(AMotion* motion, bool autoPriority) {
                 e.mFadeOutEndElapsedMs = newEnd;
         }
     }
-    motion->reset();   // Reset finished flag for re-used motion objects
+    motion->Reset();   // Reset finished flag for re-used motion objects
     mMotions.push_back({motion, motion->mFadeInSec, motion->mFadeOutSec});
     return (int)mMotions.size() - 1;
 }
-int MotionManager::startMotionPrio(AMotion* motion, int priority) {
+int MotionManager::StartMotionPrio(AMotion* motion, int priority) {
     if (priority == mReservePriority)
         mReservePriority = 0;
     mCurrentPriority = priority;
-    return startMotion(motion, false);
+    return StartMotion(motion, false);
 }
 // Easing: 0.5 - 0.5*cos(x*pi), clamped [0,1]
 static float easeSine(float x) {
@@ -40,7 +40,7 @@ static float easeSine(float x) {
     return 0.5f - 0.5f * cosf(x * 3.14159265f);
 }
 
-bool MotionManager::updateParam(ModelContext* context, float dtMs) {
+bool MotionManager::UpdateParam(Moc* moc, float dtMs) {
     bool updated = false;
     for (size_t i = 0; i < mMotions.size();) {
         auto& e = mMotions[i];
@@ -75,9 +75,9 @@ bool MotionManager::updateParam(ModelContext* context, float dtMs) {
         if (weight > 1)
             weight = 1;
 
-        e.mMotion->updateParam(context, elapsed, weight);
+        e.mMotion->UpdateParam(moc, elapsed, weight);
         updated = true;
-        if (e.mFinished || e.mMotion->isFinished()) {
+        if (e.mFinished || e.mMotion->IsFinished()) {
             mMotions.erase(mMotions.begin() + i);
         } else {
             i++;
@@ -87,10 +87,10 @@ bool MotionManager::updateParam(ModelContext* context, float dtMs) {
         mCurrentPriority = 0;
     return updated;
 }
-bool MotionManager::isFinished() const {
+bool MotionManager::IsFinished() const {
     return mMotions.empty();
 }
-void MotionManager::stopAllMotions() {
+void MotionManager::StopAllMotions() {
     mMotions.clear();
 }
 }   // namespace V2

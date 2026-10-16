@@ -196,7 +196,7 @@ void Model::SetupModel() {
     }
     if (mProxy.GetModel() != nullptr) {
         // 画布适配参数在模型生命周期内不变，加载时设置一次
-        mMatrixManager.setFit({mProxy->GetCanvasWidth(), mProxy->GetCanvasHeight(), false, false});
+        mMatrixManager.SetFit({mProxy->GetCanvasWidth(), mProxy->GetCanvasHeight(), false, false});
     }
 
     // exp3.json
@@ -482,7 +482,7 @@ void Model::SaveParameters() {
 }
 
 void Model::Resize(int width, int height) {
-    mMatrixManager.onResize(width, height);
+    mMatrixManager.OnResize(width, height);
 #ifndef CSM_TARGET_VULKAN
     auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
     if (renderer) {
@@ -499,46 +499,46 @@ void Model::Resize(int width, int height) {
 void Model::SetOffset(float x, float y) {
     mOffsetX = x;
     mOffsetY = y;
-    mMatrixManager.setOffset(x, y);
+    mMatrixManager.SetOffset(x, y);
 }
 
 void Model::SetOffsetX(float x) {
     mOffsetX = x;
-    mMatrixManager.setOffset(mOffsetX, mOffsetY);
+    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
 }
 
 void Model::SetOffsetY(float y) {
     mOffsetY = y;
-    mMatrixManager.setOffset(mOffsetX, mOffsetY);
+    mMatrixManager.SetOffset(mOffsetX, mOffsetY);
 }
 
 void Model::Rotate(float angle) {
-    mMatrixManager.rotate(angle);
+    mMatrixManager.Rotate(angle);
 }
 
 void Model::SetScale(float scale) {
-    mMatrixManager.setScale(scale);
+    mMatrixManager.SetScale(scale);
 }
 
 void Model::SetScaleX(float scale) {
-    mMatrixManager.setScaleX(scale);
+    mMatrixManager.SetScaleX(scale);
 }
 
 void Model::SetScaleY(float scale) {
-    mMatrixManager.setScaleY(scale);
+    mMatrixManager.SetScaleY(scale);
 }
 
 void Model::screenToModel(float* x, float* y) {
     // 像素 → ndc → 完整 mvp 逆变换（含旋转/缩放/平移）
-    float w = (float)mMatrixManager.getWidth();
-    float h = (float)mMatrixManager.getHeight();
+    float w = (float)mMatrixManager.GetWidth();
+    float h = (float)mMatrixManager.GetHeight();
     *x = *x / w * 2.0f - 1.0f;
     *y = 1.0f - *y / h * 2.0f;
-    Common::MatrixManager::invertTransform(x, y, mMatrixManager.getMvp());
+    mMatrixManager.InvertTransform(x, y, mMatrixManager.GetMvp());
 }
 
 const float* Model::GetMvp() {
-    return mMatrixManager.getMvp();
+    return mMatrixManager.GetMvp();
 }
 
 namespace {
@@ -977,7 +977,7 @@ bool Model::IsDrawableHit(int index, float x, float y) {
 }
 
 void Model::Drag(float x, float y) {
-    mMatrixManager.screenToScene(&x, &y);
+    mMatrixManager.ScreenToScene(&x, &y);
     mProxy.SetDragging(x, y);
 }
 
@@ -1001,7 +1001,7 @@ void Model::CreateRenderer(int maskBufferCount) {
     LOGI("Creating Vulkan renderer");
 #endif
     mTextureManager.ReleaseTextures();
-    mProxy.CreateRenderer(mMatrixManager.getWidth(), mMatrixManager.getHeight(), maskBufferCount);
+    mProxy.CreateRenderer(mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
     SetupTextures();
 }
 
@@ -1030,7 +1030,7 @@ void Model::Draw() {
     // renderer 的 SetMvpMatrix 内部会拷贝矩阵，CubismMatrix44 仅作转换壳（无需成员缓存）
     // SetMatrix 签名为非 const（实际只读取内容）
     CubismMatrix44 mvp;
-    mvp.SetMatrix(const_cast<csmFloat32*>(mMatrixManager.getMvp()));
+    mvp.SetMatrix(const_cast<csmFloat32*>(mMatrixManager.GetMvp()));
     CubismMatrix44& matrix = mvp;
 
 #ifndef CSM_TARGET_VULKAN

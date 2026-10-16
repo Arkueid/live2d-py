@@ -7,16 +7,16 @@
 namespace Live2D {
 namespace V2 {
 class BinaryReader;
-class ModelContext;
+class Moc;
 class Live2DMotion : public AMotion {
 public:
     Live2DMotion();
-    void updateParam(ModelContext* context, float timeSec, float weight) override;
-    float getDurationSec() const override;
-    bool isLoop() const override;
-    bool isFinished() const override { return mFinished; }
-    void reset() override { mFinished = false; }
-    static Live2DMotion* load(const std::vector<uint8_t>& data);
+    void UpdateParam(Moc* moc, float timeSec, float weight) override;
+    float GetDurationSec() const override;
+    bool IsLoop() const override;
+    bool IsFinished() const override { return mFinished; }
+    void Reset() override { mFinished = false; }
+    static Live2DMotion* Load(const std::vector<uint8_t>& data);
     std::vector<Motion> mMotions;
     int mFps = 30;
     float mDurationMs = 0;

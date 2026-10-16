@@ -2,26 +2,17 @@ add_library(${V2_TARGET} STATIC
     Core/Id.cpp
     Core/BinaryReader.cpp
     Core/ObjectFactory.cpp
-    Core/ParamDefFloat.cpp
-    Core/ParamDefSet.cpp
-    Core/PartsData.cpp
-    Core/PartsDataContext.cpp
-    Core/Avatar.cpp
-    Core/ModelImpl.cpp
-    Core/ParamPivots.cpp
+    Core/Parameter.cpp
+    Core/Part.cpp
     Core/PivotManager.cpp
-    Core/ModelContext.cpp
+    Core/Moc.cpp
     Core/Deformer.cpp
     Core/AffineEnt.cpp
     Core/RotationDeformer.cpp
-    Core/RotationContext.cpp
     Core/WarpDeformer.cpp
-    Core/WarpContext.cpp
-    Core/IDrawData.cpp
-    Core/Mesh.cpp
+    Core/Drawable.cpp
     Core/UtInterpolate.cpp
     Core/UtSystem.cpp
-    Renderer/ClipContext.cpp
     $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/GLRenderer.cpp>
     $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/ClippingManagerOpenGL.cpp>
     $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/VkRenderer.cpp>

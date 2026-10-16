@@ -4,7 +4,7 @@
 namespace Live2D {
 namespace V2 {
 
-double UtSystem::getUserTimeMSec() {
+double UtSystem::GetUserTimeMSec() {
     auto now = std::chrono::steady_clock::now();
     return std::chrono::duration<double, std::milli>(now.time_since_epoch()).count();
 }

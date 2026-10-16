@@ -2,11 +2,9 @@
 #include "BinaryReader.hpp"
 #include "DEF.hpp"
 #include "PivotManager.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "UtMath.hpp"
 #include "AffineEnt.hpp"
-#include "DeformerContext.hpp"
-#include "RotationContext.hpp"
 #include <cmath>
 #include <cstdio>
 
@@ -15,42 +13,40 @@ namespace V2 {
 
 RotationDeformer::~RotationDeformer() = default;
 
-void RotationDeformer::read(BinaryReader& br) {
-    Deformer::read(br);
-    mPivotManager.reset(br.readObject<PivotManager*>());
-    auto rawAffines = br.readObject<std::vector<AffineEnt*>>();
+void RotationDeformer::Read(BinaryReader& br) {
+    Deformer::Read(br);
+    mPivotManager.reset(br.ReadObject<PivotManager*>());
+    auto rawAffines = br.ReadObject<std::vector<AffineEnt*>>();
     mAffines.reserve(rawAffines.size());
     for (auto* a : rawAffines)
         mAffines.emplace_back(a);
-    Deformer::readOpacity(br);
+    Deformer::ReadOpacity(br);
 }
 
-DeformerContext* RotationDeformer::init(ModelContext* mc) {
-    (void)mc;
-    return new RotationContext(this);
+void RotationDeformer::InitRuntimeState() {
+    mInterpolatedAffine = std::make_unique<AffineEnt>();
+    if (NeedTransform()) {
+        mTransformedAffine = std::make_unique<AffineEnt>();
+    }
 }
 
-void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
-    auto* rctx = static_cast<RotationContext*>(dc);
-    if (!mPivotManager->checkParamUpdated(mc))
-        return;
-
+void RotationDeformer::SetupInterpolate(Moc* moc) {
     bool success = false;
-    int pivotCount = mPivotManager->calcPivotValues(mc, success);
-    rctx->setOutsideParam(success);
-    interpolateOpacity(mc, mPivotManager.get(), rctx, success);
+    int pivotCount = mPivotManager->CalcPivotValues(moc, success);
+    SetOutsideParam(success);
+    InterpolateOpacity(moc, mPivotManager.get(), success);
 
-    auto& pivotIndices = mc->getTempPivotTableIndices();
-    auto& pivotT = mc->getTempT();
-    mPivotManager->calcPivotIndices(pivotIndices, pivotT, pivotCount);
+    auto& pivotIndices = moc->GetTempPivotTableIndices();
+    auto& pivotT = moc->GetTempT();
+    mPivotManager->CalcPivotIndices(pivotIndices, pivotT, pivotCount);
 
     if (pivotCount <= 0) {
         auto* a = mAffines[pivotIndices[0]].get();
-        rctx->mInterpolatedAffine->mOriginX = a->mOriginX;
-        rctx->mInterpolatedAffine->mOriginY = a->mOriginY;
-        rctx->mInterpolatedAffine->mScaleX = a->mScaleX;
-        rctx->mInterpolatedAffine->mScaleY = a->mScaleY;
-        rctx->mInterpolatedAffine->mRotationDeg = a->mRotationDeg;
+        mInterpolatedAffine->mOriginX = a->mOriginX;
+        mInterpolatedAffine->mOriginY = a->mOriginY;
+        mInterpolatedAffine->mScaleX = a->mScaleX;
+        mInterpolatedAffine->mScaleY = a->mScaleY;
+        mInterpolatedAffine->mRotationDeg = a->mRotationDeg;
     } else {
         int tableSize = 1 << pivotCount;
         float weights[1 << MAX_INTERPOLATION];
@@ -71,28 +67,28 @@ void RotationDeformer::setupInterpolate(ModelContext* mc, DeformerContext* dc) {
             sy += weights[i] * a->mScaleY;
             rot += weights[i] * a->mRotationDeg;
         }
-        rctx->mInterpolatedAffine->mOriginX = ox;
-        rctx->mInterpolatedAffine->mOriginY = oy;
-        rctx->mInterpolatedAffine->mScaleX = sx;
-        rctx->mInterpolatedAffine->mScaleY = sy;
-        rctx->mInterpolatedAffine->mRotationDeg = rot;
+        mInterpolatedAffine->mOriginX = ox;
+        mInterpolatedAffine->mOriginY = oy;
+        mInterpolatedAffine->mScaleX = sx;
+        mInterpolatedAffine->mScaleY = sy;
+        mInterpolatedAffine->mRotationDeg = rot;
     }
     auto* ref = mAffines[pivotIndices[0]].get();
-    rctx->mInterpolatedAffine->mReflectX = ref->mReflectX;
-    rctx->mInterpolatedAffine->mReflectY = ref->mReflectY;
+    mInterpolatedAffine->mReflectX = ref->mReflectX;
+    mInterpolatedAffine->mReflectY = ref->mReflectY;
 }
 
-static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerContext* tgtCtx,
+static void getDirectionOnDst(Moc* moc, Deformer* targetDef,
                               float ox, float oy, float dx, float dy, float retDir[2]) {
     std::vector<float> tpVec = {ox, oy};
     std::vector<float> toVec(2);
-    targetDef->transformPoints(mc, tgtCtx, tpVec, toVec, 1, 0, 2);
+    targetDef->TransformPoints(tpVec, toVec, 1, 0, 2);
 
     float stepSize = 1.0f;
     for (int it = 0; it < 10; it++) {
         std::vector<float> testVec = {ox + stepSize * dx, oy + stepSize * dy};
         std::vector<float> transVec(2);
-        targetDef->transformPoints(mc, tgtCtx, testVec, transVec, 1, 0, 2);
+        targetDef->TransformPoints(testVec, transVec, 1, 0, 2);
         transVec[0] -= toVec[0];
         transVec[1] -= toVec[1];
         if (transVec[0] != 0 || transVec[1] != 0) {
@@ -101,7 +97,7 @@ static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerCon
             return;
         }
         testVec = {ox - stepSize * dx, oy - stepSize * dy};
-        targetDef->transformPoints(mc, tgtCtx, testVec, transVec, 1, 0, 2);
+        targetDef->TransformPoints(testVec, transVec, 1, 0, 2);
         transVec[0] -= toVec[0];
         transVec[1] -= toVec[1];
         if (transVec[0] != 0 || transVec[1] != 0) {
@@ -113,70 +109,65 @@ static void getDirectionOnDst(ModelContext* mc, Deformer* targetDef, DeformerCon
     }
 }
 
-bool RotationDeformer::setupTransform(ModelContext* mc, DeformerContext* dc) {
-    auto* rctx = static_cast<RotationContext*>(dc);
-    rctx->setAvailable(true);
+bool RotationDeformer::SetupTransform(Moc* moc) {
+    SetAvailable(true);
 
-    if (!needTransform()) {
-        rctx->setTotalScale_notForClient(rctx->mInterpolatedAffine->mScaleX);
-        rctx->setTotalOpacity(rctx->getInterpolatedOpacity());
+    if (!NeedTransform()) {
+        SetTotalScale_notForClient(mInterpolatedAffine->mScaleX);
+        SetTotalOpacity(GetInterpolatedOpacity());
         return true;
     }
 
-    auto* targetId = getTargetId();
-    if (rctx->mTmpDeformerIndex == DEFORMER_INDEX_NOT_INIT)
-        rctx->mTmpDeformerIndex = mc->getDeformerIndex(targetId);
+    auto* targetId = GetTargetId();
+    if (mTmpDeformerIndex == DEFORMER_INDEX_NOT_INIT)
+        mTmpDeformerIndex = moc->GetDeformerIndex(targetId);
 
-    if (rctx->mTmpDeformerIndex < 0) {
-        rctx->setAvailable(false);
+    if (mTmpDeformerIndex < 0) {
+        SetAvailable(false);
         return false;
     }
 
-    auto* parentDef = mc->getDeformer(rctx->mTmpDeformerIndex);
-    auto* parentCtx = mc->getDeformerContext(rctx->mTmpDeformerIndex);
-    if (!parentDef || !parentCtx) {
-        rctx->setAvailable(false);
+    auto* parentDef = moc->GetDeformer(mTmpDeformerIndex);
+    if (!parentDef) {
+        SetAvailable(false);
         return false;
     }
 
-    float ox = rctx->mInterpolatedAffine->mOriginX;
-    float oy = rctx->mInterpolatedAffine->mOriginY;
-    float dx = 0, dy = (parentCtx->getDeformer()->getType() == TYPE_ROTATION) ? -10.0f : -0.1f;
+    float ox = mInterpolatedAffine->mOriginX;
+    float oy = mInterpolatedAffine->mOriginY;
+    float dx = 0, dy = (parentDef->GetType() == TYPE_ROTATION) ? -10.0f : -0.1f;
 
     float tDir[2];
-    getDirectionOnDst(mc, parentDef, parentCtx, ox, oy, dx, dy, tDir);
+    getDirectionOnDst(moc, parentDef, ox, oy, dx, dy, tDir);
     float dir[2] = {dx, dy};
-    float angle = UtMath::getAngleNotAbs(dir, tDir);
+    float angle = UtMath::GetAngleNotAbs(dir, tDir);
 
     std::vector<float> originVec = {ox, oy};
     std::vector<float> originDst(2);
-    parentDef->transformPoints(mc, parentCtx, originVec, originDst, 1, 0, 2);
+    parentDef->TransformPoints(originVec, originDst, 1, 0, 2);
 
-    rctx->mTransformedAffine->mOriginX = originDst[0];
-    rctx->mTransformedAffine->mOriginY = originDst[1];
-    rctx->mTransformedAffine->mScaleX = rctx->mInterpolatedAffine->mScaleX;
-    rctx->mTransformedAffine->mScaleY = rctx->mInterpolatedAffine->mScaleY;
-    rctx->mTransformedAffine->mRotationDeg =
-        rctx->mInterpolatedAffine->mRotationDeg - angle * UtMath::RAD_TO_DEG;
+    mTransformedAffine->mOriginX = originDst[0];
+    mTransformedAffine->mOriginY = originDst[1];
+    mTransformedAffine->mScaleX = mInterpolatedAffine->mScaleX;
+    mTransformedAffine->mScaleY = mInterpolatedAffine->mScaleY;
+    mTransformedAffine->mRotationDeg =
+        mInterpolatedAffine->mRotationDeg - angle * UtMath::RAD_TO_DEG;
 
-    float ps = parentCtx->getTotalScale();
-    rctx->setTotalScale_notForClient(ps * rctx->mTransformedAffine->mScaleX);
-    rctx->setTotalOpacity(parentCtx->getTotalOpacity() * rctx->getInterpolatedOpacity());
-    rctx->mTransformedAffine->mReflectX = rctx->mInterpolatedAffine->mReflectX;
-    rctx->mTransformedAffine->mReflectY = rctx->mInterpolatedAffine->mReflectY;
-    rctx->setAvailable(parentCtx->isAvailable());
-    return rctx->isAvailable();
+    float ps = parentDef->GetTotalScale();
+    SetTotalScale_notForClient(ps * mTransformedAffine->mScaleX);
+    SetTotalOpacity(parentDef->GetTotalOpacity() * GetInterpolatedOpacity());
+    mTransformedAffine->mReflectX = mInterpolatedAffine->mReflectX;
+    mTransformedAffine->mReflectY = mInterpolatedAffine->mReflectY;
+    SetAvailable(parentDef->IsAvailable());
+    return IsAvailable();
 }
 
-void RotationDeformer::transformPoints(ModelContext*, DeformerContext* dc,
-                                       const std::vector<float>& src, std::vector<float>& dst,
+void RotationDeformer::TransformPoints(const std::vector<float>& src, std::vector<float>& dst,
                                        int numPoint, int ptOffset, int ptStep) {
-    auto* rctx = static_cast<RotationContext*>(dc);
-    auto* af =
-        rctx->mTransformedAffine ? rctx->mTransformedAffine.get() : rctx->mInterpolatedAffine.get();
+    auto* af = mTransformedAffine ? mTransformedAffine.get() : mInterpolatedAffine.get();
     float sinR = std::sin(UtMath::DEG_TO_RAD * af->mRotationDeg);
     float cosR = std::cos(UtMath::DEG_TO_RAD * af->mRotationDeg);
-    float ts = rctx->getTotalScale();
+    float ts = GetTotalScale();
     float rx = af->mReflectX ? -1.0f : 1.0f, ry = af->mReflectY ? -1.0f : 1.0f;
     float sx = cosR * ts * rx, shx = -sinR * ts * ry;
     float shy = sinR * ts * rx, sy = cosR * ts * ry;

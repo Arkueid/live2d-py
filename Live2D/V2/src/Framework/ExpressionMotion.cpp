@@ -1,6 +1,6 @@
 #include "ExpressionMotion.hpp"
 #include "Id.hpp"
-#include "ModelContext.hpp"
+#include "Moc.hpp"
 #include "ExpressionParam.hpp"
 #include "nlohmann/json.hpp"
 #include <string>
@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 ExpressionMotion::ExpressionMotion() = default;
 
-void ExpressionMotion::updateParam(ModelContext* context, float timeSec, float weight) {
+void ExpressionMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
     (void)timeSec;
     if (mParams.empty())
         return;
@@ -20,11 +20,11 @@ void ExpressionMotion::updateParam(ModelContext* context, float timeSec, float w
         return;
 
     for (auto& p : mParams) {
-        int pi = context->getParamIndex(&Id::getID(p.mId));
+        int pi = moc->GetParamIndex(&Id::GetID(p.mId));
         if (pi < 0)
             continue;
 
-        float cur = context->getParamFloat(pi);
+        float cur = moc->GetParamFloat(pi);
         float newVal;
         if (p.mBlendType == 0) {   // TYPE_SET
             newVal = cur * (1.0f - weight) + p.mValue * weight;
@@ -33,15 +33,15 @@ void ExpressionMotion::updateParam(ModelContext* context, float timeSec, float w
         } else {   // TYPE_ADD (default)
             newVal = cur + p.mValue * weight;
         }
-        context->setParamFloat(pi, newVal);
+        moc->SetParamFloat(pi, newVal);
         // Expression effects are ephemeral — applied on top of the post-motion
         // snapshot each frame, NOT persisted to savedParamValues.
-        // This matches Python v2 where expressionManager.updateParam() runs
-        // AFTER saveParam(), so expression changes vanish on next loadParam().
+        // This matches Python v2 where expressionManager.UpdateParam() runs
+        // AFTER SaveParam(), so expression changes vanish on next LoadParam().
     }
 }
 
-ExpressionMotion* ExpressionMotion::load(const std::vector<uint8_t>& data) {
+ExpressionMotion* ExpressionMotion::Load(const std::vector<uint8_t>& data) {
     auto* exp = new ExpressionMotion();
     if (data.empty())
         return exp;

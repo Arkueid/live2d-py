@@ -1,8 +1,7 @@
 #include "BaseModel.hpp"
 #include "BinaryReader.hpp"
-#include "ModelImpl.hpp"
-#include "MeshContext.hpp"
-#include "ModelContext.hpp"
+#include "Drawable.hpp"
+#include "Moc.hpp"
 #include "AMotion.hpp"
 #include "Live2DMotion.hpp"
 #include "GLRenderer.hpp"
@@ -16,8 +15,7 @@ namespace Live2D {
 namespace V2 {
 
 BaseModel::BaseModel()
-    : mModelImpl(nullptr)
-    , mModelContext(nullptr)
+    : mMoc(nullptr)
     , mEyeBlink(std::make_unique<EyeBlink>())
     , mPhysics(std::make_unique<Physics>())
     , mPose(std::make_unique<Pose>())
@@ -26,59 +24,57 @@ BaseModel::BaseModel()
 
 BaseModel::~BaseModel() = default;
 
-void BaseModel::loadModelData(const std::vector<uint8_t>& data, int version) {
+void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
     BinaryReader br(data);
-    br.readByte();
-    br.readByte();
-    br.readByte();
-    version = br.readByte();
-    br.setFormatVersion(version);
-    auto* impl = static_cast<ModelImpl*>(br.readObjectRaw());
-    mModelImpl.reset(impl);
-    mModelContext = std::make_unique<ModelContext>();
-    mModelContext->init(mModelImpl.get());
+    br.ReadByte();
+    br.ReadByte();
+    br.ReadByte();
+    version = br.ReadByte();
+    br.SetFormatVersion(version);
+    mMoc.reset(static_cast<Moc*>(br.ReadObjectRaw()));
+    mMoc->Init();
     mModelMatrix =
-        ModelMatrix((float)mModelImpl->getCanvasWidth(), (float)mModelImpl->getCanvasHeight());
+        ModelMatrix((float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight());
     // 默认按画布高度适配（对齐 Common::MatrixManager 横屏规则），
     // 保证高画布的角色模型默认完整显示；
     // 渲染适配矩阵由 Common::MatrixManager 每帧按窗口重算，此处仅供 hitTestSimple 反算
-    mModelMatrix.setHeight(2);
-    mModelMatrix.setCenterPosition(0, 0);
+    mModelMatrix.SetHeight(2);
+    mModelMatrix.SetCenterPosition(0, 0);
 }
-AMotion* BaseModel::loadMotion(const std::string& name, const std::vector<uint8_t>& data) {
-    auto* m = Live2DMotion::load(data);
+AMotion* BaseModel::LoadMotion(const std::string& name, const std::vector<uint8_t>& data) {
+    auto* m = Live2DMotion::Load(data);
     mMotions[name].emplace_back(m);
     return m;
 }
-AMotion* BaseModel::loadExpression(const std::string& name, const std::vector<uint8_t>& data) {
-    auto* m = ExpressionMotion::load(data);
+AMotion* BaseModel::LoadExpression(const std::string& name, const std::vector<uint8_t>& data) {
+    auto* m = ExpressionMotion::Load(data);
     mExpressions[name].reset(m);
     return m;
 }
-Pose* BaseModel::loadPose(const std::vector<uint8_t>& data) {
-    mPose.reset(Pose::load(data));
+Pose* BaseModel::LoadPose(const std::vector<uint8_t>& data) {
+    mPose.reset(Pose::Load(data));
     return mPose.get();
 }
-void BaseModel::loadPhysics(const std::vector<uint8_t>& data) {
-    mPhysics.reset(Physics::load(data));
+void BaseModel::LoadPhysics(const std::vector<uint8_t>& data) {
+    mPhysics.reset(Physics::Load(data));
 }
-bool BaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
-    auto* mc = mModelContext.get();
-    int drawIdx = mc->getDrawDataIndex(&Id::getID(drawID));
+bool BaseModel::HitTestSimple(const std::string& drawID, float x, float y) {
+    auto* moc = mMoc.get();
+    int drawIdx = moc->GetDrawableIndex(&Id::GetID(drawID));
     if (drawIdx < 0)
         return false;
 
-    auto* dctx = mc->getDrawContext(drawIdx);
-    if (!dctx || !dctx->mAvailable)
+    auto* dd = moc->GetDrawable(drawIdx);
+    if (!dd || !dd->mAvailable)
         return false;
 
     auto& verts =
-        !dctx->mTransformedPoints.empty() ? dctx->mTransformedPoints : dctx->mInterpolatedPoints;
+        !dd->mTransformedPoints.empty() ? dd->mTransformedPoints : dd->mInterpolatedPoints;
     if (verts.empty())
         return false;
 
-    float left = (float)mModelImpl->getCanvasWidth(), right = 0;
-    float top = (float)mModelImpl->getCanvasHeight(), bottom = 0;
+    float left = (float)mMoc->GetCanvasWidth(), right = 0;
+    float top = (float)mMoc->GetCanvasHeight(), bottom = 0;
     for (size_t j = 0; j < verts.size(); j += 2) {
         float vx = verts[j], vy = verts[j + 1];
         if (vx < left)
@@ -91,8 +87,8 @@ bool BaseModel::hitTestSimple(const std::string& drawID, float x, float y) {
             bottom = vy;
     }
 
-    float tx = mModelMatrix.invertTransformX(x);
-    float ty = mModelMatrix.invertTransformY(y);
+    float tx = mModelMatrix.InvertTransformX(x);
+    float ty = mModelMatrix.InvertTransformY(y);
     return left <= tx && tx <= right && top <= ty && ty <= bottom;
 }
 

@@ -1,10 +1,8 @@
 #include "VkRenderer.hpp"
 #include "ClippingManagerVulkan.hpp"
 #include "Log.hpp"
-#include "Mesh.hpp"
-#include "MeshContext.hpp"
-#include "ModelContext.hpp"
-#include "PartsDataContext.hpp"
+#include "ClipContext.hpp"
+#include "Moc.hpp"
 #include "VulkanManager.hpp"
 #include "VkUtil.hpp"
 #include <FileUtils.hpp>
@@ -17,7 +15,7 @@ namespace V2 {
 // ---- shader 加载 ----
 // 经 Common::FileUtils 加载，自动走 SHADER_DIR 重定向（与 v3 共用同一拦截）。
 
-VkShaderModule VkRenderer::loadShaderModule(const char* path) {
+VkShaderModule VkRenderer::LoadShaderModule(const char* path) {
     unsigned int size = 0;
     unsigned char* code = Live2D::Common::FileUtils::LoadFileAsBytes(path, &size);
     if (!code || size == 0) {
@@ -80,7 +78,7 @@ static VkPipelineColorBlendAttachmentState blendFor(int compositionType) {
     }
 }
 
-VkPipeline VkRenderer::createPipeline(VkShaderModule vert, VkShaderModule frag,
+VkPipeline VkRenderer::CreatePipeline(VkShaderModule vert, VkShaderModule frag,
                                       const VkPipelineColorBlendAttachmentState& blend) {
     VkPipelineShaderStageCreateInfo stages[2]{};
     stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -176,7 +174,7 @@ VkPipeline VkRenderer::createPipeline(VkShaderModule vert, VkShaderModule frag,
     return pipeline;
 }
 
-void VkRenderer::createLayoutsAndPipelines() {
+void VkRenderer::CreateLayoutsAndPipelines() {
     // descriptor set layout: b0=动态UBO, b1=模型纹理, b2=遮罩纹理
     VkDescriptorSetLayoutBinding bindings[3]{};
     bindings[0].binding = 0;
@@ -211,10 +209,10 @@ void VkRenderer::createLayoutsAndPipelines() {
         return;
     }
 
-    VkShaderModule vertNormal = loadShaderModule("FrameworkShaders/V2Normal.vert.spv");
-    VkShaderModule fragNormal = loadShaderModule("FrameworkShaders/V2Normal.frag.spv");
-    VkShaderModule vertMask = loadShaderModule("FrameworkShaders/V2Mask.vert.spv");
-    VkShaderModule fragMask = loadShaderModule("FrameworkShaders/V2Mask.frag.spv");
+    VkShaderModule vertNormal = LoadShaderModule("FrameworkShaders/V2Normal.vert.spv");
+    VkShaderModule fragNormal = LoadShaderModule("FrameworkShaders/V2Normal.frag.spv");
+    VkShaderModule vertMask = LoadShaderModule("FrameworkShaders/V2Mask.vert.spv");
+    VkShaderModule fragMask = LoadShaderModule("FrameworkShaders/V2Mask.frag.spv");
     if (!vertNormal || !fragNormal || !vertMask || !fragMask) {
         LOGE("V2 Vulkan shaders not found under ./FrameworkShaders — copy V2*.spv next to the "
              "executable");
@@ -223,10 +221,10 @@ void VkRenderer::createLayoutsAndPipelines() {
 
     // normal 程序 × 3 混合
     for (int b = 0; b < 3; b++)
-        mPipelines[b] = createPipeline(vertNormal, fragNormal, blendFor(b));
+        mPipelines[b] = CreatePipeline(vertNormal, fragNormal, blendFor(b));
     // mask 程序 × 3 混合
     for (int b = 0; b < 3; b++)
-        mPipelines[3 + b] = createPipeline(vertMask, fragMask, blendFor(b));
+        mPipelines[3 + b] = CreatePipeline(vertMask, fragMask, blendFor(b));
 
     vkDestroyShaderModule(mDevice, vertNormal, nullptr);
     vkDestroyShaderModule(mDevice, fragNormal, nullptr);
@@ -234,7 +232,7 @@ void VkRenderer::createLayoutsAndPipelines() {
     vkDestroyShaderModule(mDevice, fragMask, nullptr);
 }
 
-void VkRenderer::createMaskTarget() {
+void VkRenderer::CreateMaskTarget() {
     // mask image 使用与 swapchain 相同的格式，管线 rendering info 即可对两种目标通用
     VkUtil::CreateImage(mDevice, mPhysicalDevice, MASK_SIZE, MASK_SIZE, 1, mColorFormat,
                         VK_IMAGE_TILING_OPTIMAL,
@@ -247,7 +245,7 @@ void VkRenderer::createMaskTarget() {
                                          VK_SAMPLER_MIPMAP_MODE_NEAREST, 1.0f, 1);
 }
 
-VkRenderer::VkRenderer(ModelContext* modelContext, int textureCount)
+VkRenderer::VkRenderer(Moc* moc, int textureCount)
     : mDevice(VulkanManager::GetInstance()->GetDevice())
     , mPhysicalDevice(VulkanManager::GetInstance()->GetPhysicalDevice()) {
     mColorFormat = VulkanManager::GetInstance()->GetSwapchainManager()->GetSwapchainImageFormat();
@@ -290,15 +288,11 @@ VkRenderer::VkRenderer(ModelContext* modelContext, int textureCount)
 
     // 全局 UBO 描述符只作为 pool 兜底；每纹理 set 在 setTexture 中分配并写入 b1/b2
 
-    createLayoutsAndPipelines();
-    createMaskTarget();
+    CreateLayoutsAndPipelines();
+    CreateMaskTarget();
 
     mClipManager = std::make_shared<ClippingManagerVulkan>(*this);
-    std::vector<MeshContext*> rawDrawCtxs;
-    rawDrawCtxs.reserve(modelContext->mDrawContextList.size());
-    for (auto& ctx : modelContext->mDrawContextList)
-        rawDrawCtxs.push_back(ctx.get());
-    mClipManager->init(modelContext, modelContext->mDrawDataList, rawDrawCtxs);
+    mClipManager->Init(moc);
 }
 
 VkRenderer::~VkRenderer() {
@@ -334,20 +328,20 @@ VkRenderer::~VkRenderer() {
     if (mDescLayout) vkDestroyDescriptorSetLayout(mDevice, mDescLayout, nullptr);
 }
 
-void VkRenderer::setMatrix(const float m[16]) {
+void VkRenderer::SetMatrix(const float m[16]) {
     std::memcpy(mMatrix4x4.data(), m, 16 * sizeof(float));
 }
 
-void VkRenderer::setClipMatrix(const float m[16]) {
+void VkRenderer::SetClipMatrix(const float m[16]) {
     std::memcpy(mClipMatrix.data(), m, 16 * sizeof(float));
 }
 
-void VkRenderer::resize(int w, int h) {
+void VkRenderer::Resize(int w, int h) {
     (void)w;
     (void)h;
 }
 
-void VkRenderer::setTexture(int no, VkImage image, VkDeviceMemory memory, VkImageView view,
+void VkRenderer::SetTexture(int no, VkImage image, VkDeviceMemory memory, VkImageView view,
                             VkSampler sampler) {
     if (no < 0)
         return;
@@ -400,7 +394,7 @@ void VkRenderer::setTexture(int no, VkImage image, VkDeviceMemory memory, VkImag
     vkUpdateDescriptorSets(mDevice, 3, writes, 0, nullptr);
 }
 
-void VkRenderer::imageBarrier(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout,
+void VkRenderer::ImageBarrier(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout,
                               VkImageLayout newLayout) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -452,7 +446,7 @@ static void beginRendering(VkCommandBuffer cmd, VkImageView view, uint32_t width
     vkCmdBeginRendering(cmd, &renderingInfo);
 }
 
-void VkRenderer::preDraw(ModelContext* context) {
+void VkRenderer::PreDraw(Moc* moc) {
     // 帧首复位 arena（帧内所有录制共用，EndFrame 提交后等待 GPU 空闲，覆盖安全）
     mVbOffset = 0;
     mIbOffset = 0;
@@ -468,50 +462,63 @@ void VkRenderer::preDraw(ModelContext* context) {
 
     mgr->SuspendMainRegion();
     // mask image: 上帧 SHADER_READ → COLOR_ATTACHMENT（每帧全量重写）
-    imageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    ImageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     beginRendering(cmd, mMaskView, MASK_SIZE, MASK_SIZE, /*clear=*/true);
     mCurrentCmd = cmd;
-    mClipManager->setupClip(context, cmd);
+    mClipManager->SetupClip(moc);
     mCurrentCmd = VK_NULL_HANDLE;
     vkCmdEndRendering(cmd);
-    imageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    ImageBarrier(cmd, mMaskImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     mgr->ResumeMainRegion();
 
     mMaskDirty = false;
 }
 
-void VkRenderer::draw(ModelContext* context) {
-    if (context->mOrderListFirstDrawIndex.empty())
+void VkRenderer::DrawDrawable(Moc* moc, int idx) {
+    // clip 状态切换仅正常绘制路径需要；mask 渲染路径不消费
+    if (!mClipMaskMode) {
+        ClipContext* cc = mClipManager ? mClipManager->GetClipForDrawable(idx) : nullptr;
+        if (cc) {
+            SetClipChannel(cc->mLayoutChannelNo);
+            SetClipMatrix(cc->mMatrixForDraw.data());
+        }
+        SetClipDrawMode(cc != nullptr);
+    }
+    SetCulling(moc->GetDrawableCulling(idx));
+
+    int vertexFloatCount = moc->GetDrawableVertexCount(idx) * 2;
+    DrawTexture(moc->GetDrawableTextureIndex(idx),
+                moc->GetDrawableScreenColor(idx),
+                moc->GetDrawableVertexIndices(idx),
+                moc->GetDrawableVertexIndexCount(idx),
+                moc->GetDrawableVertices(idx), vertexFloatCount,
+                moc->GetDrawableVertexUvs(idx), vertexFloatCount,
+                moc->GetDrawableOpacity(idx),
+                moc->GetDrawableColorComposition(idx),
+                moc->GetDrawableMultiplyColor(idx));
+}
+
+void VkRenderer::Draw(Moc* moc) {
+    if (moc->GetDrawableCount() == 0)
         return;
 
     // 纯录制：帧主区间已由 vkBeginFrame 打开（clear 过），直接向帧命令缓冲录制
     mCurrentCmd = VulkanManager::GetInstance()->GetFrameCommandBuffer();
 
-    for (size_t i = 0; i < context->mOrderListFirstDrawIndex.size(); i++) {
-        int idx = context->mOrderListFirstDrawIndex[i];
-        if (idx == ModelContext::NOT_USED_ORDER)
-            continue;
-        while (true) {
-            auto* dd = static_cast<Mesh*>(context->mDrawDataList[idx]);
-            auto* ctx = context->mDrawContextList[idx].get();
-            if (ctx->mAvailable) {
-                ctx->mPartsOpacity = context->mPartsContextList[ctx->mPartsIndex]->getPartsOpacity();
-                dd->draw(this, context, ctx);
-            }
-            int next = context->mNextListDrawIndex[idx];
-            if (next <= idx || next == ModelContext::NO_NEXT)
-                break;
-            idx = next;
-        }
-    }
+    int seqCount = 0;
+    const int* seq = moc->GetRenderSequence(seqCount);
+    for (int i = 0; i < seqCount; i++)
+        DrawDrawable(moc, seq[i]);
 
     mCurrentCmd = VK_NULL_HANDLE;
 }
 
-void VkRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
-                             const std::vector<int16_t>& indices, const std::vector<float>& vertices,
-                             const std::vector<float>& uvs, float opacity, int compositionType,
+void VkRenderer::DrawTexture(int texNo, const std::array<float, 4>& screenColor,
+                             const uint16_t* indices, int indexCount,
+                             const float* vertices, int vertexFloatCount,
+                             const float* uvs, int uvFloatCount,
+                             float opacity, int compositionType,
                              const std::array<float, 4>& multiplyColor) {
     if (opacity < 0.01f && !mClipMaskMode)
         return;
@@ -590,21 +597,21 @@ void VkRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     std::memcpy((char*)mUboMapped + uboOffset, &u, sizeof(UBO));
 
     // 顶点/索引 arena
-    VkDeviceSize vbBytes = vertices.size() * sizeof(float);
-    VkDeviceSize uvBytes = uvs.size() * sizeof(float);
-    VkDeviceSize ibBytes = indices.size() * sizeof(int16_t);
+    VkDeviceSize vbBytes = (VkDeviceSize)vertexFloatCount * sizeof(float);
+    VkDeviceSize uvBytes = (VkDeviceSize)uvFloatCount * sizeof(float);
+    VkDeviceSize ibBytes = (VkDeviceSize)indexCount * sizeof(uint16_t);
     if (mVbOffset + vbBytes + uvBytes > 4ull << 20 || mIbOffset + ibBytes > 2ull << 20) {
         LOGE("VkRenderer: vertex/index arena exhausted this frame");
         return;
     }
     VkDeviceSize posOffset = mVbOffset;
-    std::memcpy((char*)mVbMapped + posOffset, vertices.data(), (size_t)vbBytes);
+    std::memcpy((char*)mVbMapped + posOffset, vertices, (size_t)vbBytes);
     mVbOffset += vbBytes;
     VkDeviceSize uvOffset = mVbOffset;
-    std::memcpy((char*)mVbMapped + uvOffset, uvs.data(), (size_t)uvBytes);
+    std::memcpy((char*)mVbMapped + uvOffset, uvs, (size_t)uvBytes);
     mVbOffset += uvBytes;
     VkDeviceSize idxOffset = mIbOffset;
-    std::memcpy((char*)mIbMapped + idxOffset, indices.data(), (size_t)ibBytes);
+    std::memcpy((char*)mIbMapped + idxOffset, indices, (size_t)ibBytes);
     mIbOffset += ibBytes;
 
     // 管线选择：mask pass 固定 normal 程序 + NORMAL 混合；裁剪绘制用 mask 程序
@@ -644,7 +651,7 @@ void VkRenderer::drawTexture(int texNo, const std::array<float, 4>& screenColor,
     VkDeviceSize voffsets[2] = {posOffset, uvOffset};
     vkCmdBindVertexBuffers(mCurrentCmd, 0, 2, vbuffers, voffsets);
     vkCmdBindIndexBuffer(mCurrentCmd, mIbBuffer, idxOffset, VK_INDEX_TYPE_UINT16);
-    vkCmdDrawIndexed(mCurrentCmd, (uint32_t)indices.size(), 1, 0, 0, 0);
+    vkCmdDrawIndexed(mCurrentCmd, (uint32_t)indexCount, 1, 0, 0, 0);
 }
 
 }   // namespace V2

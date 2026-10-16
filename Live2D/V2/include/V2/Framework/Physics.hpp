@@ -5,13 +5,13 @@
 #include <vector>
 namespace Live2D {
 namespace V2 {
-class ModelContext;
+class Moc;
 class Physics {
 public:
     Physics();
     // 时间由外部传入（时钟只由 Model 管理）: dtMs 为本次时间步长（毫秒），内部累计 elapsed
-    void updateParam(ModelContext* context, long long dtMs);
-    static Physics* load(const std::vector<uint8_t>& data);
+    void UpdateParam(Moc* moc, long long dtMs);
+    static Physics* Load(const std::vector<uint8_t>& data);
     std::vector<std::unique_ptr<PhysicsHair>> mPhysicsList;
 
 private:

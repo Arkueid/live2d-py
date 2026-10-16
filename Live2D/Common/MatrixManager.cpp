@@ -18,39 +18,39 @@ void mul(float r[16], const float a[16], const float b[16]) {
 }
 }   // namespace
 
-void MatrixManager::onResize(int w, int h) {
+void MatrixManager::OnResize(int w, int h) {
     mWinW = w;
     mWinH = h;
 }
-void MatrixManager::setScale(float s) {
+void MatrixManager::SetScale(float s) {
     mScaleX = s;
     mScaleY = s;
 }
-void MatrixManager::setScaleX(float sx) {
+void MatrixManager::SetScaleX(float sx) {
     mScaleX = sx;
 }
-void MatrixManager::setScaleY(float sy) {
+void MatrixManager::SetScaleY(float sy) {
     mScaleY = sy;
 }
-void MatrixManager::setOffset(float x, float y) {
+void MatrixManager::SetOffset(float x, float y) {
     mOffsetX = x;
     mOffsetY = y;
 }
-void MatrixManager::rotate(float deg) {
+void MatrixManager::Rotate(float deg) {
     mRotationDeg = deg;
 }
-void MatrixManager::setFit(const Fit& fit) {
+void MatrixManager::SetFit(const Fit& fit) {
     mFit = fit;
 }
 
-void MatrixManager::screenToScene(float* x, float* y) const {
+void MatrixManager::ScreenToScene(float* x, float* y) const {
     float w = (float)mWinW;
     float h = (float)mWinH;
     *x = (*x - w * 0.5f) * 2.0f / h;
     *y = (*y - h * 0.5f) * -2.0f / h;
 }
 
-void MatrixManager::buildModelMatrix(const Fit& fit, float out[16]) const {
+void MatrixManager::BuildModelMatrix(const Fit& fit, float out[16]) const {
     float cw = fit.canvasW > 0 ? fit.canvasW : 1.0f;
     float ch = fit.canvasH > 0 ? fit.canvasH : 1.0f;
 
@@ -75,7 +75,7 @@ void MatrixManager::buildModelMatrix(const Fit& fit, float out[16]) const {
     out[13] = ty;
 }
 
-const float* MatrixManager::getMvp() const {
+const float* MatrixManager::GetMvp() const {
     // 与上次计算所用状态完全一致时直接返回缓存
     if (mCacheValid && mScaleX == mCachedScaleX && mScaleY == mCachedScaleY &&
         mOffsetX == mCachedOffsetX && mOffsetY == mCachedOffsetY &&
@@ -111,7 +111,7 @@ const float* MatrixManager::getMvp() const {
 
     // 2. 模型矩阵：旋转作用于投影之前（P * (R * M)），避免非方形窗口下剪切变形
     float mm[16];
-    buildModelMatrix(mFit, mm);
+    BuildModelMatrix(mFit, mm);
     if (mRotationDeg != 0.0f) {
         float r = mRotationDeg * 3.14159265f / 180.0f;
         float rot[16] = {};
@@ -131,7 +131,7 @@ const float* MatrixManager::getMvp() const {
     return mMvpCache;
 }
 
-void MatrixManager::invertTransform(float* x, float* y, const float mvp[16]) {
+void MatrixManager::InvertTransform(float* x, float* y, const float mvp[16]) {
     // getMvp 生成的矩阵 z 轴恒为直通（mvp[8..11] = 0,0,1,0），
     // x/y 构成二维仿射变换，对仿射块求逆即可
     float det = mvp[0] * mvp[5] - mvp[4] * mvp[1];

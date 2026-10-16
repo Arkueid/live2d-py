@@ -2,14 +2,14 @@
 #include <string>
 namespace Live2D {
 namespace V2 {
-class ModelContext;
+class Moc;
 class EyeBlink {
 public:
     EyeBlink();
-    void setInterval(int ms) { mBlinkIntervalMs = ms; }
-    void setEyeMotion(int closeMs, int closedMs, int openMs);
+    void SetInterval(int ms) { mBlinkIntervalMs = ms; }
+    void SetEyeMotion(int closeMs, int closedMs, int openMs);
     // 时间由外部传入（时钟只由 Model 管理）: deltaMs 为本次时间步长（毫秒），内部累计 elapsed
-    void updateParam(ModelContext* context, float deltaMs);
+    void UpdateParam(Moc* moc, float deltaMs);
     float mBlinkIntervalMs = 5000;
 
 private:

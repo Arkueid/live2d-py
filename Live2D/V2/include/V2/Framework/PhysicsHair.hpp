@@ -3,7 +3,7 @@
 #include <vector>
 namespace Live2D {
 namespace V2 {
-class ModelContext;
+class Moc;
 
 enum PhysicsSrcType { SRC_TO_X = 0, SRC_TO_Y, SRC_TO_G_ANGLE };
 enum PhysicsTargetType { TARGET_FROM_ANGLE = 0, TARGET_FROM_ANGLE_V };
@@ -11,7 +11,7 @@ enum PhysicsTargetType { TARGET_FROM_ANGLE = 0, TARGET_FROM_ANGLE_V };
 struct PhysicsPoint {
     float mass = 1, x = 0, y = 0, vx = 0, vy = 0, ax = 0, ay = 0, fx = 0, fy = 0;
     float lastX = 0, lastY = 0, lastVX = 0, lastVY = 0;
-    void setupLast() {
+    void SetupLast() {
         lastX = x;
         lastY = y;
         lastVX = vx;
@@ -23,33 +23,33 @@ struct PhysicsSrc {
     PhysicsSrcType type;
     std::string paramId;
     float scale = 1, weight = 1;
-    void update(ModelContext* context, class PhysicsHair* ctx);
+    void Update(Moc* moc, class PhysicsHair* ctx);
 };
 struct PhysicsTarget {
     PhysicsTargetType type;
     std::string paramId;
     float scale = 1, weight = 1;
-    void update(ModelContext* context, class PhysicsHair* ctx);
+    void Update(Moc* moc, class PhysicsHair* ctx);
 };
 
 class PhysicsHair {
 public:
     PhysicsHair();
-    void setup(float length, float stiffness, float mass);
-    void addSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight);
-    void addTargetParam(PhysicsTargetType t, const std::string& id, float scale, float weight);
-    void update(ModelContext* context, long long timeMs);
+    void Setup(float length, float stiffness, float mass);
+    void AddSrcParam(PhysicsSrcType t, const std::string& id, float scale, float weight);
+    void AddTargetParam(PhysicsTargetType t, const std::string& id, float scale, float weight);
+    void Update(Moc* moc, long long timeMs);
 
-    PhysicsPoint& getP1() { return p1; }
-    PhysicsPoint& getP2() { return p2; }
-    float getAngle() const { return angle; }
-    void setAngle(float a) { angle = a; }
-    float getLastAngle() const { return lastAngle; }
-    float getLastAngleVelocity() const { return angleVelocity; }
+    PhysicsPoint& GetP1() { return p1; }
+    PhysicsPoint& GetP2() { return p2; }
+    float GetAngle() const { return angle; }
+    void SetAngle(float a) { angle = a; }
+    float GetLastAngle() const { return lastAngle; }
+    float GetLastAngleVelocity() const { return angleVelocity; }
 
 private:
-    float calcAngle() const;
-    void updatePhysics(ModelContext* context, float deltaSec);
+    float CalcAngle() const;
+    void UpdatePhysics(Moc* moc, float deltaSec);
 
     PhysicsPoint p1, p2;
     float length = 0, angle = 0, stiffness = 0;

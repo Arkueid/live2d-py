@@ -4,15 +4,13 @@
 #include "Deformer.hpp"
 #include "RotationDeformer.hpp"
 #include "WarpDeformer.hpp"
-#include "Mesh.hpp"
-#include "Avatar.hpp"
+#include "Drawable.hpp"
 #include "ISerializable.hpp"
-#include "ModelImpl.hpp"
-#include "ParamDefFloat.hpp"
-#include "ParamDefSet.hpp"
-#include "ParamPivots.hpp"
-#include "PartsData.hpp"
+#include "Moc.hpp"
+#include "Parameter.hpp"
+#include "Part.hpp"
 #include "PivotManager.hpp"
+#include <cstdlib>
 #include <string>
 
 namespace Live2D {
@@ -20,7 +18,7 @@ namespace V2 {
 
 using namespace Live2D::Common::Log;
 
-std::unique_ptr<ISerializable> ObjectFactory::create(int clsNo) {
+std::unique_ptr<ISerializable> ObjectFactory::Create(int clsNo) {
     if (clsNo < 100) {
         switch (clsNo) {
             case 65:
@@ -28,34 +26,34 @@ std::unique_ptr<ISerializable> ObjectFactory::create(int clsNo) {
             case 66:
                 return std::make_unique<PivotManager>();
             case 67:
-                return std::make_unique<ParamPivots>();
+                return std::make_unique<PivotManager::Pivot>();
             case 68:
                 return std::make_unique<RotationDeformer>();
             case 69:
                 return std::make_unique<AffineEnt>();
             case 70:
-                return std::make_unique<Mesh>();
+                return std::make_unique<Drawable>();
             default:
                 break;
         }
     } else if (clsNo < 150) {
         switch (clsNo) {
             case 131:
-                return std::make_unique<ParamDefFloat>();
+                return std::make_unique<Parameter>();
             case 133:
-                return std::make_unique<PartsData>();
+                return std::make_unique<Part>();
             case 136:
-                return std::make_unique<ModelImpl>();
-            case 137:
-                return std::make_unique<ParamDefSet>();
+                return std::make_unique<Moc>();
             case 142:
-                return std::make_unique<Avatar>();
+                // Avatar（旧换装特性）已移除；moc 中出现视为不支持的数据
+                LOGE("Unsupported class ID (Avatar removed): %d", clsNo);
+                break;
             default:
+                LOGE("Unknown class ID: %d", clsNo);
                 break;
         }
     }
 
-    LOGE("Unknown class ID: %d", clsNo);
     return nullptr;
 }
 }   // namespace V2
