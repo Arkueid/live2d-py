@@ -3,7 +3,6 @@
 #include <V3/Model.hpp>
 #include <V2/Model.hpp>
 #include <Log.hpp>
-#include <ModelVersion.hpp>
 #include <cstdlib>
 #include <cstring>
 #include <nlohmann/json.hpp>
@@ -102,7 +101,7 @@ static PyObject* PyModel_LoadModelJson(PyModelObject* self, PyObject* args, PyOb
         PyErr_SetString(PyExc_TypeError, "argument 1 must be str");
         return NULL;
     }
-    int version = Live2D::DetectModelVersion(modelJsonPath);
+    int version = Live2D::IModel::DetectVersion(modelJsonPath);
     if (version < 0) {
         PyErr_Format(PyExc_ValueError, "cannot determine model version: %s", modelJsonPath);
         return NULL;

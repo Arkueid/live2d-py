@@ -54,6 +54,7 @@ include(V2/cmake/V2.cmake)
 # 这些入口依赖 V2+V3，放在此处而非 Common，以保持 Common 为不依赖 SDK 的纯公共层。
 add_library(${LIVE2D_TARGET} STATIC
     ${LIVE2D_ROOT}/Init.cpp
+    ${LIVE2D_ROOT}/IModel.cpp
 )
 target_include_directories(${LIVE2D_TARGET} PUBLIC ${LIVE2D_ROOT})
 target_link_libraries(${LIVE2D_TARGET} PUBLIC

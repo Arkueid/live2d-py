@@ -169,5 +169,14 @@ public:
     virtual bool IsV3() const { return Version() == 3; }
 
     virtual bool HasMocConsistencyFromFile(const char* mocFileName) = 0;
+
+    // 按模型 json 版本实例化对应实现（不加载；调用方再调 LoadModelJson，并负责释放）。
+    // 版本探测失败（非模型 json / moc 缺失等）返回 nullptr。
+    static IModel* Create(const char* modelJsonPath);
+
+    // 探测模型 json 对应的 moc 版本：返回 2 / 3，失败返回 -1。
+    // v2: 顶层 "model" 字段 + moc 魔数 "moc"（3 字节）
+    // v3: "FileReferences.Moc" 字段 + moc3 魔数 "MOC3"（4 字节）
+    static int DetectVersion(const char* modelJsonPath);
 };
 }   // namespace Live2D

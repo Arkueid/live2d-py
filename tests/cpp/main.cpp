@@ -42,7 +42,6 @@
 #include <V3/Model.hpp>
 #include <V2/Model.hpp>
 #include <IModel.hpp>
-#include <ModelFactory.hpp>
 #include "Log.hpp"
 
 using namespace Live2D::Common::Log;
@@ -195,7 +194,7 @@ int main(int argc, char* argv[]) {
         }                                                                     \
     } while (0)
 
-        std::unique_ptr<Live2D::IModel> model(Live2D::CreateModel(smokePath.c_str()));
+        std::unique_ptr<Live2D::IModel> model(Live2D::IModel::Create(smokePath.c_str()));
         if (!model) {
             fprintf(stderr, "[smoke] FAIL: cannot detect model version: %s\n", smokePath.c_str());
             return 1;
@@ -458,7 +457,7 @@ int main(int argc, char* argv[]) {
     SetLive2DLogLevel(LV_INFO);
 
     {
-        std::unique_ptr<Live2D::IModel> model(Live2D::CreateModel(modelPath.c_str()));
+        std::unique_ptr<Live2D::IModel> model(Live2D::IModel::Create(modelPath.c_str()));
         if (!model) {
             fprintf(stderr, "ERROR: cannot detect model version: %s\n", modelPath.c_str());
             return 1;

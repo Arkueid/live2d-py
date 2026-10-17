@@ -1,4 +1,6 @@
-#include "ModelVersion.hpp"
+#include "IModel.hpp"
+#include <V2/Model.hpp>
+#include <V3/Model.hpp>
 
 #include <cstring>
 #include <filesystem>
@@ -13,6 +15,7 @@ namespace Live2D {
 using json = nlohmann::json;
 using namespace Live2D::Common::Log;
 
+namespace {
 // 读取 json 同目录下的 moc 文件并核对魔数；magicLen 为魔数字节数
 static bool checkMocMagic(const std::filesystem::path& jsonDir, const std::string& mocPath,
                           const char* magic, std::streamsize magicLen) {
@@ -30,8 +33,9 @@ static bool checkMocMagic(const std::filesystem::path& jsonDir, const std::strin
     }
     return true;
 }
+}   // namespace
 
-int DetectModelVersion(const char* modelJsonPath) {
+int IModel::DetectVersion(const char* modelJsonPath) {
     if (modelJsonPath == nullptr) {
         return -1;
     }
@@ -58,6 +62,17 @@ int DetectModelVersion(const char* modelJsonPath) {
 
     LOGE("cannot determine model version: %s", modelJsonPath);
     return -1;
+}
+
+IModel* IModel::Create(const char* modelJsonPath) {
+    switch (DetectVersion(modelJsonPath)) {
+        case 2:
+            return new V2::Model();
+        case 3:
+            return new V3::Model();
+        default:
+            return nullptr;
+    }
 }
 
 }   // namespace Live2D

@@ -4,7 +4,6 @@ add_library(${LIVE2D_COMMON} STATIC
     ${LIVE2D_ROOT}/Common/Log.cpp
     ${LIVE2D_ROOT}/Common/Debug.cpp
     ${LIVE2D_ROOT}/Common/MatrixManager.cpp
-    ${LIVE2D_ROOT}/Common/ModelVersion.cpp
     ${LIVE2D_ROOT}/Common/FileUtils.cpp
     ${LIVE2D_ROOT}/Common/stb_impl.cpp
 )
