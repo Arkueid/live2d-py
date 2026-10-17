@@ -1,5 +1,4 @@
 #include "MotionManager.hpp"
-#include "UtSystem.hpp"
 #include <cmath>
 namespace Live2D {
 namespace V2 {

@@ -12,7 +12,6 @@ add_library(${V2_TARGET} STATIC
     Core/WarpDeformer.cpp
     Core/Drawable.cpp
     Core/UtInterpolate.cpp
-    Core/UtSystem.cpp
     $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/GLRenderer.cpp>
     $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/ClippingManagerOpenGL.cpp>
     $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/VkRenderer.cpp>

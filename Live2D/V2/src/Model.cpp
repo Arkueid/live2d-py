@@ -17,7 +17,6 @@
 #include "Live2DMotion.hpp"
 #include "Log.hpp"
 #include "Moc.hpp"
-#include "UtSystem.hpp"
 #include "nlohmann/json.hpp"
 #ifdef __ANDROID__
 #include <GLES/gl.h>
@@ -311,7 +310,9 @@ void Model::Update(float deltaSecs) {
     float dt;
     if (deltaSecs < 0.0f) {
         // 墙钟路径（Python v2 1:1）
-        float now = (float)UtSystem::GetUserTimeMSec();
+        float now = (float)std::chrono::duration<double, std::milli>(
+                        std::chrono::steady_clock::now().time_since_epoch())
+                        .count();
         dt = (mLastFrameTimeMs != 0.0f) ? (now - mLastFrameTimeMs) / 1000.0f : 0.0f;
         mLastFrameTimeMs = now;
     } else {

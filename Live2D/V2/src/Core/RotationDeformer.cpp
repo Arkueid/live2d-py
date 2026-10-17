@@ -3,13 +3,32 @@
 #include "DEF.hpp"
 #include "PivotManager.hpp"
 #include "Moc.hpp"
-#include "UtMath.hpp"
 #include "AffineEnt.hpp"
 #include <cmath>
-#include <cstdio>
 
 namespace Live2D {
 namespace V2 {
+
+namespace {
+
+// 1:1 等价于原 UtMath.hpp 中的常量（与原字面量折叠为同一 float 位模式）
+constexpr float PI = 3.14159265f;
+constexpr float DEG_TO_RAD = PI / 180.0f;
+constexpr float RAD_TO_DEG = 180.0f / PI;
+
+static float GetAngleNotAbs(const float v1[2], const float v2[2]) {
+    // Match Python UtMath.getAngleNotAbs: getAngleDiff(atan2(v1), atan2(v2))
+    // = q1 - q2 normalized to [-π, π]
+    float q1 = std::atan2(v1[1], v1[0]);
+    float q2 = std::atan2(v2[1], v2[0]);
+    float t = q1 - q2;
+    while (t < -PI)
+        t += 2.0f * PI;
+    while (t > PI)
+        t -= 2.0f * PI;
+    return t;
+}
+}   // namespace
 
 RotationDeformer::~RotationDeformer() = default;
 
@@ -78,8 +97,8 @@ void RotationDeformer::SetupInterpolate(Moc* moc) {
     mInterpolatedAffine->mReflectY = ref->mReflectY;
 }
 
-static void getDirectionOnDst(Moc* moc, Deformer* targetDef,
-                              float ox, float oy, float dx, float dy, float retDir[2]) {
+static void getDirectionOnDst(Moc* moc, Deformer* targetDef, float ox, float oy, float dx, float dy,
+                              float retDir[2]) {
     std::vector<float> tpVec = {ox, oy};
     std::vector<float> toVec(2);
     targetDef->TransformPoints(tpVec, toVec, 1, 0, 2);
@@ -140,7 +159,7 @@ bool RotationDeformer::SetupTransform(Moc* moc) {
     float tDir[2];
     getDirectionOnDst(moc, parentDef, ox, oy, dx, dy, tDir);
     float dir[2] = {dx, dy};
-    float angle = UtMath::GetAngleNotAbs(dir, tDir);
+    float angle = GetAngleNotAbs(dir, tDir);
 
     std::vector<float> originVec = {ox, oy};
     std::vector<float> originDst(2);
@@ -151,7 +170,7 @@ bool RotationDeformer::SetupTransform(Moc* moc) {
     mTransformedAffine->mScaleX = mInterpolatedAffine->mScaleX;
     mTransformedAffine->mScaleY = mInterpolatedAffine->mScaleY;
     mTransformedAffine->mRotationDeg =
-        mInterpolatedAffine->mRotationDeg - angle * UtMath::RAD_TO_DEG;
+        mInterpolatedAffine->mRotationDeg - angle * RAD_TO_DEG;
 
     float ps = parentDef->GetTotalScale();
     SetTotalScale_notForClient(ps * mTransformedAffine->mScaleX);
@@ -165,8 +184,8 @@ bool RotationDeformer::SetupTransform(Moc* moc) {
 void RotationDeformer::TransformPoints(const std::vector<float>& src, std::vector<float>& dst,
                                        int numPoint, int ptOffset, int ptStep) {
     auto* af = mTransformedAffine ? mTransformedAffine.get() : mInterpolatedAffine.get();
-    float sinR = std::sin(UtMath::DEG_TO_RAD * af->mRotationDeg);
-    float cosR = std::cos(UtMath::DEG_TO_RAD * af->mRotationDeg);
+    float sinR = std::sin(DEG_TO_RAD * af->mRotationDeg);
+    float cosR = std::cos(DEG_TO_RAD * af->mRotationDeg);
     float ts = GetTotalScale();
     float rx = af->mReflectX ? -1.0f : 1.0f, ry = af->mReflectY ? -1.0f : 1.0f;
     float sx = cosR * ts * rx, shx = -sinR * ts * ry;

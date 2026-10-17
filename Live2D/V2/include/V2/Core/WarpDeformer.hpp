@@ -25,7 +25,7 @@ public:
 
     int GetPointCount() const { return (mRow + 1) * (mCol + 1); }
 
-    static void TransformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
+    static void TransformPointsInner(const std::vector<float>& src, std::vector<float>& dst,
                                      int pointCount, int srcOffset, int srcStep,
                                      const std::vector<float>& grid, int row, int col);
 

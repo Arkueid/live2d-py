@@ -4,8 +4,7 @@
 #include "Moc.hpp"
 #include "UtInterpolate.hpp"
 #include <cmath>
-#include <cstdio>
-#include <stdexcept>
+
 
 namespace Live2D {
 namespace V2 {
@@ -75,243 +74,248 @@ void WarpDeformer::TransformPoints(const std::vector<float>& srcPoints,
                                    std::vector<float>& dstPoints, int numPoint, int ptOffset,
                                    int ptStep) {
     auto& pivot = !mTransformedPoints.empty() ? mTransformedPoints : mInterpolatedPoints;
-    TransformPoints_sdk2(srcPoints, dstPoints, numPoint, ptOffset, ptStep, pivot, mRow, mCol);
+    TransformPointsInner(srcPoints, dstPoints, numPoint, ptOffset, ptStep, pivot, mRow, mCol);
 }
 
-// Static grid-based vertex transform (ported 1:1 from Python WarpDeformer)
-void WarpDeformer::TransformPoints_sdk2(const std::vector<float>& src, std::vector<float>& dst,
+namespace {
+
+// grid 访问：控制点 (xi, yi)（xi∈[0,row]、yi∈[0,col]），xy 交错存储，x 方向步长 stride
+inline float GridX(const std::vector<float>& grid, int stride, int xi, int yi) {
+    return grid[(xi + yi * stride) * 2];
+}
+
+inline float GridY(const std::vector<float>& grid, int stride, int xi, int yi) {
+    return grid[(xi + yi * stride) * 2 + 1];
+}
+
+// 单位四边形上的双三角采样：四角 O=(wu,wv)=(0,0)、U=(1,0)、V=(0,1)、UV=(1,1)，
+// 沿 O→UV 对角分割 —— wu+wv<=1 在三角形 (O,U,V) 上取值，否则在 (UV,V,U) 上
+// 以补权重 (1-wu)、(1-wv) 取值。与网格内插值同款分割方式，保证查询点跨区域
+// 移动时结果连续无缝。
+inline void SampleSplitQuad(std::vector<float>& dst, int base, float ox, float oy, float ux,
+                            float uy, float vx, float vy, float uvx, float uvy, float wu,
+                            float wv) {
+    if (wu + wv <= 1.0f) {
+        dst[base] = ox + (ux - ox) * wu + (vx - ox) * wv;
+        dst[base + 1] = oy + (uy - oy) * wu + (vy - oy) * wv;
+    } else {
+        dst[base] = uvx + (vx - uvx) * (1 - wu) + (ux - uvx) * (1 - wv);
+        dst[base + 1] = uvy + (vy - uvy) * (1 - wu) + (uy - uvy) * (1 - wv);
+    }
+}
+
+}   // namespace
+
+// 网格形变顶点变换（自官方 live2d.js 等价移植，浮点运算顺序未做任何调整）
+//
+// grid 为 (row+1)x(col+1) 控制点阵；src 中每个点为形变器局部归一化坐标 (u,v)，
+// 允许越出 [0,1]。按位置分三类处理：
+//  1. 网格内：所在格双三角插值（对角分割，跨格连续无缝）；
+//  2. 网格外 [-2,3] 带：用四角差分拟合的全局仿射模型 val(u,v) = fit + u*slopeU + v*slopeV
+//     （fit 预先减去 0.5*(slopeU+slopeV)，使四角处的拟合均值恰等于四角真实均值），
+//     在 u=-2/3、v=-2/3 处生成虚拟格点，与最近的真实格点/格边组成四边形，
+//     复用同款双三角采样 —— 因此外推值在网格边界处与格点值完全衔接；
+//  3. 更远处：直接取仿射模型值。
+void WarpDeformer::TransformPointsInner(const std::vector<float>& src, std::vector<float>& dst,
                                         int pointCount, int srcOffset, int srcStep,
                                         const std::vector<float>& grid, int row, int col) {
+    const int stride = row + 1;   // grid x 方向步长
+    const int total = pointCount * srcStep;
 
-    int total = pointCount * srcStep;
-    float aT = 0, aS = 0;
-    float bl = 0, bk_ = 0, bf = 0, be = 0;
-    bool computedExtrap = false;
+    // 全局仿射拟合系数（惰性计算：首个越界点才需要）
+    float fitX = 0, fitY = 0;
+    float slopeUx = 0, slopeUy = 0, slopeVx = 0, slopeVy = 0;
+    bool fitComputed = false;
 
-    for (int ba = srcOffset; ba < total; ba += srcStep) {
-        float a4 = src[ba];
-        float aX = src[ba + 1];
-        float bd = a4 * row;
-        float a7 = aX * col;
+    for (int base = srcOffset; base < total; base += srcStep) {
+        const float u = src[base];
+        const float v = src[base + 1];
+        const float gx = u * row;   // 格坐标（x 方向共 row 格）
+        const float gy = v * col;   // 格坐标（y 方向共 col 格）
 
-        if (bd < 0 || a7 < 0 || row <= bd || col <= a7) {
-            int a1 = row + 1;
-            if (!computedExtrap) {
-                computedExtrap = true;
-                aT = 0.25f * (grid[((0) + (0) * a1) * 2] + grid[((row) + (0) * a1) * 2] +
-                              grid[((0) + (col)*a1) * 2] + grid[((row) + (col)*a1) * 2]);
-                aS = 0.25f * (grid[((0) + (0) * a1) * 2 + 1] + grid[((row) + (0) * a1) * 2 + 1] +
-                              grid[((0) + (col)*a1) * 2 + 1] + grid[((row) + (col)*a1) * 2 + 1]);
-                float aM = grid[((row) + (col)*a1) * 2] - grid[((0) + (0) * a1) * 2];
-                float aL = grid[((row) + (col)*a1) * 2 + 1] - grid[((0) + (0) * a1) * 2 + 1];
-                float bh = grid[((row) + (0) * a1) * 2] - grid[((0) + (col)*a1) * 2];
-                float bg = grid[((row) + (0) * a1) * 2 + 1] - grid[((0) + (col)*a1) * 2 + 1];
-                bl = (aM + bh) * 0.5f;
-                bk_ = (aL + bg) * 0.5f;
-                bf = (aM - bh) * 0.5f;
-                be = (aL - bg) * 0.5f;
-                aT -= 0.5f * (bl + bf);
-                aS -= 0.5f * (bk_ + be);
+        if (gx < 0 || gy < 0 || row <= gx || col <= gy) {
+            if (!fitComputed) {
+                fitComputed = true;
+                // 四角均值
+                fitX = 0.25f * (GridX(grid, stride, 0, 0) + GridX(grid, stride, row, 0) +
+                                GridX(grid, stride, 0, col) + GridX(grid, stride, row, col));
+                fitY = 0.25f * (GridY(grid, stride, 0, 0) + GridY(grid, stride, row, 0) +
+                                GridY(grid, stride, 0, col) + GridY(grid, stride, row, col));
+                // 主/反对角线的四角差分
+                const float diagX = GridX(grid, stride, row, col) - GridX(grid, stride, 0, 0);
+                const float diagY = GridY(grid, stride, row, col) - GridY(grid, stride, 0, 0);
+                const float antiX = GridX(grid, stride, row, 0) - GridX(grid, stride, 0, col);
+                const float antiY = GridY(grid, stride, row, 0) - GridY(grid, stride, 0, col);
+                slopeUx = (diagX + antiX) * 0.5f;   // 沿 u 的斜率
+                slopeUy = (diagY + antiY) * 0.5f;
+                slopeVx = (diagX - antiX) * 0.5f;   // 沿 v 的斜率
+                slopeVy = (diagY - antiY) * 0.5f;
+                fitX -= 0.5f * (slopeUx + slopeVx);   // 保四角均值
+                fitY -= 0.5f * (slopeUy + slopeVy);
             }
 
-            if ((-2 < a4 && a4 < 3) && (-2 < aX && aX < 3)) {
-                // Full extrapolation logic ported 1:1 from Python WarpDeformer
-                if (a4 <= 0) {
-                    if (aX <= 0) {
-                        float a3 = grid[((0) + (0) * a1) * 2];
-                        float a2 = grid[((0) + (0) * a1) * 2 + 1];
-                        float a8 = aT - 2 * bl;
-                        float a6 = aS - 2 * bk_;
-                        float aK = aT - 2 * bf;
-                        float aJ = aS - 2 * be;
-                        float aO = aT - 2 * bl - 2 * bf;
-                        float aN = aS - 2 * bk_ - 2 * be;
-                        float bj = 0.5f * (a4 - (-2));
-                        float bi = 0.5f * (aX - (-2));
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
-                    } else if (aX >= 1) {
-                        float aK = grid[((0) + (col)*a1) * 2];
-                        float aJ = grid[((0) + (col)*a1) * 2 + 1];
-                        float aO = aT - 2 * bl + 1 * bf;
-                        float aN = aS - 2 * bk_ + 1 * be;
-                        float a3 = aT + 3 * bf;
-                        float a2 = aS + 3 * be;
-                        float a8 = aT - 2 * bl + 3 * bf;
-                        float a6 = aS - 2 * bk_ + 3 * be;
-                        float bj = 0.5f * (a4 - (-2));
-                        float bi = 0.5f * (aX - (1));
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
+            if ((-2 < u && u < 3) && (-2 < v && v < 3)) {
+                // 近网格外推带：虚拟格点 + 真实格点/格边组成的四边形上采样
+                if (u <= 0) {
+                    if (v <= 0) {
+                        // 左下角区：仿射@(-2,-2) / 仿射@(0,-2) / 仿射@(-2,0) / 真实角点(0,0)
+                        const float ox = fitX - 2 * slopeUx - 2 * slopeVx;
+                        const float oy = fitY - 2 * slopeUy - 2 * slopeVy;
+                        const float ux = fitX - 2 * slopeVx;
+                        const float uy = fitY - 2 * slopeVy;
+                        const float vx = fitX - 2 * slopeUx;
+                        const float vy = fitY - 2 * slopeUy;
+                        const float uvx = GridX(grid, stride, 0, 0);
+                        const float uvy = GridY(grid, stride, 0, 0);
+                        const float wu = 0.5f * (u - (-2));
+                        const float wv = 0.5f * (v - (-2));
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
+                    } else if (v >= 1) {
+                        // 左上角区：仿射@(-2,1) / 真实角点(0,1) / 仿射@(-2,3) / 仿射@(0,3)
+                        const float ox = fitX - 2 * slopeUx + 1 * slopeVx;
+                        const float oy = fitY - 2 * slopeUy + 1 * slopeVy;
+                        const float ux = GridX(grid, stride, 0, col);
+                        const float uy = GridY(grid, stride, 0, col);
+                        const float vx = fitX - 2 * slopeUx + 3 * slopeVx;
+                        const float vy = fitY - 2 * slopeUy + 3 * slopeVy;
+                        const float uvx = fitX + 3 * slopeVx;
+                        const float uvy = fitY + 3 * slopeVy;
+                        const float wu = 0.5f * (u - (-2));
+                        const float wv = 0.5f * (v - 1);
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
                     } else {
-                        int aH = (int)a7;
-                        if (aH == col)
-                            aH = col - 1;
-                        float bj = 0.5f * (a4 - (-2));
-                        float bi = a7 - aH;
-                        float bb = aH / (float)col;
-                        float a9 = (aH + 1) / (float)col;
-                        float aK = grid[((0) + (aH)*a1) * 2];
-                        float aJ = grid[((0) + (aH)*a1) * 2 + 1];
-                        float a3 = grid[((0) + (aH + 1) * a1) * 2];
-                        float a2 = grid[((0) + (aH + 1) * a1) * 2 + 1];
-                        float aO = aT - 2 * bl + bb * bf;
-                        float aN = aS - 2 * bk_ + bb * be;
-                        float a8 = aT - 2 * bl + a9 * bf;
-                        float a6 = aS - 2 * bk_ + a9 * be;
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
+                        // 左侧边区：仿射@(-2,v0) / 真实格点(0,cy) / 仿射@(-2,v1) / 真实格点(0,cy+1)
+                        int cy = (int)gy;
+                        if (cy == col)
+                            cy = col - 1;
+                        const float v0 = cy / (float)col;
+                        const float v1 = (cy + 1) / (float)col;
+                        const float ox = fitX - 2 * slopeUx + v0 * slopeVx;
+                        const float oy = fitY - 2 * slopeUy + v0 * slopeVy;
+                        const float ux = GridX(grid, stride, 0, cy);
+                        const float uy = GridY(grid, stride, 0, cy);
+                        const float vx = fitX - 2 * slopeUx + v1 * slopeVx;
+                        const float vy = fitY - 2 * slopeUy + v1 * slopeVy;
+                        const float uvx = GridX(grid, stride, 0, cy + 1);
+                        const float uvy = GridY(grid, stride, 0, cy + 1);
+                        const float wu = 0.5f * (u - (-2));
+                        const float wv = gy - cy;
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
                     }
-                } else if (a4 >= 1) {
-                    if (aX <= 0) {
-                        float a8 = grid[((row) + (0) * a1) * 2];
-                        float a6 = grid[((row) + (0) * a1) * 2 + 1];
-                        float a3 = aT + 3 * bl;
-                        float a2 = aS + 3 * bk_;
-                        float aO = aT + 1 * bl - 2 * bf;
-                        float aN = aS + 1 * bk_ - 2 * be;
-                        float aK = aT + 3 * bl - 2 * bf;
-                        float aJ = aS + 3 * bk_ - 2 * be;
-                        float bj = 0.5f * (a4 - (1));
-                        float bi = 0.5f * (aX - (-2));
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
-                    } else if (aX >= 1) {
-                        float aO = grid[((row) + (col)*a1) * 2];
-                        float aN = grid[((row) + (col)*a1) * 2 + 1];
-                        float aK = aT + 3 * bl + 1 * bf;
-                        float aJ = aS + 3 * bk_ + 1 * be;
-                        float a8 = aT + 1 * bl + 3 * bf;
-                        float a6 = aS + 1 * bk_ + 3 * be;
-                        float a3 = aT + 3 * bl + 3 * bf;
-                        float a2 = aS + 3 * bk_ + 3 * be;
-                        float bj = 0.5f * (a4 - (1));
-                        float bi = 0.5f * (aX - (1));
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
+                } else if (u >= 1) {
+                    if (v <= 0) {
+                        // 右下角区：仿射@(1,-2) / 仿射@(3,-2) / 真实角点(1,0) / 仿射@(3,0)
+                        const float ox = fitX + 1 * slopeUx - 2 * slopeVx;
+                        const float oy = fitY + 1 * slopeUy - 2 * slopeVy;
+                        const float ux = fitX + 3 * slopeUx - 2 * slopeVx;
+                        const float uy = fitY + 3 * slopeUy - 2 * slopeVy;
+                        const float vx = GridX(grid, stride, row, 0);
+                        const float vy = GridY(grid, stride, row, 0);
+                        const float uvx = fitX + 3 * slopeUx;
+                        const float uvy = fitY + 3 * slopeUy;
+                        const float wu = 0.5f * (u - 1);
+                        const float wv = 0.5f * (v - (-2));
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
+                    } else if (v >= 1) {
+                        // 右上角区：真实角点(1,1) / 仿射@(3,1) / 仿射@(1,3) / 仿射@(3,3)
+                        const float ox = GridX(grid, stride, row, col);
+                        const float oy = GridY(grid, stride, row, col);
+                        const float ux = fitX + 3 * slopeUx + 1 * slopeVx;
+                        const float uy = fitY + 3 * slopeUy + 1 * slopeVy;
+                        const float vx = fitX + 1 * slopeUx + 3 * slopeVx;
+                        const float vy = fitY + 1 * slopeUy + 3 * slopeVy;
+                        const float uvx = fitX + 3 * slopeUx + 3 * slopeVx;
+                        const float uvy = fitY + 3 * slopeUy + 3 * slopeVy;
+                        const float wu = 0.5f * (u - 1);
+                        const float wv = 0.5f * (v - 1);
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
                     } else {
-                        int aH = (int)a7;
-                        if (aH == col)
-                            aH = col - 1;
-                        float bj = 0.5f * (a4 - (1));
-                        float bi = a7 - aH;
-                        float bb = aH / (float)col;
-                        float a9 = (aH + 1) / (float)col;
-                        float aO = grid[((row) + (aH)*a1) * 2];
-                        float aN = grid[((row) + (aH)*a1) * 2 + 1];
-                        float a8 = grid[((row) + (aH + 1) * a1) * 2];
-                        float a6 = grid[((row) + (aH + 1) * a1) * 2 + 1];
-                        float aK = aT + 3 * bl + bb * bf;
-                        float aJ = aS + 3 * bk_ + bb * be;
-                        float a3 = aT + 3 * bl + a9 * bf;
-                        float a2 = aS + 3 * bk_ + a9 * be;
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
+                        // 右侧边区：真实格点(1,cy) / 仿射@(3,v0) / 真实格点(1,cy+1) / 仿射@(3,v1)
+                        int cy = (int)gy;
+                        if (cy == col)
+                            cy = col - 1;
+                        const float v0 = cy / (float)col;
+                        const float v1 = (cy + 1) / (float)col;
+                        const float ox = GridX(grid, stride, row, cy);
+                        const float oy = GridY(grid, stride, row, cy);
+                        const float ux = fitX + 3 * slopeUx + v0 * slopeVx;
+                        const float uy = fitY + 3 * slopeUy + v0 * slopeVy;
+                        const float vx = GridX(grid, stride, row, cy + 1);
+                        const float vy = GridY(grid, stride, row, cy + 1);
+                        const float uvx = fitX + 3 * slopeUx + v1 * slopeVx;
+                        const float uvy = fitY + 3 * slopeUy + v1 * slopeVy;
+                        const float wu = 0.5f * (u - 1);
+                        const float wv = gy - cy;
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
                     }
                 } else {
-                    // 0 < a4 < 1: in between, handle by Y (row) interpolation
-                    if (aX <= 0) {
-                        int aY = (int)bd;
-                        if (aY == row)
-                            aY = row - 1;
-                        float bj = bd - aY;
-                        float bi = 0.5f * (aX - (-2));
-                        float bp = aY / (float)row;
-                        float bo = (aY + 1) / (float)row;
-                        float a8 = grid[((aY) + (0) * a1) * 2];
-                        float a6 = grid[((aY) + (0) * a1) * 2 + 1];
-                        float a3 = grid[((aY + 1) + (0) * a1) * 2];
-                        float a2 = grid[((aY + 1) + (0) * a1) * 2 + 1];
-                        float aO = aT + bp * bl - 2 * bf;
-                        float aN = aS + bp * bk_ - 2 * be;
-                        float aK = aT + bo * bl - 2 * bf;
-                        float aJ = aS + bo * bk_ - 2 * be;
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
-                    } else if (aX >= 1) {
-                        int aY = (int)bd;
-                        if (aY == row)
-                            aY = row - 1;
-                        float bj = bd - aY;
-                        float bi = 0.5f * (aX - (1));
-                        float bp = aY / (float)row;
-                        float bo = (aY + 1) / (float)row;
-                        float aO = grid[((aY) + (col)*a1) * 2];
-                        float aN = grid[((aY) + (col)*a1) * 2 + 1];
-                        float aK = grid[((aY + 1) + (col)*a1) * 2];
-                        float aJ = grid[((aY + 1) + (col)*a1) * 2 + 1];
-                        float a8 = aT + bp * bl + 3 * bf;
-                        float a6 = aS + bp * bk_ + 3 * be;
-                        float a3 = aT + bo * bl + 3 * bf;
-                        float a2 = aS + bo * bk_ + 3 * be;
-                        if (bj + bi <= 1.0f) {
-                            dst[ba] = aO + (aK - aO) * bj + (a8 - aO) * bi;
-                            dst[ba + 1] = aN + (aJ - aN) * bj + (a6 - aN) * bi;
-                        } else {
-                            dst[ba] = a3 + (a8 - a3) * (1 - bj) + (aK - a3) * (1 - bi);
-                            dst[ba + 1] = a2 + (a6 - a2) * (1 - bj) + (aJ - a2) * (1 - bi);
-                        }
+                    if (v <= 0) {
+                        // 下侧边区：仿射@(u0,-2) / 仿射@(u1,-2) / 真实格点(cx,0) / 真实格点(cx+1,0)
+                        int cx = (int)gx;
+                        if (cx == row)
+                            cx = row - 1;
+                        const float u0 = cx / (float)row;
+                        const float u1 = (cx + 1) / (float)row;
+                        const float ox = fitX + u0 * slopeUx - 2 * slopeVx;
+                        const float oy = fitY + u0 * slopeUy - 2 * slopeVy;
+                        const float ux = fitX + u1 * slopeUx - 2 * slopeVx;
+                        const float uy = fitY + u1 * slopeUy - 2 * slopeVy;
+                        const float vx = GridX(grid, stride, cx, 0);
+                        const float vy = GridY(grid, stride, cx, 0);
+                        const float uvx = GridX(grid, stride, cx + 1, 0);
+                        const float uvy = GridY(grid, stride, cx + 1, 0);
+                        const float wu = gx - cx;
+                        const float wv = 0.5f * (v - (-2));
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
+                    } else if (v >= 1) {
+                        // 上侧边区：真实格点(cx,1) / 真实格点(cx+1,1) / 仿射@(u0,3) / 仿射@(u1,3)
+                        int cx = (int)gx;
+                        if (cx == row)
+                            cx = row - 1;
+                        const float u0 = cx / (float)row;
+                        const float u1 = (cx + 1) / (float)row;
+                        const float ox = GridX(grid, stride, cx, col);
+                        const float oy = GridY(grid, stride, cx, col);
+                        const float ux = GridX(grid, stride, cx + 1, col);
+                        const float uy = GridY(grid, stride, cx + 1, col);
+                        const float vx = fitX + u0 * slopeUx + 3 * slopeVx;
+                        const float vy = fitY + u0 * slopeUy + 3 * slopeVy;
+                        const float uvx = fitX + u1 * slopeUx + 3 * slopeVx;
+                        const float uvy = fitY + u1 * slopeUy + 3 * slopeVy;
+                        const float wu = gx - cx;
+                        const float wv = 0.5f * (v - 1);
+                        SampleSplitQuad(dst, base, ox, oy, ux, uy, vx, vy, uvx, uvy, wu, wv);
                     } else {
-                        // Inner case: should not reach here normally
-                        dst[ba] = aT + a4 * bl + aX * bf;
-                        dst[ba + 1] = aS + a4 * bk_ + aX * be;
+                        // 网格内部却走到此处：仅退化网格（row=0 或 col=0）时可达
+                        dst[base] = fitX + u * slopeUx + v * slopeVx;
+                        dst[base + 1] = fitY + u * slopeUy + v * slopeVy;
                     }
                 }
             } else {
-                // Far outside: generic formula
-                dst[ba] = aT + a4 * bl + aX * bf;
-                dst[ba + 1] = aS + a4 * bk_ + aX * be;
+                // 远离网格：直接取仿射模型值
+                dst[base] = fitX + u * slopeUx + v * slopeVx;
+                dst[base + 1] = fitY + u * slopeUy + v * slopeVy;
             }
         } else {
-            // Within bounds: bilinear interpolation from grid
-            float bn = bd - std::floor(bd);
-            float bm = a7 - std::floor(a7);
-            int aV = 2 * (static_cast<int>(bd) + static_cast<int>(a7) * (row + 1));
-            if (bn + bm < 1.0f) {
-                dst[ba] =
-                    grid[aV] * (1 - bn - bm) + grid[aV + 2] * bn + grid[aV + 2 * (row + 1)] * bm;
-                dst[ba + 1] = grid[aV + 1] * (1 - bn - bm) + grid[aV + 3] * bn +
-                              grid[aV + 2 * (row + 1) + 1] * bm;
+            // 网格内：所在格双三角插值（沿格内 (0,0)→(1,1) 对角分割）
+            const int cx = static_cast<int>(gx);
+            const int cy = static_cast<int>(gy);
+            const float fx = gx - std::floor(gx);
+            const float fy = gy - std::floor(gy);
+            if (fx + fy < 1.0f) {
+                dst[base] = GridX(grid, stride, cx, cy) * (1 - fx - fy) +
+                            GridX(grid, stride, cx + 1, cy) * fx +
+                            GridX(grid, stride, cx, cy + 1) * fy;
+                dst[base + 1] = GridY(grid, stride, cx, cy) * (1 - fx - fy) +
+                                GridY(grid, stride, cx + 1, cy) * fx +
+                                GridY(grid, stride, cx, cy + 1) * fy;
             } else {
-                dst[ba] = grid[aV + 2 * (row + 1) + 2] * (bn - 1 + bm) +
-                          grid[aV + 2 * (row + 1)] * (1 - bn) + grid[aV + 2] * (1 - bm);
-                dst[ba + 1] = grid[aV + 2 * (row + 1) + 3] * (bn - 1 + bm) +
-                              grid[aV + 2 * (row + 1) + 1] * (1 - bn) + grid[aV + 3] * (1 - bm);
+                dst[base] = GridX(grid, stride, cx + 1, cy + 1) * (fx - 1 + fy) +
+                            GridX(grid, stride, cx, cy + 1) * (1 - fx) +
+                            GridX(grid, stride, cx + 1, cy) * (1 - fy);
+                dst[base + 1] = GridY(grid, stride, cx + 1, cy + 1) * (fx - 1 + fy) +
+                                GridY(grid, stride, cx, cy + 1) * (1 - fx) +
+                                GridY(grid, stride, cx + 1, cy) * (1 - fy);
             }
         }
     }
