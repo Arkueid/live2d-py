@@ -72,7 +72,10 @@ public:
 
     Deformer* GetDeformer(int index) const { return mDeformerList[index]; }
     Drawable* GetDrawable(int index) const;
-    Part* GetPart(int index) const { return mPartsList[index]; }
+    Part* GetPart(int index) const {
+        return (index >= 0 && index < static_cast<int>(mPartsList.size())) ? mPartsList[index]
+                                                                           : nullptr;
+    }
     int GetDrawableIndex(const Id* drawableId) const;
     int GetDrawableIndex(const std::string& idStr) const {
         return GetDrawableIndex(mIdPool.Resolve(idStr));
@@ -183,12 +186,15 @@ private:
     // Update() 的 order 桶数组以此为界）
     int mMinDrawOrder = 0;
     int mMaxDrawOrder = 0;
-
+private:
     // Resolve() 解析缓冲（有效窗口：resolve 完成 → 下次 update）
     std::vector<float> mResolvedOpacity;
     std::vector<bool> mResolvedVisible;
     std::vector<bool> mResolvedAvailable;
     std::vector<bool> mResolvedParamOutside;
+    // drawable 最终颜色（color override 有效时替换所属 part 颜色）
+    std::vector<std::array<float, 4>> mResolvedMultiplyColors;
+    std::vector<std::array<float, 4>> mResolvedScreenColors;
     std::vector<int> mRenderSequence;
     // Init() 阶段解析的静态 mask 索引（clipID -> drawable index）
     std::vector<std::vector<int>> mDrawableMasks;

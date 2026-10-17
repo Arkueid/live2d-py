@@ -189,6 +189,8 @@ void Moc::Resolve() {
         mResolvedVisible.resize(nDraw);
         mResolvedAvailable.resize(nDraw);
         mResolvedParamOutside.resize(nDraw);
+        mResolvedMultiplyColors.resize(nDraw);
+        mResolvedScreenColors.resize(nDraw);
     }
 
     for (int i = 0; i < nDraw; i++) {
@@ -196,9 +198,16 @@ void Moc::Resolve() {
         mResolvedVisible[i] = !dd->mParamOutside && dd->mAvailable;
         mResolvedAvailable[i] = dd->mAvailable;
         mResolvedParamOutside[i] = dd->mParamOutside;
+        // drawable 级颜色覆盖优先（对齐 V3 per-drawable override 语义），
+        // 未覆盖时回落所属 part 颜色
+        auto* part = mPartsList[dd->mPartsIndex];
+        mResolvedMultiplyColors[i] = dd->HasColorOverride() ? dd->mOverrideMultiplyColor
+                                                            : part->mMultiplyColor;
+        mResolvedScreenColors[i] = dd->HasColorOverride() ? dd->mOverrideScreenColor
+                                                          : part->mScreenColor;
         // 与旧路径 Mesh::draw 相同的三重合成与运算顺序（保证逐位一致）
         mResolvedOpacity[i] = dd->mInterpolatedOpacity *
-                              mPartsList[dd->mPartsIndex]->GetPartsOpacity() * dd->mBaseOpacity;
+                              part->GetPartsOpacity() * dd->mBaseOpacity;
     }
 
     // 摊平渲染序列：复刻 renderer 旧遍历逻辑（order 链 + available 过滤）
@@ -249,10 +258,10 @@ bool Moc::GetDrawableCulling(int index) const {
     return mDrawableList[index]->GetCulling();
 }
 const std::array<float, 4>& Moc::GetDrawableMultiplyColor(int index) const {
-    return mPartsList[mDrawableList[index]->mPartsIndex]->mMultiplyColor;
+    return mResolvedMultiplyColors[index];
 }
 const std::array<float, 4>& Moc::GetDrawableScreenColor(int index) const {
-    return mPartsList[mDrawableList[index]->mPartsIndex]->mScreenColor;
+    return mResolvedScreenColors[index];
 }
 
 int Moc::GetParamIndex(const Id* paramId) {
@@ -369,10 +378,21 @@ float Moc::GetPartsOpacity(int i) const {
     return mPartsList[i]->GetPartsOpacity();
 }
 void Moc::SetPartMultiplyColor(int i, float r, float g, float b, float a) {
+    if (i < 0 || i >= static_cast<int>(mPartsList.size()))
+        return;
     mPartsList[i]->SetPartMultiplyColor(r, g, b, a);
+    // 后写覆盖先写：清除该 part 下 drawable 的颜色覆盖，回落新 part 颜色
+    for (auto* dd : mDrawableList)
+        if (dd->mPartsIndex == i)
+            dd->ClearColorOverride();
 }
 void Moc::SetPartScreenColor(int i, float r, float g, float b, float a) {
+    if (i < 0 || i >= static_cast<int>(mPartsList.size()))
+        return;
     mPartsList[i]->SetPartScreenColor(r, g, b, a);
+    for (auto* dd : mDrawableList)
+        if (dd->mPartsIndex == i)
+            dd->ClearColorOverride();
 }
 
 }   // namespace V2

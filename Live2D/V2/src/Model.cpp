@@ -420,13 +420,19 @@ void Model::Draw() {
     mRenderer->PreDraw(mMoc.get());
     mRenderer->Draw(mMoc.get());
 }
-bool Model::IsAreaHit(const char* area, float x, float y) {
-    // Convert screen pixels → scene coords (match Python screenToScene)
+void Model::screenToModel(float* x, float* y) {
+    // 像素 → ndc → 完整 mvp 逆变换（含旋转/缩放/平移）
     float w = (float)mMatrixManager.GetWidth();
     float h = (float)mMatrixManager.GetHeight();
-    float sx = (x - w * 0.5f) * 2.0f / h;
-    float sy = (y - h * 0.5f) * -2.0f / h;
-    return HitTestSimple(area, sx, sy);
+    *x = *x / w * 2.0f - 1.0f;
+    *y = 1.0f - *y / h * 2.0f;
+    Common::MatrixManager::InvertTransform(x, y, mMatrixManager.GetMvp());
+}
+
+bool Model::IsAreaHit(const char* area, float x, float y) {
+    float mx = x, my = y;
+    screenToModel(&mx, &my);
+    return HitTestSimple(area, mx, my);
 }
 void Model::SetExpression(const char* name, float fadeoutMs) {
     auto it = mExpressions.find(name);
@@ -551,6 +557,8 @@ void Model::SetPartMultiplyColor(int index, float r, float g, float b, float a) 
 }
 void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a) const {
     auto* part = mMoc->GetPart(index);
+    if (!part)
+        return;
     r = part->mScreenColor[0];
     g = part->mScreenColor[1];
     b = part->mScreenColor[2];
@@ -558,6 +566,8 @@ void Model::GetPartScreenColor(int index, float& r, float& g, float& b, float& a
 }
 void Model::GetPartMultiplyColor(int index, float& r, float& g, float& b, float& a) const {
     auto* part = mMoc->GetPart(index);
+    if (!part)
+        return;
     r = part->mMultiplyColor[0];
     g = part->mMultiplyColor[1];
     b = part->mMultiplyColor[2];
@@ -582,18 +592,9 @@ static bool isInTriangle(float px, float py, float ax, float ay, float bx, float
 }
 
 std::vector<std::string> Model::HitIds(float x, float y, bool topOnly, bool wantDrawableId) {
-    // Step 1: screen pixels → scene coords (match Python
-    // MatrixManager.screenToScene)
-    float w = (float)mMatrixManager.GetWidth();
-    float h = (float)mMatrixManager.GetHeight();
-    float sx = (x - w * 0.5f) * 2.0f / h;
-    float sy = (y - h * 0.5f) * -2.0f / h;
-
-    // Step 2: scene → canvas via MVP inverse (match Python
-    // MatrixManager.invertTransform)
-    const float* mvp = mMatrixManager.GetMvp();
-    float mx = (sx - mvp[12]) / mvp[0];
-    float my = (sy - mvp[13]) / mvp[5];
+    // 像素 → NDC → 完整 mvp 逆变换 → canvas 顶点坐标（含旋转/缩放/平移）
+    float mx = x, my = y;
+    screenToModel(&mx, &my);
 
     auto& drawList = mMoc->mDrawableList;
     auto& nextList = mMoc->mNextListDrawIndex;
@@ -1067,18 +1068,18 @@ const unsigned short* Model::GetDrawableIndices(int index) {
     return mDrawableIndexCache.data();
 }
 void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a) {
-    // v2 没有 drawable 级颜色，作用于该 drawable 所属的 part
+    // drawable 级颜色覆盖，仅影响本 drawable（语义对齐 V3 per-drawable override）
     auto* dd = mMoc->GetDrawable(index);
     if (!dd)
         return;
-    mMoc->SetPartMultiplyColor(dd->mPartsIndex, r, g, b, a);
+    dd->SetOverrideMultiplyColor(r, g, b, a);
 }
 void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a) {
-    // v2 没有 drawable 级颜色，作用于该 drawable 所属的 part
+    // drawable 级颜色覆盖，仅影响本 drawable（语义对齐 V3 per-drawable override）
     auto* dd = mMoc->GetDrawable(index);
     if (!dd)
         return;
-    mMoc->SetPartScreenColor(dd->mPartsIndex, r, g, b, a);
+    dd->SetOverrideScreenColor(r, g, b, a);
 }
 
 // ---- 表情 ----

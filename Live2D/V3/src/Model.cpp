@@ -1169,13 +1169,11 @@ const unsigned short* Model::GetDrawableIndices(int index) {
 }
 
 void Model::SetDrawableMultiColor(int index, float r, float g, float b, float a) {
-    const int count = mProxy->GetDrawableVertexCount(index);
     auto& overrideColors = mProxy->GetOverrideMultiplyAndScreenColor();
     overrideColors.SetDrawableMultiplyColor(index, r, g, b, a);
 }
 
 void Model::SetDrawableScreenColor(int index, float r, float g, float b, float a) {
-    const int count = mProxy->GetDrawableVertexCount(index);
     auto& overrideColors = mProxy->GetOverrideMultiplyAndScreenColor();
     overrideColors.SetDrawableScreenColor(index, r, g, b, a);
 }

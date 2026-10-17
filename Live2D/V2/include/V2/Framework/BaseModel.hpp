@@ -29,6 +29,9 @@ public:
     AMotion* LoadExpression(const std::string& name, const std::vector<uint8_t>& data);
     Pose* LoadPose(const std::vector<uint8_t>& data);
     void LoadPhysics(const std::vector<uint8_t>& data);
+    /// AABB 命中测试（drawID 匹配 drawable 的顶点包围盒）；x/y 为 canvas
+    /// 顶点坐标域（与 mTransformedPoints 同域），像素坐标请先经
+    /// Model::screenToModel 反算
     bool HitTestSimple(const std::string& drawID, float x, float y);
     ModelMatrix& GetModelMatrix() { return mModelMatrix; }
     MotionManager* GetMainMotionManager() const { return mMainMotionMgr.get(); }

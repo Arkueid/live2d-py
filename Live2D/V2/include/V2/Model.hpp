@@ -143,6 +143,9 @@ private:
         std::string file;
         std::string sound;
     };
+    // 像素 → NDC → 完整 mvp 逆变换 → canvas 顶点坐标（含旋转/缩放/平移，
+    // 对齐 V3 Model::screenToModel）
+    void screenToModel(float* x, float* y);
     // wantDrawableId=false 返回 part id，true 返回 drawData id
     std::vector<std::string> HitIds(float x, float y, bool topOnly, bool wantDrawableId);
 

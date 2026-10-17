@@ -36,10 +36,8 @@ void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
     mMoc.reset(static_cast<Moc*>(br.ReadObjectRaw()));
     mMoc->Init();
     mModelMatrix = ModelMatrix((float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight());
-    // 默认按画布高度适配（对齐 Common::MatrixManager 横屏规则），
-    // 保证高画布的角色模型默认完整显示；
-    // 渲染适配矩阵由 Common::MatrixManager 每帧按窗口重算，此处仅供 hitTestSimple
-    // 反算
+    // 画布尺寸记录（GetModelMatrix 供外部读取）；渲染适配与命中测试反算均由
+    // Common::MatrixManager 的 mvp 负责，此处不再承担变换职责
     mModelMatrix.SetHeight(2);
     mModelMatrix.SetCenterPosition(0, 0);
 }
@@ -89,9 +87,8 @@ bool BaseModel::HitTestSimple(const std::string& drawID, float x, float y) {
             bottom = vy;
     }
 
-    float tx = mModelMatrix.InvertTransformX(x);
-    float ty = mModelMatrix.InvertTransformY(y);
-    return left <= tx && tx <= right && top <= ty && ty <= bottom;
+    // x/y 为 canvas 顶点坐标域（调用方经 mvp 逆变换得到），直接 AABB 判定
+    return left <= x && x <= right && top <= y && y <= bottom;
 }
 
 }   // namespace V2
