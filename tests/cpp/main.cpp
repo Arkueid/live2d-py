@@ -7,7 +7,7 @@
  *   cmake --build build --config Release --target Live2DTest -j 24
  *
  * Run (from repo root):
- *   .\build\tests\cpp\Live2DTest.exe [--smoke] [model.json path]
+ *   .\build\tests\cpp\Live2DTest.exe [--smoke] [all | model-name | model.json path]
  *
  * Default model: Resources/v3/llny/llny.model3.json
  */
@@ -21,7 +21,7 @@
 #include <thread>
 #include <vector>
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
 #endif
 #include <Init.hpp>
 
@@ -61,9 +61,14 @@ static const std::pair<const char*, const char*> kModelTable[] = {
     {"haru3",   "Resources/v3/Haru/Haru.model3.json"},
     {"llny",    "Resources/v3/llny/llny.model3.json"},
     {"mao",     "Resources/v3/Mao/Mao.model3.json"},
-    {"nn",      "Resources/v3/nn/nn.model3.json"},
+    {"nn",      "Resources/v3/绫地宁宁/nn.model3.json"},
     {"acbase",  "Resources/v3/ac_base_rem01/ac_base_rem01.model3.json"},
 };
+
+// C++20：u8string() 返回 std::u8string（char8_t），按字节转回 UTF-8 窄字符串
+static std::string u8ToString(const std::u8string& u8) {
+    return std::string(reinterpret_cast<const char*>(u8.data()), u8.size());
+}
 
 // 自 cwd 向上查找 relPath 存在的目录，返回绝对路径；找不到返回空串
 // （relPath 为 UTF-8 字面量，必须经 u8path 转换，否则中文路径按 ACP 误解码）
@@ -74,7 +79,7 @@ static std::string findUpward(const char* relPath) {
     while (true) {
         fs::path candidate = cwd / rel;
         if (fs::exists(candidate))
-            return candidate.u8string();   // 保持 UTF-8（.string() 在 Windows 会转 ACP 弄坏中文）
+            return u8ToString(candidate.u8string());   // 保持 UTF-8（.string() 在 Windows 会转 ACP 弄坏中文）
         if (!cwd.has_parent_path() || cwd == cwd.parent_path())
             return "";
         cwd = cwd.parent_path();
@@ -84,7 +89,7 @@ static std::string findUpward(const char* relPath) {
 // 参数 → 绝对模型路径：含 ".json" 视为路径，否则查短名表；失败打印可用短名并返回空串
 static std::string resolveModelPath(const std::string& arg) {
     if (arg.find(".json") != std::string::npos)
-        return std::filesystem::absolute(std::filesystem::u8path(arg)).u8string();
+        return u8ToString(std::filesystem::absolute(std::filesystem::u8path(arg)).u8string());
     for (const auto& entry : kModelTable) {
         if (arg == entry.first)
             return findUpward(entry.second);
@@ -142,6 +147,8 @@ int main(int argc, char* argv[]) {
             argv = u8argv.data();
         }
     }
+
+    SetConsoleOutputCP(65001);
 #endif
     // --- Resolve model path --------------------------------------------------
     bool smoke = false;
@@ -151,7 +158,11 @@ int main(int argc, char* argv[]) {
         pathArg = 2;
     }
     std::string modelPath;
-    if (argc > pathArg) {
+    // --smoke all：全量回归模式，路径在 smoke 分支内逐个解析
+    const bool smokeAll = smoke && argc > pathArg && std::string(argv[pathArg]) == "all";
+    if (smokeAll) {
+        // 无需解析模型路径
+    } else if (argc > pathArg) {
         modelPath = resolveModelPath(argv[pathArg]);
         if (modelPath.empty())
             return 1;
@@ -159,15 +170,21 @@ int main(int argc, char* argv[]) {
         modelPath = findUpward("Resources/v3/llny/llny.model3.json");
         if (modelPath.empty()) {
             fprintf(stderr, "ERROR: Cannot find llny.model3.json\n");
-            fprintf(stderr, "Usage: %s [--smoke] [model-name | path/to/model.json]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [--smoke] [all | model-name | path/to/model.json]\n", argv[0]);
             return 1;
         }
     }
     Live2D::Init("D:/forDesktop/live2d-py/package/live2d/");
-    printf("Model path: %s\n", modelPath.c_str());
+    if (smokeAll)
+        printf("Smoke all: %d model entries\n",
+               (int)(sizeof(kModelTable) / sizeof(kModelTable[0])));
+    else
+        printf("Model path: %s\n", modelPath.c_str());
 
     // --- Headless smoke test: exercise unified IModel APIs without GL --------
     if (smoke) {
+        // 单模型 smoke 打包为 lambda：--smoke all 时对 kModelTable 逐个执行
+        auto runSmoke = [&](const std::string& smokePath) -> int {
         using namespace Live2D;
         int fails = 0;
 #define CHECK(cond)                                                           \
@@ -178,12 +195,12 @@ int main(int argc, char* argv[]) {
         }                                                                     \
     } while (0)
 
-        std::unique_ptr<Live2D::IModel> model(Live2D::CreateModel(modelPath.c_str()));
+        std::unique_ptr<Live2D::IModel> model(Live2D::CreateModel(smokePath.c_str()));
         if (!model) {
-            fprintf(stderr, "[smoke] FAIL: cannot detect model version: %s\n", modelPath.c_str());
+            fprintf(stderr, "[smoke] FAIL: cannot detect model version: %s\n", smokePath.c_str());
             return 1;
         }
-        model->LoadModelJson(modelPath.c_str(), false);
+        model->LoadModelJson(smokePath.c_str(), false);
         printf("[smoke] loaded (%s): params=%d parts=%d\n",
                model->IsV2() ? "v2" : "v3",
                model->GetParameterCount(),
@@ -298,7 +315,9 @@ int main(int argc, char* argv[]) {
             model->AddExpression(exprs[0].first.c_str());
             model->RemoveExpression(exprs[0].first.c_str());
             model->ResetExpressions();
-            model->LoadExtraExpression("smoke_extra", exprs[0].second.c_str());
+            // model3.json 里的表情路径是相对路径，LoadExtraExpression 不拼 homeDir
+            std::string extraExprFull = std::string(model->GetModelHomeDir()) + exprs[0].second;
+            model->LoadExtraExpression("smoke_extra", extraExprFull.c_str());
             CHECK(model->GetExpressionCount() > 0);
         }
 
@@ -311,6 +330,29 @@ int main(int argc, char* argv[]) {
         }
         printf("[smoke] %d checks FAILED\n", fails);
         return 1;
+        };
+
+        if (smokeAll) {
+            int passed = 0, failed = 0;
+            for (const auto& entry : kModelTable) {
+                printf("\n===== [smoke] %s =====\n", entry.first);
+                std::string p = findUpward(entry.second);
+                if (p.empty()) {
+                    fprintf(stderr, "[smoke] %s: SKIP - resource not found: %s\n", entry.first,
+                            entry.second);
+                    failed++;
+                    continue;
+                }
+                if (runSmoke(p) == 0)
+                    passed++;
+                else
+                    failed++;
+            }
+            printf("\n[smoke] summary: %d passed, %d failed / %d models\n", passed, failed,
+                   passed + failed);
+            return failed == 0 ? 0 : 1;
+        }
+        return runSmoke(modelPath);
     }
 
     // --- GLFW window ----------------------------------------------------------

@@ -10,7 +10,7 @@ add_library(${LIVE2D_COMMON} STATIC
 )
 
 target_include_directories(${LIVE2D_COMMON} PUBLIC ${LIVE2D_ROOT}/Common)
-target_compile_features(${LIVE2D_COMMON} PUBLIC cxx_std_17)
+target_compile_features(${LIVE2D_COMMON} PUBLIC cxx_std_20)
 
 add_library(Live2D::Common ALIAS ${LIVE2D_COMMON})
 

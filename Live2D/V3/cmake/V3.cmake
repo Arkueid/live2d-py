@@ -22,19 +22,12 @@ endif()
 
 target_compile_definitions(${V3_TARGET} PRIVATE MODULE_LOG_TAG="v3")
 
-set_property(TARGET ${V3_TARGET} PROPERTY CXX_STANDARD 17)
-set_property(TARGET ${V3_TARGET} PROPERTY CXX_STANDARD_REQUIRED ON)
-
 target_include_directories(${V3_TARGET} 
   PUBLIC ${LIVE2D_ROOT}/V3/include/V3
   PUBLIC ${LIVE2D_ROOT}/V3/include
 )
 
 if(APPLE)
-  set(CMAKE_CXX_STANDARD 11)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
   message(${CMAKE_OSX_ARCHITECTURES})
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)

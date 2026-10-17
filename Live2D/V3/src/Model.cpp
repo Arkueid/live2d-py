@@ -101,7 +101,10 @@ Model::~Model() {
 
 void Model::LoadModelJson(const char* filePath, bool createRenderer) {
     std::filesystem::path p = std::filesystem::u8path(filePath);
-    mModelHomeDir = p.parent_path().generic_u8string().c_str();
+    // C++20：generic_u8string() 返回 std::u8string（char8_t），按字节转回 UTF-8 窄字符串
+    const std::u8string u8Dir = p.parent_path().generic_u8string();
+    const std::string dir(reinterpret_cast<const char*>(u8Dir.data()), u8Dir.size());
+    mModelHomeDir = dir.c_str();
     mModelHomeDir += "/";
 
     LOGD("load modelSetting: %s", filePath);

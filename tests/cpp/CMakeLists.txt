@@ -24,8 +24,6 @@ target_link_libraries(Live2DTest PRIVATE
   glfw
 )
 
-target_compile_features(Live2DTest PRIVATE cxx_std_17)
-
 if(MSVC)
   target_compile_options(Live2DTest PRIVATE "/utf-8" "/wd4018" "/wd4244" "/wd4996")
 endif()

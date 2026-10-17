@@ -31,7 +31,7 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(${V2_TARGET} PRIVATE stdc++fs)
 endif()
-target_compile_features(${V2_TARGET} PUBLIC cxx_std_17)
+target_compile_features(${V2_TARGET} PUBLIC cxx_std_20)
 
 if(MSVC)
     target_compile_options(${V2_TARGET} PRIVATE "/utf-8" "/wd4018" "/wd4244" "/wd4996")
