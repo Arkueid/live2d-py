@@ -14,7 +14,7 @@
 #include "VkUtil.hpp"
 #include "VulkanManager.hpp"
 #endif
-#include "Live2DMotion.hpp"
+#include "Motion.hpp"
 #include "Log.hpp"
 #include "Moc.hpp"
 #include "nlohmann/json.hpp"
@@ -164,7 +164,7 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
                 auto motPath = JoinPath(mModelHomeDir, motFile);
                 auto motData = readFile(motPath);
                 if (!motData.empty()) {
-                    auto* motion = Live2DMotion::Load(motData, mIdPool);
+                    auto* motion = Motion::Load(motData, mIdPool);
                     LOGD("Load motion: %s", motFile.c_str());
                     motVec.emplace_back(motion);
 
@@ -959,7 +959,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
         LOGE("Failed to read motion file: %s", motionJsonPath);
         return -1;
     }
-    auto* motion = Live2DMotion::Load(motData, mIdPool);
+    auto* motion = Motion::Load(motData, mIdPool);
     if (!motion) {
         LOGE("Failed to load motion: %s", motionJsonPath);
         return -1;

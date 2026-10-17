@@ -6,7 +6,7 @@
 #include "EyeBlink.hpp"
 #include "GLRenderer.hpp"
 #include "Id.hpp"
-#include "Live2DMotion.hpp"
+#include "Motion.hpp"
 #include "Moc.hpp"
 #include "MotionManager.hpp"
 #include "Physics.hpp"
@@ -44,7 +44,7 @@ void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
     mModelMatrix.SetCenterPosition(0, 0);
 }
 AMotion* BaseModel::LoadMotion(const std::string& name, const std::vector<uint8_t>& data) {
-    auto* m = Live2DMotion::Load(data, mIdPool);
+    auto* m = Motion::Load(data, mIdPool);
     mMotions[name].emplace_back(m);
     return m;
 }

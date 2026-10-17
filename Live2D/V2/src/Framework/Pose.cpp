@@ -14,7 +14,6 @@ using json = nlohmann::json;
 Pose::Pose() = default;
 
 void PartTarget::InitIndex(Moc* moc) {
-    paramIndex = moc->GetParamIndex("VISIBLE:" + id->Str());
     partIndex = moc->GetPartIndex(id);
     for (auto& l : link)
         l.InitIndex(moc);
@@ -28,10 +27,7 @@ static void normalizeGroup(Moc* moc, PosePartGroup& group, float deltaSec) {
     float maxBack = 0.15f;
 
     for (int i = 0; i < (int)group.parts.size(); i++) {
-        int pi = group.parts[i].paramIndex;
-        if (pi < 0)
-            continue;
-        if (moc->GetParamValue(pi) != 0) {
+        if (moc->GetVisibleFlag(group.parts[i].id) != 0.0f) {
             if (visibleIdx >= 0)
                 break;
             visibleIdx = i;
@@ -94,9 +90,8 @@ void Pose::InitParam(Moc* moc) {
             p.InitIndex(moc);
             if (p.partIndex < 0)
                 continue;
-            bool v = (moc->GetParamValue(p.paramIndex) != 0);
+            bool v = (moc->GetVisibleFlag(p.id) != 0.0f);
             moc->SetPartsOpacity(p.partIndex, v ? 1.0f : 0.0f);
-            moc->SetParamValue(p.paramIndex, v ? 1.0f : 0.0f);
         }
     }
 }

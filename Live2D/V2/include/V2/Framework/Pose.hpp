@@ -11,7 +11,6 @@ class Moc;
 
 struct PartTarget {
     int partIndex = -1;
-    int paramIndex = -1;
     Id* id;
     std::vector<PartTarget> link;
     void InitIndex(Moc* moc);

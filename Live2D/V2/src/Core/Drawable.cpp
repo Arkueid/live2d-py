@@ -11,19 +11,7 @@
 namespace Live2D {
 namespace V2 {
 
-int Drawable::sTotalMinOrder = Drawable::DEFAULT_ORDER;
-int Drawable::sTotalMaxOrder = Drawable::DEFAULT_ORDER;
-
 Drawable::~Drawable() = default;
-
-void Drawable::SetDrawOrders(const std::vector<int>& orders) {
-    for (int order : orders) {
-        if (order < sTotalMinOrder)
-            sTotalMinOrder = order;
-        else if (order > sTotalMaxOrder)
-            sTotalMaxOrder = order;
-    }
-}
 
 void Drawable::Read(BinaryReader& br) {
     mId = br.ReadObject<const Id*>();
@@ -31,7 +19,6 @@ void Drawable::Read(BinaryReader& br) {
     mPivotMgr.reset(br.ReadObject<PivotManager*>());
     mAverageDrawOrder = br.ReadInt32();
     mPivotDrawOrders = br.ReadInt32Array();
-    SetDrawOrders(mPivotDrawOrders);
     mPivotOpacities = br.ReadFloat32Array();
 
     if (br.GetFormatVersion() >= LIVE2D_FORMAT_VERSION_AVAILABLE) {

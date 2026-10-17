@@ -23,8 +23,6 @@ public:
     static constexpr int COLOR_COMPOSITION_NORMAL = 0;
     static constexpr int COLOR_COMPOSITION_SCREEN = 1;
     static constexpr int COLOR_COMPOSITION_MULTIPLY = 2;
-    static int sTotalMinOrder;
-    static int sTotalMaxOrder;
 
     Drawable() = default;
     ~Drawable() override;
@@ -46,11 +44,9 @@ public:
     float GetOpacity() const { return mInterpolatedOpacity; }
     int GetDrawOrder() const { return mInterpolatedDrawOrder; }
 
-    static void SetDrawOrders(const std::vector<int>& orders);
-    static int GetTotalMinOrder() { return sTotalMinOrder; }
-    static int GetTotalMaxOrder() { return sTotalMaxOrder; }
-
     const std::vector<Id*>& GetClipIDList() const { return mClipIDList; }
+    /// moc 键位 draw order 表（Read 阶段静态数据，order 插值输出落在其 [min, max] 内）
+    const std::vector<int>& GetPivotDrawOrders() const { return mPivotDrawOrders; }
 
     void SetTextureNo(int texNo) { mTextureNo = texNo; }
     int GetTextureNo() const { return mTextureNo; }

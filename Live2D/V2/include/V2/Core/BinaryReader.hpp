@@ -141,6 +141,7 @@ inline T BinaryReader::ReadObjectVector(int type) {
     int actualType = (type < 0) ? ReadType() : type;
 
     if (actualType == 0) {
+        LOGD("ReadObjectVector: empty vector");
         mObjects.push_back(nullptr);
         return T{};
     }

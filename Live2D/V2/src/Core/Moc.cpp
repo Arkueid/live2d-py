@@ -38,17 +38,19 @@ void Moc::Read(BinaryReader& br) {
     } else {
         if (paramTableType != 137) {
             LOGE("Unexpected param table class id: %d", paramTableType);
+            std::abort();
         }
         auto rawParams = br.ReadObject<std::vector<Parameter*>>();
-        mParameterOwnerList.reserve(rawParams.size());
+        mParameters.reserve(rawParams.size());
         for (auto* p : rawParams)
-            mParameterOwnerList.emplace_back(p);
+            // assert that params in mParameters cannot be nullptr
+            mParameters.emplace_back(p);
         br.AlignObjectTable(nullptr);
     }
     auto rawParts = br.ReadObject<std::vector<Part*>>();
-    mPartOwnerList.reserve(rawParts.size());
+    mParts.reserve(rawParts.size());
     for (auto* p : rawParts)
-        mPartOwnerList.emplace_back(p);
+        mParts.emplace_back(p);
     mCanvasWidth = br.ReadInt32();
     mCanvasHeight = br.ReadInt32();
 }
@@ -60,7 +62,7 @@ void Moc::Init() {
 
     std::vector<Deformer*> allDefs;
 
-    for (auto& part : mPartOwnerList) {
+    for (auto& part : mParts) {
         mPartsList.push_back(part.get());
         part->InitRuntimeState();
 
@@ -98,10 +100,20 @@ void Moc::Init() {
             break;
     }
 
-    for (auto& p : mParameterOwnerList) {
-        if (!p)
-            continue;
-        ExtendAndAddParam(p->GetId(), p->GetDefaultValue(), p->GetMaxValue(), p->GetMinValue());
+    // 参数表一次性构建：预分配后直接填充（加载后不可变，无运行期扩展）
+    const size_t nParam = mParameters.size();
+    mParamIdList.resize(nParam);
+    mParamValues.resize(nParam);
+    mParamMinValues.resize(nParam);
+    mParamMaxValues.resize(nParam);
+    mParamDefaultValues.resize(nParam);
+    for (size_t i = 0; i < mParameters.size(); i++) {
+        auto* p = mParameters[i].get();
+        mParamIdList[i] = p->GetId();
+        mParamValues[i] = p->GetDefaultValue();
+        mParamMinValues[i] = p->GetMinValue();
+        mParamMaxValues[i] = p->GetMaxValue();
+        mParamDefaultValues[i] = p->GetDefaultValue();
     }
 
     // 静态 mask 索引解析：clipID 列表 -> mask drawable 索引（moc 数据，init 后不变）
@@ -114,13 +126,25 @@ void Moc::Init() {
                 mDrawableMasks[i].push_back(maskIdx);
         }
     }
+
+    // 全部 drawable 的 pivot draw order 键位值域（等价旧 Drawable 静态累积，
+    // 收敛为 per-model 实例状态，消除跨模型残留）
+    mMinDrawOrder = mMaxDrawOrder = Drawable::DEFAULT_ORDER;
+    for (auto* d : mDrawableList) {
+        for (int order : d->GetPivotDrawOrders()) {
+            if (order < mMinDrawOrder)
+                mMinDrawOrder = order;
+            if (order > mMaxDrawOrder)
+                mMaxDrawOrder = order;
+        }
+    }
 }
 
 void Moc::Update() {
     int nDef = static_cast<int>(mDeformerList.size());
     int nDraw = static_cast<int>(mDrawableList.size());
-    int minOrder = Drawable::GetTotalMinOrder();
-    int maxOrder = Drawable::GetTotalMaxOrder();
+    int minOrder = mMinDrawOrder;
+    int maxOrder = mMaxDrawOrder;
     int range = maxOrder - minOrder + 1;
 
     if (static_cast<int>(mOrderListFirstDrawIndex.size()) < range) {
@@ -240,9 +264,10 @@ int Moc::GetParamIndex(const Id* paramId) {
             mParamIndexCache.emplace(paramId, static_cast<int>(i));
             return static_cast<int>(i);
         }
-    int idx = ExtendAndAddParam(paramId, 0, PARAM_FLOAT_MAX, PARAM_FLOAT_MIN);
-    mParamIndexCache.emplace(paramId, idx);
-    return idx;
+    // 参数表装载后不可变：未知 id 返回 -1（写端跳过、读端取默认值），
+    // 不再物化幻影参数。-1 结果同样进缓存（表不会再增长，缓存不会失效）。
+    mParamIndexCache.emplace(paramId, -1);
+    return -1;
 }
 
 int Moc::GetDeformerIndex(const Id* id) {
@@ -252,16 +277,9 @@ int Moc::GetDeformerIndex(const Id* id) {
     return -1;
 }
 
-int Moc::ExtendAndAddParam(const Id* paramId, float dv, float maxV, float minV) {
-    mParamIdList.push_back(paramId);
-    mParamValues.push_back(dv);
-    mParamMinValues.push_back(minV);
-    mParamMaxValues.push_back(maxV);
-    mParamDefaultValues.push_back(dv);
-    return static_cast<int>(mParamIdList.size()) - 1;
-}
-
 void Moc::SetParamValue(int index, float value) {
+    if (index < 0)
+        return;
     if (value < mParamMinValues[index])
         value = mParamMinValues[index];
     if (value > mParamMaxValues[index])
@@ -270,6 +288,8 @@ void Moc::SetParamValue(int index, float value) {
 }
 
 void Moc::SetParamValue(int index, float value, float weight) {
+    if (index < 0)
+        return;
     if (weight <= 0)
         return;
     if (weight >= 1) {
@@ -282,6 +302,16 @@ void Moc::SetParamValue(int index, float value, float weight) {
 
 float Moc::GetParamValue(int index) const {
     return (index >= 0 && index < (int)mParamValues.size()) ? mParamValues[index] : 0;
+}
+
+// VISIBLE side-channel：Motion 写、Pose 读，缺失视为 0（等价旧幻影参数初值）
+void Moc::SetVisibleFlag(const Id* partId, float v) {
+    mVisibleFlags[partId] = v;
+}
+
+float Moc::GetVisibleFlag(const Id* partId) const {
+    auto it = mVisibleFlags.find(partId);
+    return it != mVisibleFlags.end() ? it->second : 0.0f;
 }
 
 float Moc::GetParamMax(int index) const {

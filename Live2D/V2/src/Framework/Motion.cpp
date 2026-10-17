@@ -1,4 +1,4 @@
-#include "Live2DMotion.hpp"
+#include "Motion.hpp"
 #include "Id.hpp"
 #include "Moc.hpp"
 #include <cmath>
@@ -7,11 +7,11 @@
 namespace Live2D {
 namespace V2 {
 
-Live2DMotion::Live2DMotion(Id::IdPool& idPool) : mIdPool(idPool) {
+Motion::Motion(Id::IdPool& idPool) : mIdPool(idPool) {
     mVisibleId = mIdPool.Resolve("VISIBLE");
 };
 
-void Live2DMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
+void Motion::UpdateParam(Moc* moc, float timeSec, float weight) {
     if (mDurationMs <= 0 || mMotions.empty())
         return;
     float timeMs = timeSec * 1000.0f;
@@ -46,14 +46,9 @@ void Live2DMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
         }
 
         if (m.mParamId == mVisibleId) {
-            // Match Python: set the "VISIBLE:xxx" parameter so the pose system
-            // (Pose::updateParam) can read it and apply smooth fade transitions.
-            if (!m.mVisibleSecondaryId) {
-                m.mVisibleSecondaryId = mIdPool.Resolve("VISIBLE:" + m.mSecondaryId->Str());
-            }
-            int pi = moc->GetParamIndex(m.mVisibleSecondaryId);
-            if (pi >= 0)
-                moc->SetParamValue(pi, val);
+            // VISIBLE curves drive the pose system via Moc's visible-flag side
+            // channel (keyed by the target part id) — no phantom parameters.
+            moc->SetVisibleFlag(m.mSecondaryId, val);
         } else {
             int pi = moc->GetParamIndex(m.mParamId);
             if (pi >= 0) {
@@ -63,15 +58,15 @@ void Live2DMotion::UpdateParam(Moc* moc, float timeSec, float weight) {
     }
 }
 
-float Live2DMotion::GetDurationSec() const {
+float Motion::GetDurationSec() const {
     return mDurationMs / 1000.0f;
 }
-bool Live2DMotion::IsLoop() const {
+bool Motion::IsLoop() const {
     return mLoop;
 }
 
-Live2DMotion* Live2DMotion::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
-    auto* m = new Live2DMotion(idPool);
+Motion* Motion::Load(const std::vector<uint8_t>& data, Id::IdPool& idPool) {
+    auto* m = new Motion(idPool);
     std::string content((const char*)data.data(), data.size());
     std::istringstream ss(content);
     std::string line;
@@ -102,7 +97,7 @@ Live2DMotion* Live2DMotion::Load(const std::vector<uint8_t>& data, Id::IdPool& i
         } else if (key == "LOOPFADEIN") {
             m->mLoopFadeIn = (val == "1" || val == "true");
         } else {
-            Motion motion;
+            MotionData motion;
             if (key.find("VISIBLE:") == 0) {
                 motion.mParamId = idPool.Resolve("VISIBLE");
                 motion.mSecondaryId = idPool.Resolve(key.substr(8));

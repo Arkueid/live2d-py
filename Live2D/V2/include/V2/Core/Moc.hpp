@@ -38,8 +38,6 @@ private:
 public:
     static constexpr int NOT_USED_ORDER = -1;
     static constexpr int NO_NEXT = -1;
-    static constexpr float PARAM_FLOAT_MIN = -1000000.0f;
-    static constexpr float PARAM_FLOAT_MAX = 1000000.0f;
 
     explicit Moc(Id::IdPool& idPool);
     ~Moc() override;
@@ -54,7 +52,6 @@ public:
         return GetParamIndex(mIdPool.Resolve(paramIdStr));
     }
     int GetDeformerIndex(const Id* id);
-    int ExtendAndAddParam(const Id* paramId, float defaultVal, float maxVal, float minVal);
 
     void SetParamValue(int index, float value);
     void SetParamValue(int index, float value, float weight);
@@ -62,6 +59,11 @@ public:
     float GetParamMax(int index) const;
     float GetParamMin(int index) const;
     float GetParamDefault(int index) const;
+
+    // VISIBLE:xxx side-channel：motion 的 VISIBLE 曲线与 pose 子系统的通信
+    // 媒介，key 为 part Id*（Id 池保证指针恒等），不物化为参数表条目
+    void SetVisibleFlag(const Id* partId, float v);
+    float GetVisibleFlag(const Id* partId) const;
 
     void LoadParam();
     void SaveParam();
@@ -176,6 +178,12 @@ public:
     mutable std::unordered_map<const Id*, int> mPartIndexCache;
 
 private:
+    // Init() 阶段解析的静态值域：全部 drawable 的 pivot draw order 键位
+    // [min, max]（order 插值输出为键位间的凸组合，必落此闭区间内，
+    // Update() 的 order 桶数组以此为界）
+    int mMinDrawOrder = 0;
+    int mMaxDrawOrder = 0;
+
     // Resolve() 解析缓冲（有效窗口：resolve 完成 → 下次 update）
     std::vector<float> mResolvedOpacity;
     std::vector<bool> mResolvedVisible;
@@ -185,9 +193,12 @@ private:
     // Init() 阶段解析的静态 mask 索引（clipID -> drawable index）
     std::vector<std::vector<int>> mDrawableMasks;
 
+    // Motion→Pose 的 VISIBLE 通信 side-channel（缺失视为 0，等价旧幻影参数初值）
+    std::unordered_map<const Id*, float> mVisibleFlags;
+
     // moc 解析数据所有权（Read() 填充，生命周期 = Moc）
-    std::vector<std::unique_ptr<Parameter>> mParameterOwnerList;
-    std::vector<std::unique_ptr<Part>> mPartOwnerList;
+    std::vector<std::unique_ptr<Parameter>> mParameters;
+    std::vector<std::unique_ptr<Part>> mParts;
     Id::IdPool& mIdPool;
 };
 
