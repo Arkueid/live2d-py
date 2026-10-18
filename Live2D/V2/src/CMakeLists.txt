@@ -16,8 +16,6 @@ add_library(${V2_TARGET} STATIC
     $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/ClippingManagerOpenGL.cpp>
     $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/VkRenderer.cpp>
     $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/ClippingManagerVulkan.cpp>
-    Framework/Matrix44.cpp
-    Framework/ModelMatrix.cpp
     Framework/TargetPoint.cpp
     Framework/EyeBlink.cpp
     Framework/Pose.cpp

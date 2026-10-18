@@ -1,4 +1,4 @@
-#include <CubismUserModelProxy.hpp>
+﻿#include <CubismUserModelProxy.hpp>
 
 #include <CubismFramework.hpp>
 #include <Utils/CubismJson.hpp>
@@ -100,8 +100,6 @@ Csm::ACubismMotion* CubismUserModelProxy::LoadMotion(
     const Csm::csmByte* buffer,
     Csm::csmSizeInt size,
     const Csm::csmChar* name,
-    Csm::ACubismMotion::FinishedMotionCallback onFinished,
-    Csm::ACubismMotion::BeganMotionCallback onBegan,
     Csm::ICubismModelSetting* modelSetting,
     const Csm::csmChar* group,
     Csm::csmInt32 index,
@@ -111,8 +109,6 @@ Csm::ACubismMotion* CubismUserModelProxy::LoadMotion(
     return CubismUserModel::LoadMotion(reinterpret_cast<const Csm::csmByte*>(fixed.data()),
                                        static_cast<Csm::csmSizeInt>(fixed.size()),
                                        name,
-                                       onFinished,
-                                       onBegan,
                                        modelSetting,
                                        group,
                                        index,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @brief CubismUserModelProxy.hpp
  * @author Arkueid
  * @date 2026/09/27
@@ -39,8 +39,6 @@ public:
     Csm::ACubismMotion* LoadMotion(const Csm::csmByte* buffer,
                                    Csm::csmSizeInt size,
                                    const Csm::csmChar* name,
-                                   Csm::ACubismMotion::FinishedMotionCallback onFinished = NULL,
-                                   Csm::ACubismMotion::BeganMotionCallback onBegan = NULL,
                                    Csm::ICubismModelSetting* modelSetting = NULL,
                                    const Csm::csmChar* group = NULL,
                                    Csm::csmInt32 index = -1,

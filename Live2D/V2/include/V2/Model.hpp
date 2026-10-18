@@ -4,7 +4,6 @@
 #include "IRenderer.hpp"
 #include <MatrixManager.hpp>
 #include <IModel.hpp>
-#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -15,8 +14,6 @@ namespace Live2D {
 namespace V2 {
 class Model : public BaseModel {
 public:
-    using StartCallback = std::function<void(const std::string&, int)>;
-    using FinishCallback = std::function<void(const std::string&, int)>;
 
     Model();
     ~Model() override;
@@ -167,14 +164,9 @@ private:
     bool mClearFlag = false;
     std::string mModelHomeDir;
 
-    StartCallback mOnStartMotion;
-    FinishCallback mOnFinishMotion;
-    bool mCallbacksPending = false;
-    std::string mCurrentGroup;
     std::vector<std::string> mTexturePaths;
     std::unordered_map<std::string, std::vector<MotionInfo>> mMotionInfos;
     std::unordered_map<std::string, std::string> mExpressionFiles;
-    int mCurrentMotionNo = 0;
     std::unique_ptr<IRenderer> mRenderer;
     std::vector<float> mDrawableVertexCache;
     std::vector<unsigned short> mDrawableIndexCache;

@@ -35,11 +35,6 @@ void BaseModel::LoadModelData(const std::vector<uint8_t>& data, int version) {
     br.SetFormatVersion(version);
     mMoc.reset(static_cast<Moc*>(br.ReadObjectRaw()));
     mMoc->Init();
-    mModelMatrix = ModelMatrix((float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight());
-    // 画布尺寸记录（GetModelMatrix 供外部读取）；渲染适配与命中测试反算均由
-    // Common::MatrixManager 的 mvp 负责，此处不再承担变换职责
-    mModelMatrix.SetHeight(2);
-    mModelMatrix.SetCenterPosition(0, 0);
 }
 AMotion* BaseModel::LoadMotion(const std::string& name, const std::vector<uint8_t>& data) {
     auto* m = Motion::Load(data, mIdPool);

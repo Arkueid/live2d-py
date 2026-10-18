@@ -117,10 +117,9 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
         return;
     }
     LoadModelData(mocData, 0);
-    mModelMatrix.mWidth = (float)mMoc->GetCanvasWidth();
-    mModelMatrix.mHeight = (float)mMoc->GetCanvasHeight();
     // 画布适配参数在模型生命周期内不变，加载时设置一次
-    mMatrixManager.SetFit({mModelMatrix.mWidth, mModelMatrix.mHeight, true, true});
+    mMatrixManager.SetFit({(float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight(), true,
+                          true});
     LOGI("Load model: %s", mocPath.c_str());
 
     // Load texture paths from JSON
@@ -336,22 +335,6 @@ void Model::Update(float deltaSecs) {
     }
     mMoc->SaveParam();
 
-    // Check motion finish callback
-    // Save and clear BEFORE calling, so re-entrant StartMotion
-    // (called from within the callback) can set new callbacks safely.
-    if (mCallbacksPending && mMainMotionMgr->IsFinished()) {
-        auto onFinish = std::move(mOnFinishMotion);
-        auto onStart = std::move(mOnStartMotion);
-        auto group = mCurrentGroup;
-        auto no = mCurrentMotionNo;
-        mOnFinishMotion = nullptr;
-        mOnStartMotion = nullptr;
-        mCallbacksPending = false;
-
-        if (onFinish)
-            onFinish(group, no);
-    }
-
     // Python suppresses eye-blink while a main motion is active
     if (!updated && mAutoBlink && mEyeBlink)
         mEyeBlink->UpdateParam(mMoc.get(), dtMs);
@@ -469,8 +452,6 @@ std::string Model::SetRandomExpression(float fadeoutMs) {
 }
 void Model::StartMotion(const std::string& group, int no, int priority, MotionCallback onStart,
                         MotionCallback onFinish) {
-    mOnStartMotion = std::move(onStart);
-    mOnFinishMotion = std::move(onFinish);
     auto it = mMotions.find(group);
     if (it != mMotions.end() && !it->second.empty()) {
         if (no < 0 || no >= (int)it->second.size())
@@ -488,30 +469,29 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
                  no,
                  priority,
                  mMainMotionMgr->mCurrentPriority);
-            if (mOnStartMotion)
-                mOnStartMotion(group, no);
-            if (mOnFinishMotion)
-                mOnFinishMotion(group, no);
-            mOnStartMotion = nullptr;
-            mOnFinishMotion = nullptr;
+            // 对齐 V3：优先级拒绝路径静默返回，不触发回调
             return;
         }
 
-        mCallbacksPending = true;
-        mCurrentGroup = group;
-        mCurrentMotionNo = no;
-        if (mOnStartMotion)
-            mOnStartMotion(group, no);
+        // per-motion handler（对齐 V3）：回调挂载到 motion 对象，group/no 由
+        // lambda 捕获；motion 复用时整体覆盖，避免残留旧回调
+        auto* motion = it->second[no].get();
+        if (onStart)
+            motion->mOnStart = [cb = std::move(onStart), group, no]() { cb(group, no); };
+        else
+            motion->mOnStart = nullptr;
+        if (onFinish)
+            motion->mOnFinish = [cb = std::move(onFinish), group, no]() { cb(group, no); };
+        else
+            motion->mOnFinish = nullptr;
         LOGD("Start motion: group=%s no=%d priority=%d", group.c_str(), no, priority);
-        mMainMotionMgr->StartMotionPrio(it->second[no].get(), priority);
+        mMainMotionMgr->StartMotionPrio(motion, priority);
     } else {
         LOGD("Start motion: group=%s not found or empty", group.c_str());
-        if (mOnStartMotion)
-            mOnStartMotion(group, no);
-        if (mOnFinishMotion)
-            mOnFinishMotion(group, no);
-        mOnStartMotion = nullptr;
-        mOnFinishMotion = nullptr;
+        if (onStart)
+            onStart(group, no);
+        if (onFinish)
+            onFinish(group, no);
     }
 }
 void Model::StartRandomMotion(const std::string& group, int priority, MotionCallback onStart,

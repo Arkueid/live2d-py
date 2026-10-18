@@ -5,6 +5,7 @@
 #include <Log.hpp>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <object.h>
 #include <string>
@@ -26,64 +27,45 @@ private:
 };
 
 // ---- Callback helpers (Python → C++ conversion) ----
-static auto MakeMotionCallback(PyObject* cb, PyModelObject* self, bool isOnStart) -> std::function<void(const std::string&, int)> {
+
+// RAII owner of a Python callable (strong ref). Held via shared_ptr inside the
+// std::function captured by C++ per-motion mOnStart/mOnFinish; released when
+// the motion's std::function is replaced or the motion is destroyed. The GIL
+// is re-acquired in the destructor so destruction from any thread is safe.
+struct PyCallbackHolder {
+    PyObject* cb;
+    explicit PyCallbackHolder(PyObject* c) : cb(c) { Py_INCREF(cb); }
+    ~PyCallbackHolder() {
+        if (cb) {
+            PyGILGuard gil;
+            Py_DECREF(cb);
+        }
+    }
+    PyCallbackHolder(const PyCallbackHolder&) = delete;
+    PyCallbackHolder& operator=(const PyCallbackHolder&) = delete;
+};
+
+static auto MakeMotionCallback(PyObject* cb) -> std::function<void(const std::string&, int)> {
     if (!cb || Py_IsNone(cb) || !PyCallable_Check(cb))
         return nullptr;
-    Py_INCREF(cb);
-    PyObject* lastCb;
-    if (isOnStart) {
-        lastCb = self->onStart;
-        self->onStart = cb;
-    } else {
-        lastCb = self->onFinish;
-        self->onFinish = cb;
-    }
-    if (lastCb) {
-        Py_XDECREF(lastCb);
-    }
-
-    return [self, isOnStart](const std::string& g, int n) {
+    auto holder = std::make_shared<PyCallbackHolder>(cb);
+    return [holder](const std::string& g, int n) {
         PyGILGuard GIL;
-        PyObject* cb;
-        if (isOnStart) {
-            cb = self->onStart;
-            self->onStart = nullptr;
-        } else {
-            cb = self->onFinish;
-            self->onFinish = nullptr;
-        }
-        if (!cb) {
-            return;
-        }
-        PyObject* r = PyObject_CallFunction(cb, "si", g.c_str(), n);
+        PyObject* r = PyObject_CallFunction(holder->cb, "si", g.c_str(), n);
         if (r)
             Py_DECREF(r);
         else
             PyErr_Print();
-        Py_XDECREF(cb);
     };
 }
 
 static PyObject* PyModel_Init(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     self->model = nullptr;
-    self->onStart = nullptr;
-    self->onFinish = nullptr;
     return 0;
 }
 static void PyModel_Dealloc(PyModelObject* self, PyObject* args, PyObject* kwargs) {
     LOGD("deallocate: cpp Model(at=%p)", self->model);
     delete self->model;
-    // fix uncalled callback leak
-    if (self->onStart != nullptr) {
-        Py_XDECREF(self->onStart);
-        self->onStart = nullptr;
-        LOGI("release uncalled onStart");
-    }
-    if (self->onFinish != nullptr) {
-        Py_XDECREF(self->onFinish);
-        self->onFinish = nullptr;
-        LOGI("release uncalled onFinish");
-    }
     LOGD("deallocate: PyModelObject(at=%p)", self);
     PyObject_Free(self);
 }
@@ -517,8 +499,8 @@ static PyObject* PyModel_StartMotion(PyModelObject* self, PyObject* args, PyObje
     self->model->StartMotion(group,
                              no,
                              priority,
-                             MakeMotionCallback(onStartHandler, self, true),
-                             MakeMotionCallback(onFinishHandler, self, false));
+                             MakeMotionCallback(onStartHandler),
+                             MakeMotionCallback(onFinishHandler));
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, PyObject* kwargs) {
@@ -543,8 +525,8 @@ static PyObject* PyModel_StartRandomMotion(PyModelObject* self, PyObject* args, 
 
     self->model->StartRandomMotion(group ? group : "",
                                    priority,
-                                   MakeMotionCallback(onStartHandler, self, true),
-                                   MakeMotionCallback(onFinishHandler, self, false));
+                                   MakeMotionCallback(onStartHandler),
+                                   MakeMotionCallback(onFinishHandler));
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_IsMotionFinished(PyModelObject* self, PyObject* args, PyObject* kwargs) {

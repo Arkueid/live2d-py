@@ -20,7 +20,6 @@ void Motion::UpdateParam(Moc* moc, float timeSec, float weight) {
         float loopDur = mLoopDurationMs > 0 ? mLoopDurationMs : mDurationMs;
         timeMs = std::fmod(timeMs, loopDur);
     } else if (timeMs > mDurationMs) {
-        mFinished = true;
         timeMs = mDurationMs;
     }
 

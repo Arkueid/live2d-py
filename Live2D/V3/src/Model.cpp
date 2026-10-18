@@ -1,4 +1,4 @@
-#include "V3/Model.hpp"
+﻿#include "V3/Model.hpp"
 #include "IModel.hpp"
 #include "Motion/ACubismMotion.hpp"
 
@@ -544,37 +544,6 @@ const float* Model::GetMvp() {
     return mMatrixManager.GetMvp();
 }
 
-namespace {
-// std::function 回调 <-> ACubismMotion void*/C 风格回调 的桥接
-struct MotionCallbackData {
-    IModel::MotionCallback onStart;
-    IModel::MotionCallback onFinish;
-    std::string group;
-    int no;
-};
-
-void MotionBeganHandler(ACubismMotion* motion) {
-    auto* data = static_cast<MotionCallbackData*>(motion->GetBeganMotionCustomData());
-    if (data == nullptr) {
-        return;
-    }
-    if (data->onStart) {
-        data->onStart(data->group, data->no);
-    }
-}
-
-void MotionFinishedHandler(ACubismMotion* motion) {
-    auto* data = static_cast<MotionCallbackData*>(motion->GetFinishedMotionCustomData());
-    if (data == nullptr) {
-        return;
-    }
-    if (data->onFinish) {
-        data->onFinish(data->group, data->no);
-    }
-    delete data;
-}
-}   // namespace
-
 void Model::StartMotion(const std::string& group, int no, int priority, MotionCallback onStart,
                         MotionCallback onFinish) {
     if (priority == MotionPriority::Force) {
@@ -625,11 +594,18 @@ void Model::StartMotion(const std::string& group, int no, int priority, MotionCa
     }
 
     if (motion) {
-        auto* data = new MotionCallbackData{std::move(onStart), std::move(onFinish), group, no};
-        motion->SetBeganMotionCustomData(data);
-        motion->SetFinishedMotionCustomData(data);
-        motion->SetBeganMotionHandler(MotionBeganHandler);
-        motion->SetFinishedMotionHandler(MotionFinishedHandler);
+        // 单槽位挂载（对齐 V2 AMotion 的 mOnStart/mOnFinish）：同一 motion
+        // 重复 StartMotion 时旧回调作废，最后一次挂载生效，被抢占者静默
+        if (onStart) {
+            motion->mOnStart = [cb = std::move(onStart), group, no]() { cb(group, no); };
+        } else {
+            motion->mOnStart = nullptr;
+        }
+        if (onFinish) {
+            motion->mOnFinish = [cb = std::move(onFinish), group, no]() { cb(group, no); };
+        } else {
+            motion->mOnFinish = nullptr;
+        }
     }
 
 handler_label:
@@ -700,7 +676,7 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
         const csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, no);
 
         CubismMotion* tmpMotion = static_cast<CubismMotion*>(mProxy.LoadMotion(
-            buffer, size, name.GetRawString(), NULL, NULL, mModelSetting, group, no));
+            buffer, size, name.GetRawString(), mModelSetting, group, no));
 
         if (tmpMotion) {
             tmpMotion->SetEffectIds(mEyeBlinkIds, mLipSyncIds);
@@ -1459,7 +1435,7 @@ void Model::PreloadMotionGroup(const csmChar* group) {
 
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmInt32 size) {
             CubismMotion* tmpMotion = static_cast<CubismMotion*>(mProxy.LoadMotion(
-                buffer, size, name.GetRawString(), NULL, NULL, mModelSetting, group, i));
+                buffer, size, name.GetRawString(), mModelSetting, group, i));
             if (tmpMotion) {
                 tmpMotion->SetEffectIds(mEyeBlinkIds, mLipSyncIds);
 

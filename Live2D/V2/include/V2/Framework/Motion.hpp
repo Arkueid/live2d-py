@@ -22,8 +22,6 @@ public:
     void UpdateParam(Moc* moc, float timeSec, float weight) override;
     float GetDurationSec() const override;
     bool IsLoop() const override;
-    bool IsFinished() const override { return mFinished; }
-    void Reset() override { mFinished = false; }
     static Motion* Load(const std::vector<uint8_t>& data, Id::IdPool& idPool);
     std::vector<MotionData> mMotions;
     int mFps = 30;
@@ -31,7 +29,6 @@ public:
     float mLoopDurationMs = 0;
     bool mLoop = false;
     bool mLoopFadeIn = true;
-    bool mFinished = false;
     Id::IdPool& mIdPool;
     Id* mVisibleId = nullptr;
 };

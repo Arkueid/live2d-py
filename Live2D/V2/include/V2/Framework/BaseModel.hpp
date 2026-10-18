@@ -1,6 +1,5 @@
 #pragma once
 #include "Moc.hpp"
-#include "ModelMatrix.hpp"
 #include <IModel.hpp>
 #include <memory>
 #include <string>
@@ -33,16 +32,8 @@ public:
     /// 顶点坐标域（与 mTransformedPoints 同域），像素坐标请先经
     /// Model::screenToModel 反算
     bool HitTestSimple(const std::string& drawID, float x, float y);
-    ModelMatrix& GetModelMatrix() { return mModelMatrix; }
     MotionManager* GetMainMotionManager() const { return mMainMotionMgr.get(); }
     MotionManager* GetExpressionManager() const { return mExpressionMgr.get(); }
-    void SetAlpha(float a) { mAlpha = (a < 0 ? 0 : (a > 1 ? 1 : a)); }
-    float GetAlpha() const { return mAlpha; }
-    void SetAccel(float x, float y, float z) {
-        mAccelX = x;
-        mAccelY = y;
-        mAccelZ = z;
-    }
     void SetDrag(float x, float y) {
         mDragX = x;
         mDragY = y;
@@ -53,7 +44,6 @@ public:
     void SetUpdating(bool v) { mUpdating = v; }
 
 protected:
-    ModelMatrix mModelMatrix;
     std::unique_ptr<EyeBlink> mEyeBlink;
     std::unique_ptr<Physics> mPhysics;
     std::unique_ptr<Pose> mPose;
@@ -61,7 +51,7 @@ protected:
     std::unique_ptr<MotionManager> mExpressionMgr;
     std::unordered_map<std::string, std::vector<std::unique_ptr<AMotion>>> mMotions;
     std::unordered_map<std::string, std::unique_ptr<AMotion>> mExpressions;
-    float mAlpha = 1.0f, mAccelX = 0, mAccelY = 0, mAccelZ = 0, mDragX = 0, mDragY = 0;
+    float mDragX = 0, mDragY = 0;
     bool mInitialized = false, mUpdating = false;
     std::unique_ptr<Moc> mMoc;
     Id::IdPool mIdPool;
