@@ -21,7 +21,7 @@ live2d.enableLog(True)
 live2d.setLogLevel(live2d.LogLevels.LV_DEBUG)
 
 LOAD_FROM_JSON = False
-LIVE2D_VERSION = 2
+LIVE2D_VERSION = 3
 
 if LIVE2D_VERSION == 2:
     from live2d import StandardParamsV2 as StandardParams
@@ -92,7 +92,7 @@ def main():
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn.model3.json"), create_renderer=False)
     elif LIVE2D_VERSION == 2:
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
@@ -198,8 +198,6 @@ def main():
         model.Resize(width, height)
     glfw.set_window_size_callback(window, on_resize)
 
-    glfw.swap_interval(0)
-
     # Rotate animation
     inc_per_sec = math.pi * 2 / 3
     deg_max = 5
@@ -209,10 +207,11 @@ def main():
     fps_frames = 0
     fps_timer = last_time
 
-    glfw.swap_interval(1)
-
     model.DestroyRenderer()
     model.CreateRenderer()
+
+    # disable vsync for performance test
+    glfw.swap_interval(0)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
