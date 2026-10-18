@@ -1390,6 +1390,9 @@ void Model::SetupTextures() {
 #else
         LAppTextureManager::TextureInfo* texture =
             mTextureManager.CreateTextureFromPngFile(texturePath.GetRawString());
+        if (texture == nullptr) {
+            continue;
+        }
         const csmInt32 glTextueNumber = texture->id;
         // OpenGL
         mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->BindTexture(modelTextureNumber,
