@@ -338,10 +338,19 @@ LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
     unsigned char* address;
 
     address = Common::FileUtils::LoadFileAsBytes(fileName, &size);
+    if (address == NULL) {
+        LOGE("couldn't load texture file: %s", fileName.c_str());
+        return NULL;
+    }
 
     // png情報を取得する
     png = stbi_load_from_memory(
         address, static_cast<int>(size), &width, &height, &channels, STBI_rgb_alpha);
+    if (!png) {
+        LOGE("couldn't decode texture image: %s", fileName.c_str());
+        Common::FileUtils::ReleaseBytes(address);
+        return NULL;
+    }
     {
 
 #ifdef PREMULTIPLIED_ALPHA_ENABLE
