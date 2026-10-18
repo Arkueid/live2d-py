@@ -1197,7 +1197,7 @@ void Model::SetExpression(const char* expressionId, float fadeoutMs) {
 std::string Model::SetRandomExpression(float fadeoutMs) {
     const int size = mExpressions.GetSize();
     if (size == 0) {
-        return nullptr;
+        return {};   // 无表情模型：返回空串（nullptr 构造 std::string 是 UB）
     }
     csmInt32 no = rand() % size;
     csmMap<csmString, ACubismMotion*>::const_iterator map_ite;
@@ -1210,7 +1210,7 @@ std::string Model::SetRandomExpression(float fadeoutMs) {
         }
         i++;
     }
-    return nullptr;
+    return {};
 }
 
 void Model::ResetExpressions() {

@@ -92,7 +92,9 @@ def main():
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn.model3.json"), create_renderer=False)
+        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/akane.model3.json"), create_renderer=False)
+
     elif LIVE2D_VERSION == 2:
         model = live2d.Model()
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
@@ -183,7 +185,8 @@ def main():
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
             x, y = glfw.get_cursor_pos(window)
             currentTopClickedPartId = getHitFeedback(x, y)
-            model.SetRandomExpression()
+            expname = model.SetRandomExpression()
+            print(f"random expression: {expname}")
             model.StartRandomMotion(priority=3, onFinish=on_finish_motion_callback)
     glfw.set_mouse_button_callback(window, on_mouse_button)
 

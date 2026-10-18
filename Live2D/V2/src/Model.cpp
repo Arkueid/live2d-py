@@ -448,7 +448,7 @@ std::string Model::SetRandomExpression(float fadeoutMs) {
         }
         return it->first.c_str();
     }
-    return nullptr;
+    return {};   // 无表情模型：返回空串（nullptr 构造 std::string 是 UB）
 }
 void Model::StartMotion(const std::string& group, int no, int priority, MotionCallback onStart,
                         MotionCallback onFinish) {
