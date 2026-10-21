@@ -14,7 +14,7 @@ namespace Debug {
 void InstallCrashHandler() {
     static backward::SignalHandling sh;
     static std::once_flag flag;
-    std::call_once(flag, []() { Log::LOGI("Crash Handler installed"); });
+    std::call_once(flag, []() { LOGI("Crash Handler installed"); });
 }
 
 }   // namespace Debug

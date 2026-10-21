@@ -195,7 +195,7 @@ void Model::SetupModel() {
     }
 
     if (mProxy.GetModel() == nullptr) {
-        LOGE("Failed to SetupModel()");
+        LOGF("Failed to SetupModel()");
     }
     if (mProxy.GetModel() != nullptr) {
         // 画布适配参数在模型生命周期内不变，加载时设置一次

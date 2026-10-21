@@ -54,7 +54,9 @@ void FileUtils::ReleaseBytes(unsigned char* byteData) {
 }
 
 void FileUtils::PrintLn(const char* message) {
-    LOGI(message);
+    if (IsLive2DLogEnabled()) {
+        printf("%s\n", message);
+    }
 }
 
 void FileUtils::InitShaderDir(const std::string& path) {
