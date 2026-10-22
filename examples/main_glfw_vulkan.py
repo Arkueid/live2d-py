@@ -80,21 +80,23 @@ def main():
     live2d.vkInit(window_handle, display_handle)
 
     model = live2d.Model()
-    if LIVE2D_VERSION == 3:
-        model = live2d.Model()
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/nn/nn_min.model3.json"), create_renderer=False)
-    elif LIVE2D_VERSION == 2:
-        model = live2d.Model()
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
-        # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
-                            create_renderer=False)  # Load model without creating renderer
+
+    model = live2d.Model()
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn_min.model3.json"), create_renderer=False)
+    model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), create_renderer=False)
+
+    model2 = live2d.Model()
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/托尔/model0.json"),
+    model2.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/kasumi2/kasumi2.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/haru/haru.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/hibiki/hibiki.model.json"),
+    # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v2/shizuku/shizuku.model.json"),
+                        create_renderer=True)  # Load model without creating renderer
     model.CreateRenderer()
     model.Resize(*display)
+    model2.Resize(*display)
 
     # Disable auto effects
     model.SetAutoBlink(False)
@@ -122,6 +124,10 @@ def main():
     print(f"Part Count: {len(partIds)}")
     print("Part IDs:", partIds)
 
+    partIds2 = model2.GetPartIds()
+    print(f"Part Count2: {len(partIds2)}")
+    print("Part IDs2:", partIds2)
+
     print("Canvas size:", model.GetCanvasSize())
     print("Canvas size in pixels:", model.GetCanvasSizePixel())
     print("Pixels per unit:", model.GetPixelsPerUnit())
@@ -129,26 +135,40 @@ def main():
     def on_resize(_window, width, height):
         if width > 0 and height > 0:
             model.Resize(width, height)
+            model2.Resize(width, height)
 
     glfw.set_window_size_callback(window, on_resize)
 
     dx, dy = 0.0, 0.0
     scale = 1.0
     currentTopClickedPartId = None
+    currentTopClickedPartId2 = None
 
     def getHitFeedback(x, y):
-        nonlocal currentTopClickedPartId
+        nonlocal currentTopClickedPartId, currentTopClickedPartId2
         t = time.time()
         hitPartIds = model.HitPart(x, y, False)
         print(f"hit part cost: {time.time() - t:.4f}s")
         print(f"hit parts: {hitPartIds}")
+        t = time.time()
+        hitPartIds2 = model2.HitPart(x, y, False)
+        print(f"hit part2 cost: {time.time() - t:.4f}s")
+        print(f"hit parts2: {hitPartIds2}")
         if currentTopClickedPartId is not None:
             pidx = partIds.index(currentTopClickedPartId)
             model.SetPartOpacity(pidx, 1)
             model.SetPartMultiplyColor(pidx, 1.0, 1.0, 1.0, 1.0)
             print("Part Multiply Color:", model.GetPartMultiplyColor(pidx))
-        if len(hitPartIds) > 0:
-            return hitPartIds[0]
+
+        if currentTopClickedPartId2 is not None:
+            pidx2 = partIds2.index(currentTopClickedPartId2)
+            model2.SetPartOpacity(pidx2, 1)
+            model2.SetPartMultiplyColor(pidx2, 1.0, 1.0, 1.0, 1.0)
+            print("Part Multiply Color2:", model2.GetPartMultiplyColor(pidx2))
+        
+        ret1 = hitPartIds[0] if len(hitPartIds) > 0 else None
+        ret2 = hitPartIds2[0] if len(hitPartIds2) > 0 else None
+        return ret1, ret2
 
     def on_key(_window, key, _scancode, action, _mods):
         nonlocal dx, dy, scale
@@ -176,19 +196,25 @@ def main():
     glfw.set_key_callback(window, on_key)
 
     def on_cursor_pos(_window, x, y):
-        nonlocal currentTopClickedPartId
+        nonlocal currentTopClickedPartId, currentTopClickedPartId2
         model.Drag(x, y)
-        currentTopClickedPartId = getHitFeedback(x, y)
+        model2.Drag(x, y)
+
+        currentTopClickedPartId, currentTopClickedPartId2 = getHitFeedback(x, y)
+
 
     glfw.set_cursor_pos_callback(window, on_cursor_pos)
 
     def on_mouse_button(_window, button, action, _mods):
-        nonlocal currentTopClickedPartId
+        nonlocal currentTopClickedPartId, currentTopClickedPartId2
         if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
             x, y = glfw.get_cursor_pos(window)
-            currentTopClickedPartId = getHitFeedback(x, y)
+            currentTopClickedPartId, currentTopClickedPartId2 = getHitFeedback(x, y)
             model.SetRandomExpression()
             model.StartRandomMotion(priority=3, onFinish=on_finish_motion_callback)
+
+            model2.SetRandomExpression()
+            model2.StartRandomMotion(priority=3, onFinish=on_finish_motion_callback)
 
     glfw.set_mouse_button_callback(window, on_mouse_button)
 
@@ -216,16 +242,24 @@ def main():
         progress += inc_per_sec * delta
         deg = math.sin(progress) * deg_max
         model.Rotate(deg)
+        model2.Rotate(deg)
 
         model.Update()
+        model2.Update()
 
         if currentTopClickedPartId is not None:
             pidx = partIds.index(currentTopClickedPartId)
             model.SetPartOpacity(pidx, 0.5)
             model.SetPartMultiplyColor(pidx, 0.0, 0.0, 1.0, 0.9)
+        
+        if currentTopClickedPartId2 is not None:
+            pidx2 = partIds2.index(currentTopClickedPartId2)
+            model2.SetPartOpacity(pidx2, 0.5)
+            model2.SetPartMultiplyColor(pidx2, 0.0, 0.0, 1.0, 0.9)
 
         if wavHandler.Update():
             model.SetParamById(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
+            model2.SetParamById(StandardParams.ParamMouthOpenY, wavHandler.GetRms() * lipSyncN)
 
         if not audioPlayed:
             model.StartMotion("", 0, live2d.MotionPriority.FORCE,
@@ -234,11 +268,14 @@ def main():
 
         model.SetOffset(dx, dy)
         model.SetScale(scale)
+        model2.SetScale(scale)
+        model2.SetOffset(-dx, -dy)
         # 帧解耦：BeginFrame 打开主区间并清屏，Draw 仅录制命令，
         # 多模型/自定义绘制可在各 Draw() 之间直接向 cmd 注入命令
         frame = live2d.vkBeginFrame()
         if frame is not None:
             _cmd, _frame_index, width, height = frame
+            model2.Draw()
             model.Draw()
             live2d.vkEndFrame()
 
@@ -255,6 +292,7 @@ def main():
             glfw.set_window_should_close(window, True)
 
     model.DestroyRenderer()
+    model2.DestroyRenderer()
     live2d.vkDestroy()
     live2d.dispose()
     glfw.terminate()

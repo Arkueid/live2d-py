@@ -93,7 +93,7 @@ def main():
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/llny/llny.model3.json"))
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/Haru/Haru.model3.json"), create_renderer=False)
         # model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/绫地宁宁/nn.model3.json"), create_renderer=False)
-        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/akane.model3.json"), create_renderer=False)
+        model.LoadModelJson(os.path.join(resources.RESOURCES_DIRECTORY, "v3/akane/InariTalk_PSDtool2.model3.json"), create_renderer=False)
 
     elif LIVE2D_VERSION == 2:
         model = live2d.Model()
@@ -108,8 +108,8 @@ def main():
     model.Resize(*display)
 
     # Disable auto effects
-    model.SetAutoBlink(False)
-    model.SetAutoBreath(False)
+    model.SetAutoBlink(True)
+    model.SetAutoBreath(True)
 
     wavHandler = WavHandler()
     lipSyncN = 3
@@ -146,7 +146,7 @@ def main():
         nonlocal currentTopClickedPartId
         t = time.time()
         hitPartIds = model.HitPart(x, y, False)
-        print(f"hit part cost: {time.time() - t:.4f}s")
+        print(f"hit part cost: {(time.time() - t) * 1000:.4f}ms")
         print(f"hit parts: {hitPartIds}")
         if currentTopClickedPartId is not None:
             pidx = partIds.index(currentTopClickedPartId)
