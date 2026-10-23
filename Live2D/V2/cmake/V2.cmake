@@ -22,6 +22,11 @@ if (${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
     include(${CMAKE_CURRENT_LIST_DIR}/V2Shaders.cmake)
     add_dependencies(${V2_TARGET} V2Shaders)
 endif()
+if (${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
+    # V2 OpenGL shader 源文件目录（.vert/.frag，构建后拷到 package/live2d/FrameworkShaders）
+    set_target_properties(${V2_TARGET} PROPERTIES
+        LIVE2D_GL_SHADER_DIR "${LIVE2D_ROOT}/V2/shaders/opengl")
+endif()
 target_compile_definitions(${V2_TARGET} PRIVATE MODULE_LOG_TAG="v2")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

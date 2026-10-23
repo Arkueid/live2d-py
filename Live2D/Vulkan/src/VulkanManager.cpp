@@ -39,10 +39,10 @@ static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCrea
 /**
 * @brief   デバッグ用コールバック
 */
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                    VkDebugUtilsMessageTypeFlagsEXT messageType,
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
+                                                    VkDebugUtilsMessageTypeFlagsEXT,
                                                     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                    void* pUserData)
+                                                    void*)
 {
     std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
@@ -535,8 +535,6 @@ VkCommandBuffer VulkanManager::BeginSingleTimeCommands()
 void VulkanManager::SubmitCommand(VkCommandBuffer commandBuffer, bool isFirstDraw)
 {
     vkEndCommandBuffer(commandBuffer);
-
-    VkSubmitInfo submitInfo{};
 
     if(isFirstDraw)
     {

@@ -33,31 +33,37 @@ set_target_properties(Live2DTest PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests/cpp
 )
 
-# ---- Vulkan shaders ---------------------------------------------------------
-# The CubismRenderer_Vulkan loads "FrameworkShaders/*.spv" relative to the CWD
-# at renderer creation time; copy the compiled shaders next to the executable
-# (Live2DTest sets its CWD to the exe directory at startup).
-# The .spv output directory is exposed by the v3 library via the
-# LIVE2D_SHADER_DIR property on the Framework target.
-if(TARGET FrameworkShaders)
-  add_custom_command(TARGET Live2DTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Live2DTest>/FrameworkShaders
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            $<TARGET_PROPERTY:Framework,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DTest>/FrameworkShaders
-    COMMENT "Copy Vulkan .spv shaders next to Live2DTest"
-  )
+# ---- shader files next to the executable ------------------------------------
+# GL / Vulkan 渲染器都在创建时按 CWD 读取 "FrameworkShaders/*"；
+# 把每个已启用后端的 shader 目录拷到 exe 旁（Live2DTest 启动时把 CWD 切到 exe 目录）。
+#   GL     : V3 Framework 源文件（*.vert/*.frag）+ V2 源文件（V2*GL.*）
+#   Vulkan : V3 / V2 编译产物（*.spv）
+set(TEST_SHADER_OUT $<TARGET_FILE_DIR:Live2DTest>/FrameworkShaders)
+set(TEST_SHADER_DIRS)
+
+if (${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
+  list(APPEND TEST_SHADER_DIRS
+    $<TARGET_PROPERTY:Framework,LIVE2D_GL_SHADER_DIR>
+    $<TARGET_PROPERTY:V2,LIVE2D_GL_SHADER_DIR>)
 endif()
 
-# V2 Vulkan shaders — VkRenderer loads "FrameworkShaders/V2*.spv" relative to the CWD;
-# exposed by the v2 library via the LIVE2D_SHADER_DIR property on V2Shaders.
-# 与 v3 Framework shader 放同一目录（文件名带 V2 前缀不冲突）。
-if(TARGET V2Shaders)
-  add_custom_command(TARGET Live2DTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            $<TARGET_PROPERTY:V2Shaders,LIVE2D_SHADER_DIR> $<TARGET_FILE_DIR:Live2DTest>/FrameworkShaders
-    COMMENT "Copy V2 Vulkan .spv shaders next to Live2DTest"
-  )
+if (${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
+  list(APPEND TEST_SHADER_DIRS
+    $<TARGET_PROPERTY:Framework,LIVE2D_VK_SHADER_DIR>
+    $<TARGET_PROPERTY:V2Shaders,LIVE2D_VK_SHADER_DIR>)
 endif()
+
+add_custom_command(TARGET Live2DTest POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_SHADER_OUT}
+  COMMENT "Prepare FrameworkShaders next to Live2DTest"
+)
+
+foreach(shaderDir ${TEST_SHADER_DIRS})
+  add_custom_command(TARGET Live2DTest POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${TEST_SHADER_OUT}
+    COMMENT "Copy shaders: ${shaderDir}"
+  )
+endforeach()
 
 # Wire into ctest for local use: `ctest --test-dir build` (opens a GLFW window;
 # not run in CI since runners are headless)

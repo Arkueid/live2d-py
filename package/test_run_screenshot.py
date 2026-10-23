@@ -4,7 +4,6 @@ Usage:
   python test_run_screenshot.py v2cpp --model shizuku    # specific model
   python test_run_screenshot.py v2cpp --expr f05.exp.json  # specific expression
   python test_run_screenshot.py v3   --model Haru
-  python test_run_screenshot.py v2   --model shizuku
 """
 import argparse
 import os
@@ -21,7 +20,7 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 
 parser = argparse.ArgumentParser(description="Live2D screenshot test")
-parser.add_argument("version", choices=["v2", "v2cpp", "v3"], help="SDK version")
+parser.add_argument("version", choices=["v2cpp", "v3"], help="SDK version")
 parser.add_argument("--model", default="", help="Model name (subdir under Resources/v{version}/)")
 parser.add_argument("--expr", default="", help="Expression file name to set")
 parser.add_argument("--frames", type=int, default=1, help="Number of frames to render before screenshot")
@@ -30,29 +29,16 @@ parser.add_argument("--width", type=int, default=400, help="Canvas width")
 parser.add_argument("--height", type=int, default=500, help="Canvas height")
 args = parser.parse_args()
 
-# ---- Import the right SDK ----
-if args.version == "v2cpp":
-    import live2d
-    ModelClass = live2d.Model
-elif args.version == "v2":
-    import live2d.v2 as live2d
-    ModelClass = live2d.Model
-else:
-    import live2d
-    ModelClass = live2d.Model
+# ---- Import the SDK ----
+import live2d
+
+ModelClass = live2d.Model
 
 # ---- Resolve model & resources ----
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 RESOURCES = os.path.join(SCRIPT_DIR, "..", "Resources")
 
 MODEL_CONFIGS = {
-    "v2": {
-        "":        ("v2/托尔/model0.json",              "f01.exp.json"),
-        "tor":     ("v2/托尔/model0.json",              "f01.exp.json"),
-        "haru":    ("v2/haru/haru.model.json",           "f01.exp.json"),
-        "kasumi2": ("v2/kasumi2/kasumi2.model.json",     None),
-        "shizuku": ("v2/shizuku/shizuku.model.json",     None),
-    },
     "v2cpp": {
         "":        ("v2/托尔/model0.json",              "f01.exp.json"),
         "tor":     ("v2/托尔/model0.json",              "f01.exp.json"),

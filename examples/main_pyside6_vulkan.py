@@ -90,7 +90,12 @@ class VulkanWindow(QWindow):
         if event.timerId() == self._timer_id and self.model is not None:
             self.model.Update()
             # Vulkan 帧 (acquire → clear → draw → present) 全部在 Draw() 内部完成
+            live2d.vkBeginFrame()
             self.model.Draw()
+            live2d.vkEndFrame()
+
+            live2d.vkGetHandles()
+            
             if self.model.IsMotionFinished():
                 self.model.StartRandomMotion(priority=3)
 

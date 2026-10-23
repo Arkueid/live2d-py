@@ -70,19 +70,42 @@ static PyObject* live2d_dispose() {
     Py_RETURN_NONE;
 }
 
+// 后端专属入口的运行时校验。
+// Dual 构建下 GL / Vulkan 的编译期宏同时成立，因此不能再用 #if 区分后端，
+// 必须按 Common::Backend 的运行时状态判断；不匹配时抛 RuntimeError。
+static bool RequireBackend(Live2D::Common::Backend::Type want, const char* funcName) {
+    if (Live2D::Common::Backend::GetBackend() != want) {
+        const char* wantName =
+            want == Live2D::Common::Backend::BACKEND_OPENGL ? "opengl" : "vulkan";
+        PyErr_Format(PyExc_RuntimeError, "%s requires %s backend", funcName, wantName);
+        return false;
+    }
+    return true;
+}
+
+// 初始化入口互斥：glInit / vkInit 只能成功调用其中一个
+static bool RejectIfBackendInitialized(const char* funcName) {
+    if (Live2D::Common::Backend::GetBackend() != Live2D::Common::Backend::BACKEND_NONE) {
+        PyErr_Format(PyExc_RuntimeError,
+                     "%s: graphics backend is already initialized "
+                     "(call glRelease/vkDestroy before initializing again)",
+                     funcName);
+        return true;
+    }
+    return false;
+}
+
 
 static PyObject* live2d_glInit() {
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    static bool sGLInitialized = false;
-    if (sGLInitialized) {
-        LOGE("live2d.glInit double called");
-        Py_RETURN_NONE;
+    if (RejectIfBackendInitialized("glInit")) {
+        return NULL;
     }
 
     if (!gladLoadGL()) {
-        LOGE("Can't initilize glad.");
+        PyErr_SetString(PyExc_RuntimeError, "Can't initialize glad");
+        return NULL;
     }
-    sGLInitialized = true;
     Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_OPENGL);
 
 #ifdef DEBUG_ENABLE_CALLSTACK
@@ -97,24 +120,35 @@ static PyObject* live2d_glInit() {
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, NULL, GL_TRUE);
 #endif
 #else
-    LOGE("live2d.glInit Vulkan build not supported");
-    abort();
-#endif   // CSM_TARGET_VULKAN
+    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this platform");
+    return NULL;
+#endif
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_glRelease() {
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+    // 已释放时幂等返回（便于 finally 清理）；Vulkan 会话下调 glRelease 才是错误
+    if (Common::Backend::GetBackend() == Live2D::Common::Backend::BACKEND_NONE) {
+        Py_RETURN_NONE;
+    }
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_OPENGL, "glRelease")) {
+        return NULL;
+    }
     Csm::Rendering::CubismRenderer::StaticRelease();
+    Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_NONE);
 #else
-    LOGE("live2d.glRelease Vulkan build not supported");
-    abort();
-#endif   // CSM_TARGET_VULKAN
+    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this platform");
+    return NULL;
+#endif
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_OPENGL, "clearBuffer")) {
+        return NULL;
+    }
     // 默认为黑色
     float r = 0.0, g = 0.0, b = 0.0, a = 0.0;
 
@@ -127,14 +161,14 @@ static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
     glClear(GL_COLOR_BUFFER_BIT);
     glClearDepth(1.0);
 #else
-    LOGE("live2d.clearBuffer Vulkan build not supported");
-    abort();
-#endif   // CSM_TARGET_VULKAN
+    PyErr_SetString(PyExc_RuntimeError, "OpenGL backend is not supported on this platform");
+    return NULL;
+#endif
     Py_RETURN_NONE;
 }
 
 // ---- vkInit / vkDestroy ---------------------------------------------------
-// Python 侧始终可见；非 Vulkan 构建时 LOGE + abort，避免误调用。
+// Python 侧始终可见；非 Vulkan 平台构建时抛 RuntimeError。
 // Vulkan 构建时 surface 创建由 VulkanManager 内部的平台标准实现
 // (vkCreate*Surface) 完成，pyd 不依赖 glfw。
 // 实例扩展 (VK_KHR_surface / VK_KHR_*_surface / debug_utils) 全部由
@@ -145,6 +179,10 @@ static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
 // shader 经 FileUtils 的 LoadFileAsBytes 加载，并被重定向到 SHADER_DIR。
 static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
 #ifdef CSM_TARGET_VULKAN
+    if (RejectIfBackendInitialized("vkInit")) {
+        return NULL;
+    }
+
     unsigned long long windowAddr = 0;
     unsigned long long displayAddr = 0;
     if (!PyArg_ParseTuple(args, "K|K", &windowAddr, &displayAddr)) {
@@ -179,19 +217,26 @@ static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
         vkManager->GetDepthFormat());
     Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_VULKAN);
 #else
-    LOGE("vkInit called but Vulkan backend is not enabled in this build");
-    std::abort();
-    // unreachable
+    PyErr_SetString(PyExc_RuntimeError, "Vulkan backend is not supported on this platform");
+    return NULL;
 #endif
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_vk_destroy(PyObject* /*self*/, PyObject* /*args*/) {
 #ifdef CSM_TARGET_VULKAN
+    // 已释放时幂等返回（便于 finally 清理）；OpenGL 会话下调 vkDestroy 才是错误
+    if (Common::Backend::GetBackend() == Live2D::Common::Backend::BACKEND_NONE) {
+        Py_RETURN_NONE;
+    }
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkDestroy")) {
+        return NULL;
+    }
     VulkanManager::GetInstance()->Destroy();
+    Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_NONE);
 #else
-    LOGE("vkDestroy called but Vulkan backend is not enabled in this build");
-    std::abort();
+    PyErr_SetString(PyExc_RuntimeError, "Vulkan backend is not supported on this platform");
+    return NULL;
 #endif
     Py_RETURN_NONE;
 }
@@ -207,6 +252,9 @@ static PyObject* live2d_vk_destroy(PyObject* /*self*/, PyObject* /*args*/) {
 //                       提交并等待完成（纹理上传等一次性 GPU 操作）
 static PyObject* live2d_vk_get_handles(PyObject* /*self*/, PyObject* /*args*/) {
 #ifdef CSM_TARGET_VULKAN
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkGetHandles")) {
+        return NULL;
+    }
     VulkanManager* vkManager = VulkanManager::GetInstance();
     if (!vkManager->IsInitialized()) {
         PyErr_SetString(PyExc_RuntimeError, "Vulkan is not initialized (call vkInit first)");
@@ -223,13 +271,16 @@ static PyObject* live2d_vk_get_handles(PyObject* /*self*/, PyObject* /*args*/) {
                          "frames_in_flight",
                          (unsigned int)vkManager->GetFramesInFlight());
 #else
-    LOGE("vkGetHandles called but Vulkan backend is not enabled in this build");
-    std::abort();
+    PyErr_SetString(PyExc_RuntimeError, "Vulkan backend is not supported on this platform");
+    return NULL;
 #endif
 }
 
 static PyObject* live2d_vk_begin_frame(PyObject* /*self*/, PyObject* /*args*/) {
 #ifdef CSM_TARGET_VULKAN
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkBeginFrame")) {
+        return NULL;
+    }
     VulkanManager* vkManager = VulkanManager::GetInstance();
     if (!vkManager->BeginFrame()) {
         Py_RETURN_NONE;   // 交换链失效/重建，本帧跳过
@@ -241,23 +292,29 @@ static PyObject* live2d_vk_begin_frame(PyObject* /*self*/, PyObject* /*args*/) {
                          (unsigned int)extent.width,
                          (unsigned int)extent.height);
 #else
-    LOGE("vkBeginFrame called but Vulkan backend is not enabled in this build");
-    std::abort();
+    PyErr_SetString(PyExc_RuntimeError, "Vulkan backend is not supported on this platform");
+    return NULL;
 #endif
 }
 
 static PyObject* live2d_vk_end_frame(PyObject* /*self*/, PyObject* /*args*/) {
 #ifdef CSM_TARGET_VULKAN
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkEndFrame")) {
+        return NULL;
+    }
     VulkanManager::GetInstance()->EndFrame();
 #else
-    LOGE("vkEndFrame called but Vulkan backend is not enabled in this build");
-    std::abort();
+    PyErr_SetString(PyExc_RuntimeError, "Vulkan backend is not supported on this platform");
+    return NULL;
 #endif
     Py_RETURN_NONE;
 }
 
 static PyObject* live2d_vk_submit_once(PyObject* /*self*/, PyObject* args) {
 #ifdef CSM_TARGET_VULKAN
+    if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkSubmitOnce")) {
+        return NULL;
+    }
     PyObject* callback = NULL;
     if (!PyArg_ParseTuple(args, "O", &callback) || !PyCallable_Check(callback)) {
         PyErr_SetString(PyExc_TypeError, "expected a callable");
@@ -283,8 +340,8 @@ static PyObject* live2d_vk_submit_once(PyObject* /*self*/, PyObject* args) {
 
     vkManager->SubmitCommand(cmd);
 #else
-    LOGE("vkSubmitOnce called but Vulkan backend is not enabled in this build");
-    std::abort();
+    PyErr_SetString(PyExc_RuntimeError, "Vulkan backend is not supported on this platform");
+    return NULL;
 #endif
     Py_RETURN_NONE;
 }
@@ -342,6 +399,18 @@ static PyObject* live2d_get_log_level(PyObject* self, PyObject* args) {
     return Py_BuildValue("i", GetLive2DLogLevel());
 }
 
+static PyObject* live2d_supported_backends(PyObject* self, PyObject* args) {
+#if defined(CSM_TARGET_VULKAN) && (!defined(CSM_TARGET_WIN_GL) && !defined(CSM_TARGET_LINUX_GL) && !defined(CSM_TARGET_MAC_GL))
+    return Py_BuildValue("s", "Vulkan");
+#endif
+#if !defined(CSM_TARGET_VULKAN) && (defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL))
+    return Py_BuildValue("s", "OpenGL");
+#endif
+#if (defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)) && defined(CSM_TARGET_VULKAN)
+    return Py_BuildValue("s", "Vulkan | OpenGL");
+#endif
+}
+
 // 定义live2d模块的方法
 static PyMethodDef live2d_methods[] = {
     {"init_internal", (PyCFunction)live2d_init_internal, METH_VARARGS, ""},
@@ -359,6 +428,7 @@ static PyMethodDef live2d_methods[] = {
     {"isLogEnabled", (PyCFunction)live2d_is_log_enabled, METH_VARARGS, ""},
     {"setLogLevel", (PyCFunction)live2d_set_log_level, METH_VARARGS, ""},
     {"getLogLevel", (PyCFunction)live2d_get_log_level, METH_VARARGS, ""},
+    {"supportedBackends", (PyCFunction)live2d_supported_backends, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}};
 
 // 定义live2d模块

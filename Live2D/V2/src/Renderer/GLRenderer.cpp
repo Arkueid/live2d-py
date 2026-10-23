@@ -3,7 +3,9 @@
 #include "ClippingManagerOpenGL.hpp"
 #include "ClipContext.hpp"
 #include "Moc.hpp"
+#include "FileUtils.hpp"
 #include <cstring>
+#include <string>
 #ifdef __ANDROID__
 #include <GLES3/gl3.h>
 #endif
@@ -14,96 +16,25 @@ namespace V2 {
 
 using namespace Live2D::Common::Log;
 
-// GLSL shaders – exact match of Python v2 draw_param_opengl.py
-// Version string (first line of each shader)
-#define SHADER_VER "#version 120\n"
-
-// -- Normal vertex (aK in Python) -- v_clipPos = gl_Position
-static const char* sVertNormal =
-    SHADER_VER "attribute vec2 a_position;"
-               "attribute vec2 a_texCoord;"
-               "varying vec2 v_texCoord;"
-               "varying vec4 v_clipPos;"
-               "uniform mat4 u_mvpMatrix;"
-               "void main(){"
-               "    gl_Position = u_mvpMatrix * vec4(a_position, 0.0, 1.0);"
-               "    v_clipPos = gl_Position;"
-               "    v_texCoord = a_texCoord;"
-               "    v_texCoord.y = 1.0 - v_texCoord.y;"
-               "}";
-
-// -- Normal fragment (aM in Python) -- with u_maskFlag for mask rendering pass
-static const char* sFragNormal = SHADER_VER
-    "#ifdef GL_ES\n"
-    "precision mediump float;\n"
-    "#endif\n"
-    "varying vec2 v_texCoord;"
-    "varying vec4 v_clipPos;"
-    "uniform sampler2D s_texture0;"
-    "uniform vec4 u_channelFlag;"
-    "uniform vec4 u_baseColor;"
-    "uniform bool u_maskFlag;"
-    "uniform vec4 u_screenColor;"
-    "uniform vec4 u_multiplyColor;"
-    "void main(){"
-    "    vec4 smpColor;"
-    "    if(u_maskFlag){"
-    "        float isInside = "
-    "            step(u_baseColor.x, v_clipPos.x/v_clipPos.w)"
-    "          * step(u_baseColor.y, v_clipPos.y/v_clipPos.w)"
-    "          * step(v_clipPos.x/v_clipPos.w, u_baseColor.z)"
-    "          * step(v_clipPos.y/v_clipPos.w, u_baseColor.w);"
-    "        smpColor = u_channelFlag * texture2D(s_texture0, v_texCoord).a * isInside;"
-    "    }else{"
-    "        smpColor = texture2D(s_texture0, v_texCoord);"
-    "        smpColor.rgb = smpColor.rgb * smpColor.a;"
-    "        smpColor.rgb = smpColor.rgb * u_multiplyColor.rgb;"
-    "        smpColor.rgb = smpColor.rgb + u_screenColor.rgb - (smpColor.rgb * u_screenColor.rgb);"
-    "        smpColor = smpColor * u_baseColor;"
-    "    }"
-    "    gl_FragColor = smpColor;"
-    "}";
-
-// -- Mask vertex (aL in Python) -- v_clipPos = u_clipMatrix * pos; u_mvpMatrix for position
-static const char* sVertMask = SHADER_VER "attribute vec2 a_position;"
-                                          "attribute vec2 a_texCoord;"
-                                          "varying vec2 v_texCoord;"
-                                          "varying vec4 v_clipPos;"
-                                          "uniform mat4 u_mvpMatrix;"
-                                          "uniform mat4 u_clipMatrix;"
-                                          "void main(){"
-                                          "    vec4 pos = vec4(a_position, 0.0, 1.0);"
-                                          "    gl_Position = u_mvpMatrix * pos;"
-                                          "    v_clipPos = u_clipMatrix * pos;"
-                                          "    v_texCoord = a_texCoord;"
-                                          "    v_texCoord.y = 1.0 - v_texCoord.y;"
-                                          "}";
-
-// -- Mask fragment (aJ in Python)
-static const char* sFragMask = SHADER_VER
-    "#ifdef GL_ES\n"
-    "precision mediump float;\n"
-    "#endif\n"
-    "varying vec2 v_texCoord;"
-    "varying vec4 v_clipPos;"
-    "uniform sampler2D s_texture0;"
-    "uniform sampler2D s_texture1;"
-    "uniform vec4 u_channelFlag;"
-    "uniform vec4 u_baseColor;"
-    "uniform vec4 u_screenColor;"
-    "uniform vec4 u_multiplyColor;"
-    "void main(){"
-    "    vec4 col_formask = texture2D(s_texture0, v_texCoord);"
-    "    col_formask.rgb = col_formask.rgb * col_formask.a;"
-    "    col_formask.rgb = col_formask.rgb * u_multiplyColor.rgb;"
-    "    col_formask.rgb = col_formask.rgb + u_screenColor.rgb - (col_formask.rgb * "
-    "u_screenColor.rgb);"
-    "    col_formask = col_formask * u_baseColor;"
-    "    vec4 clipMask = texture2D(s_texture1, v_clipPos.xy / v_clipPos.w) * u_channelFlag;"
-    "    float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;"
-    "    col_formask = col_formask * maskVal;"
-    "    gl_FragColor = col_formask;"
-    "}";
+// GLSL shader 源文件按 V3 Framework 的方式管理：
+//   源文件位于 Live2D/V2/shaders/opengl/，构建时拷到 package/live2d/FrameworkShaders，
+//   运行时经 Common::FileUtils 的 SHADER_DIR 重定向读取。
+// 文件名（带 V2 前缀，避免与 V3 的 VertShaderSrc*/FragShaderSrc* 冲突）：
+//   V2NormalGL.vert / V2NormalGL.frag / V2MaskGL.vert / V2MaskGL.frag
+static std::string LoadShaderSource(const char* fileName) {
+    const std::string path = std::string("FrameworkShaders/") + fileName;
+    unsigned int size = 0;
+    unsigned char* bytes = Live2D::Common::FileUtils::LoadFileAsBytes(path, &size);
+    if (bytes == nullptr || size == 0) {
+        LOGE("Failed to load shader file: %s", path.c_str());
+        if (bytes != nullptr)
+            Live2D::Common::FileUtils::ReleaseBytes(bytes);
+        return std::string();
+    }
+    std::string source(reinterpret_cast<const char*>(bytes), size);
+    Live2D::Common::FileUtils::ReleaseBytes(bytes);
+    return source;
+}
 
 GLRenderer::GLRenderer(Moc* moc, int textureCount)
     : mShaderNormal(0)
@@ -162,9 +93,11 @@ GLuint GLRenderer::CompileShader(GLenum type, const char* src) {
 }
 
 void GLRenderer::InitShaders() {
-    // Normal program: aK vertex + aM fragment
-    GLuint vsNorm = CompileShader(GL_VERTEX_SHADER, sVertNormal);
-    GLuint fsNorm = CompileShader(GL_FRAGMENT_SHADER, sFragNormal);
+    // Normal program: V2NormalGL.vert + V2NormalGL.frag
+    const std::string normVertSrc = LoadShaderSource("V2NormalGL.vert");
+    const std::string normFragSrc = LoadShaderSource("V2NormalGL.frag");
+    GLuint vsNorm = CompileShader(GL_VERTEX_SHADER, normVertSrc.c_str());
+    GLuint fsNorm = CompileShader(GL_FRAGMENT_SHADER, normFragSrc.c_str());
     mShaderNormal = glCreateProgram();
     glAttachShader(mShaderNormal, vsNorm);
     glAttachShader(mShaderNormal, fsNorm);
@@ -183,9 +116,11 @@ void GLRenderer::InitShaders() {
     glDeleteShader(vsNorm);
     glDeleteShader(fsNorm);
 
-    // Mask program: aL vertex + aJ fragment
-    GLuint vsMask = CompileShader(GL_VERTEX_SHADER, sVertMask);
-    GLuint fsMask = CompileShader(GL_FRAGMENT_SHADER, sFragMask);
+    // Mask program: V2MaskGL.vert + V2MaskGL.frag
+    const std::string maskVertSrc = LoadShaderSource("V2MaskGL.vert");
+    const std::string maskFragSrc = LoadShaderSource("V2MaskGL.frag");
+    GLuint vsMask = CompileShader(GL_VERTEX_SHADER, maskVertSrc.c_str());
+    GLuint fsMask = CompileShader(GL_FRAGMENT_SHADER, maskFragSrc.c_str());
     mShaderMask = glCreateProgram();
     glAttachShader(mShaderMask, vsMask);
     glAttachShader(mShaderMask, fsMask);

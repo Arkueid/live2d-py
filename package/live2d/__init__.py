@@ -2,6 +2,7 @@ __version__ = "1.0.0"
 __csm_version__ = "5-r.5"
 __official_site__ = "https://www.live2d.com/en/sdk/about/"
 
+from ._live2d import *
 
 def __print_banner():
       import sys
@@ -13,15 +14,14 @@ def __print_banner():
 
       print(f"\033[95m{_L}\033[0m\n"
             f"  \033[93m{_S}\033[0m \033[1m\033[96mlive2d-py\033[0m  \033[2m{_D}\033[0m  \033[1mNon-official live2d library\033[0m\n"
-            f"      \033[2mversion\033[0m  \033[92m\033[1m{__version__}\033[0m\n"
-            f"      \033[2m CsmSDK\033[0m  \033[92m\033[1m{__csm_version__}\033[0m\n"
-            f"     \033[2mOfficial\033[0m  \033[92m\033[1m{__official_site__}\033[0m\n"
+            f"           \033[2mversion\033[0m  \033[92m\033[1m{__version__}\033[0m\n"
+            f"           \033[2m CsmSDK\033[0m  \033[92m\033[1m{__csm_version__}\033[0m\n"
+            f"         \033[2mSupported\033[0m  \033[92m\033[1m{supportedBackends()}\033[0m\n"
             f"\033[95m{_L}\033[0m")
 
 __print_banner()
 
 
-from ._live2d import *
 
 
 class LogLevels:

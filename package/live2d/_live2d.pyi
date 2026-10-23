@@ -144,11 +144,18 @@ def init() -> None:
     ...
 
 def glInit() -> None:
-    """Initialize OpenGL function pointers."""
+    """Initialize OpenGL function pointers and select the OpenGL backend.
+
+    Raises RuntimeError if a backend (OpenGL or Vulkan) is already initialized,
+    or if this build/platform does not support OpenGL.
+    """
     ...
 
 def glRelease() -> None:
-    """Release OpenGL resources."""
+    """Release OpenGL resources and reset the backend state (no-op when idle).
+
+    Raises RuntimeError if the current backend is Vulkan.
+    """
     ...
 
 def dispose() -> None:
@@ -160,11 +167,15 @@ def clearBuffer(r: float = 0.0, g: float = 0.0, b: float = 0.0, a: float = 0.0) 
     ...
 
 # ---- Vulkan backend ----
-# vkInit / vkDestroy 在所有构建的 pyd 中都存在；
-# 非 Vulkan 构建时调用会 LOGE 后 abort。
+# vk* 入口在所有构建的 pyd 中都存在：
+#   - 当前后端不是 Vulkan（含未初始化/已销毁）时抛 RuntimeError
+#   - 该平台未编译 Vulkan 支持时抛 RuntimeError
 
 def vkInit(window_ptr: int, display_ptr: int = 0) -> None:
-    """Initialize Vulkan instance/device/swapchain.
+    """Initialize Vulkan instance/device/swapchain and select the Vulkan backend.
+
+    Raises RuntimeError if a backend (OpenGL or Vulkan) is already initialized,
+    or if this build/platform does not support Vulkan.
 
     window_ptr: 原生窗口句柄（Windows: HWND，可经 glfwGetWin32Window 获取）
     display_ptr: 显示连接（X11/Wayland 用，Windows 传 0）
@@ -176,7 +187,10 @@ def vkInit(window_ptr: int, display_ptr: int = 0) -> None:
     ...
 
 def vkDestroy() -> None:
-    """Destroy Vulkan resources."""
+    """Destroy Vulkan resources and reset the backend state (no-op when idle).
+
+    Raises RuntimeError if the current backend is OpenGL.
+    """
     ...
 
 def vkGetHandles() -> dict[str, int]:
@@ -226,3 +240,6 @@ def setLogLevel(level: int) -> None:
 def getLogLevel() -> int:
     """Get current log level."""
     ...
+
+def supportedBackends() -> str:
+    """Get supported backend string"""
