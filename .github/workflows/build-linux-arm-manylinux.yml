@@ -5,6 +5,7 @@ on:
     tags:
       - "v*.*.*"
     branches: [ manylinux-arm, build-all ]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -35,6 +36,7 @@ jobs:
         run: |
           docker run --rm \
             -v $PWD:/work -w /work \
+            -e GITHUB_REF \
             quay.io/pypa/manylinux_2_28_aarch64 \
             bash -c '
             set -e
@@ -59,11 +61,13 @@ jobs:
               auditwheel repair "$whl" -w dist/
             done
 
-            # Verify: metadata check + install + import with the building interpreter
-            "$PYBIN/pip" install twine
-            "$PYBIN/python" -m twine check dist/*.whl
+            # Verify: install + import always; twine metadata check only on release tags
             "$PYBIN/pip" install --force-reinstall dist/*.whl
             "$PYBIN/python" -c "import live2d"
+            if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+              "$PYBIN/pip" install twine
+              "$PYBIN/python" -m twine check dist/*.whl
+            fi
 
             chown -R $(stat -c "%u:%g" /work) /work/dist /work/build
 
