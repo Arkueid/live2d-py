@@ -1,4 +1,13 @@
-﻿#include <CubismUserModelProxy.hpp>
+﻿#include "GraphicsBackend.hpp"
+#include "Log.hpp"
+#include "Rendering/CubismRenderer.hpp"
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+#include "Rendering/OpenGL/CubismRenderer_OpenGLES2.hpp"
+#endif
+#ifdef CSM_TARGET_VULKAN
+#include "Rendering/Vulkan/CubismRenderer_Vulkan.hpp"
+#endif
+#include <CubismUserModelProxy.hpp>
 
 #include <CubismFramework.hpp>
 #include <Utils/CubismJson.hpp>
@@ -8,6 +17,33 @@
 using namespace Live2D::Cubism::Framework;
 
 namespace Live2D {
+Rendering::CubismRenderer* Rendering::CubismRenderer::Create(csmUint32 width, csmUint32 height) {
+#ifdef CSM_TARGET_VULKAN
+    if (Common::Backend::IsVulkan()) {
+        return CSM_NEW Rendering::CubismRenderer_Vulkan(width, height);
+    }
+#endif
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+    if (Common::Backend::IsOpenGL()) {
+        return CSM_NEW Rendering::CubismRenderer_OpenGLES2(width, height);
+    }
+#endif
+    LOGF("Backend is not set or invalid");
+}
+
+void Rendering::CubismRenderer::StaticRelease() {
+#ifdef CSM_TARGET_VULKAN
+    if (Common::Backend::IsVulkan()) {
+        return CubismRenderer_Vulkan::DoStaticRelease();
+    }
+#endif
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+    if (Common::Backend::IsOpenGL()) {
+        return CubismRenderer_OpenGLES2::DoStaticRelease();
+    }
+#endif
+}
+
 namespace V3 {
 
 namespace {
@@ -96,14 +132,11 @@ void FixMotionJson(std::string& jsonStr) {
 
 }   // namespace
 
-Csm::ACubismMotion* CubismUserModelProxy::LoadMotion(
-    const Csm::csmByte* buffer,
-    Csm::csmSizeInt size,
-    const Csm::csmChar* name,
-    Csm::ICubismModelSetting* modelSetting,
-    const Csm::csmChar* group,
-    Csm::csmInt32 index,
-    csmBool shouldCheckMotionConsistency) {
+Csm::ACubismMotion* CubismUserModelProxy::LoadMotion(const Csm::csmByte* buffer,
+                                                     Csm::csmSizeInt size, const Csm::csmChar* name,
+                                                     Csm::ICubismModelSetting* modelSetting,
+                                                     const Csm::csmChar* group, Csm::csmInt32 index,
+                                                     csmBool shouldCheckMotionConsistency) {
     std::string fixed(reinterpret_cast<const char*>(buffer), size);
     FixMotionJson(fixed);
     return CubismUserModel::LoadMotion(reinterpret_cast<const Csm::csmByte*>(fixed.data()),
@@ -125,7 +158,7 @@ bool CubismUserModelProxy::IsHit(CubismIdHandle drawableId, Csm::csmFloat32 poin
 
     const Csm::csmInt32 count = _model->GetDrawableVertexCount(drawIndex);
     const Csm::csmFloat32* vertices = _model->GetDrawableVertices(drawIndex);
-    
+
     Csm::csmFloat32 left = vertices[0];
     Csm::csmFloat32 right = vertices[0];
     Csm::csmFloat32 top = vertices[1];

@@ -1,4 +1,5 @@
 ﻿#include "V3/Model.hpp"
+#include "GraphicsBackend.hpp"
 #include "IModel.hpp"
 #include "Motion/ACubismMotion.hpp"
 #include "Rendering/CubismRenderer.hpp"
@@ -68,15 +69,9 @@ csmString JoinPath(const csmString& homeDir, const char* rel) {
 }
 }   // namespace
 
-Model::Model()
-    : mModelSetting(nullptr)
-    , mMatrixManager()
-    , mParameterCount(0)
-    , mParameterDefaultValues(nullptr)
-    , mParameterValues(nullptr)
-    , mTmpOrderedDrawIndice(nullptr)
-    , autoBlink(true)
-    , autoBreath(true) {
+Model::Model() :
+    mModelSetting(nullptr), mMatrixManager(), mParameterCount(0), mParameterDefaultValues(nullptr),
+    mParameterValues(nullptr), mTmpOrderedDrawIndice(nullptr), autoBlink(true), autoBreath(true) {
     mProxy._mocConsistency = true;
 
     mIdParamAngleX = CubismFramework::GetIdManager()->GetId(ParamAngleX);
@@ -489,16 +484,22 @@ void Model::SaveParameters() {
 void Model::Resize(int width, int height) {
     mMatrixManager.OnResize(width, height);
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
-    if (renderer) {
-        renderer->SetRenderTargetSize(width, height);
+    if (Common::Backend::IsOpenGL()) {
+        auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
+        if (renderer) {
+            renderer->SetRenderTargetSize(width, height);
+        }
+        return;
     }
 #endif
 
 #ifdef CSM_TARGET_VULKAN
-    auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
-    if (renderer) {
-        renderer->SetRenderTargetSize(width, height);
+    if (Common::Backend::IsVulkan()) {
+        auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
+        if (renderer) {
+            renderer->SetRenderTargetSize(width, height);
+        }
+        return;
     }
 #endif
 }
@@ -679,8 +680,8 @@ int Model::LoadExtraMotion(const char* group, const char* motionJsonPath) {
 
         const csmString name = Utils::CubismString::GetFormatedString("%s_%d", group, no);
 
-        CubismMotion* tmpMotion = static_cast<CubismMotion*>(mProxy.LoadMotion(
-            buffer, size, name.GetRawString(), mModelSetting, group, no));
+        CubismMotion* tmpMotion = static_cast<CubismMotion*>(
+            mProxy.LoadMotion(buffer, size, name.GetRawString(), mModelSetting, group, no));
 
         if (tmpMotion) {
             tmpMotion->SetEffectIds(mEyeBlinkIds, mLipSyncIds);
@@ -966,24 +967,28 @@ void Model::Drag(float x, float y) {
 
 void Model::CreateRenderer(int maskBufferCount) {
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    if (mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()) {
-        LOGW("Renderer already exists, skipping creation");
-        return;
+    if (Common::Backend::IsOpenGL()) {
+        if (mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()) {
+            LOGW("Renderer already exists, skipping creation");
+            return;
+        }
+        LOGI("Creating OpenGL ES2 renderer");
     }
-    LOGI("Creating OpenGL ES2 renderer");
 #endif
 
 #ifdef CSM_TARGET_VULKAN
-    if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
-        LOGW("Renderer already exists, skipping creation");
-        return;
+    if (Common::Backend::IsVulkan()) {
+        if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
+            LOGW("Renderer already exists, skipping creation");
+            return;
+        }
+        if (!VulkanManager::GetInstance()->IsInitialized()) {
+            // Vulkan デバイス未初期化（オフスクリーン用途等）ではレンダラを作らない
+            LOGW("Vulkan is not initialized, skipping renderer creation");
+            return;
+        }
+        LOGI("Creating Vulkan renderer");
     }
-    if (!VulkanManager::GetInstance()->IsInitialized()) {
-        // Vulkan デバイス未初期化（オフスクリーン用途等）ではレンダラを作らない
-        LOGW("Vulkan is not initialized, skipping renderer creation");
-        return;
-    }
-    LOGI("Creating Vulkan renderer");
 #endif
     mTextureManager.ReleaseTextures();
     mProxy.CreateRenderer(mMatrixManager.GetWidth(), mMatrixManager.GetHeight(), maskBufferCount);
@@ -994,13 +999,15 @@ void Model::DestroyRenderer() {
     mTextureManager.ReleaseTextures();
     mProxy.DeleteRenderer();
 #ifdef CSM_TARGET_VULKAN
-    // Framework 的管线/设备资源寄存在静态 s_deviceInfoList（CubismDeviceInfo_Vulkan），
-    // 无人释放会拖到进程退出的静态析构——晚于 vkDestroyDevice，触发
-    // "vkDestroyPipeline: Invalid device"。删渲染器后在此归还设备信息；
-    // 下一个 v3 模型会经 GetDeviceInfo 按需重建。
-    if (VulkanManager::GetInstance()->IsInitialized()) {
-        Rendering::CubismDeviceInfo_Vulkan::ReleaseDeviceInfo(
-            VulkanManager::GetInstance()->GetDevice());
+    if (Common::Backend::IsVulkan()) {
+        // Framework 的管线/设备资源寄存在静态 s_deviceInfoList（CubismDeviceInfo_Vulkan），
+        // 无人释放会拖到进程退出的静态析构——晚于 vkDestroyDevice，触发
+        // "vkDestroyPipeline: Invalid device"。删渲染器后在此归还设备信息；
+        // 下一个 v3 模型会经 GetDeviceInfo 按需重建。
+        if (VulkanManager::GetInstance()->IsInitialized()) {
+            Rendering::CubismDeviceInfo_Vulkan::ReleaseDeviceInfo(
+                VulkanManager::GetInstance()->GetDevice());
+        }
     }
 #endif
 }
@@ -1019,54 +1026,61 @@ void Model::Draw() {
     CubismMatrix44& matrix = mvp;
 
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    Rendering::CubismRenderer_OpenGLES2* renderer =
-        mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
-    if (renderer == nullptr) {
+    if (Common::Backend::IsOpenGL()) {
+        Rendering::CubismRenderer_OpenGLES2* renderer =
+            mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
+        if (renderer == nullptr) {
+            return;
+        }
+
+        renderer->SetMvpMatrix(&matrix);
+
+        renderer->DrawModel();
         return;
     }
 
-    renderer->SetMvpMatrix(&matrix);
-
-    renderer->DrawModel();
 #endif
 
 #ifdef CSM_TARGET_VULKAN
-    Rendering::CubismRenderer_Vulkan* renderer =
-        mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
-    VulkanManager* vkManager = VulkanManager::GetInstance();
-    if (renderer == nullptr || !vkManager->IsInitialized()) {
-        return;
+    if (Common::Backend::IsVulkan()) {
+        Rendering::CubismRenderer_Vulkan* renderer =
+            mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
+        VulkanManager* vkManager = VulkanManager::GetInstance();
+        if (renderer == nullptr || !vkManager->IsInitialized()) {
+            return;
+        }
+
+        // 帧解耦：acquire/clear/present 由外部 vkBeginFrame/vkEndFrame 驱动，
+        // Draw 仅向帧命令缓冲录制；mask/自有区间由渲染器经挂起/恢复钩子自管
+        if (!vkManager->IsFrameActive()) {
+            return;
+        }
+
+        SwapchainManager* swapchain = vkManager->GetSwapchainManager();
+
+        // 每帧刷新渲染目标（swapchain 图像随帧轮转）
+        Rendering::CubismRenderer_Vulkan::SetRenderTarget(vkManager->GetSwapchainImage(),
+                                                          vkManager->GetSwapchainImageView(),
+                                                          swapchain->GetSwapchainImageFormat(),
+                                                          swapchain->GetExtent());
+
+        renderer->SetMvpMatrix(&matrix);
+
+        // 注册外部帧录制：帧命令缓冲 + 主区间挂起/恢复钩子（每次 Draw 刷新）
+        Rendering::SetExternalFrameRecording(
+            vkManager->GetFrameCommandBuffer(),
+            [](VkCommandBuffer) { VulkanManager::GetInstance()->SuspendMainRegion(); },
+            [](VkCommandBuffer) { VulkanManager::GetInstance()->ResumeMainRegion(); });
+
+        // モデルで使用するオフスクリーン管理の開始
+        Rendering::CubismDeviceInfo_Vulkan* deviceInfo =
+            Rendering::CubismDeviceInfo_Vulkan::GetDeviceInfo(vkManager->GetDevice());
+        deviceInfo->GetOffscreenManager()->BeginFrameProcess();
+
+        renderer->DrawModel();
+
+        deviceInfo->GetOffscreenManager()->EndFrameProcess();
     }
-
-    // 帧解耦：acquire/clear/present 由外部 vkBeginFrame/vkEndFrame 驱动，
-    // Draw 仅向帧命令缓冲录制；mask/自有区间由渲染器经挂起/恢复钩子自管
-    if (!vkManager->IsFrameActive()) {
-        return;
-    }
-
-    SwapchainManager* swapchain = vkManager->GetSwapchainManager();
-
-    // 每帧刷新渲染目标（swapchain 图像随帧轮转）
-    Rendering::CubismRenderer_Vulkan::SetRenderTarget(
-        vkManager->GetSwapchainImage(), vkManager->GetSwapchainImageView(),
-        swapchain->GetSwapchainImageFormat(), swapchain->GetExtent());
-
-    renderer->SetMvpMatrix(&matrix);
-
-    // 注册外部帧录制：帧命令缓冲 + 主区间挂起/恢复钩子（每次 Draw 刷新）
-    Rendering::SetExternalFrameRecording(
-        vkManager->GetFrameCommandBuffer(),
-        [](VkCommandBuffer) { VulkanManager::GetInstance()->SuspendMainRegion(); },
-        [](VkCommandBuffer) { VulkanManager::GetInstance()->ResumeMainRegion(); });
-
-    // モデルで使用するオフスクリーン管理の開始
-    Rendering::CubismDeviceInfo_Vulkan* deviceInfo =
-        Rendering::CubismDeviceInfo_Vulkan::GetDeviceInfo(vkManager->GetDevice());
-    deviceInfo->GetOffscreenManager()->BeginFrameProcess();
-
-    renderer->DrawModel();
-
-    deviceInfo->GetOffscreenManager()->EndFrameProcess();
 #endif
 }
 
@@ -1378,56 +1392,66 @@ void Model::SetupTextures() {
 
 // 已经加载过的纹理会直接复用
 #ifdef CSM_TARGET_VULKAN
-        Rendering::CubismRenderer_Vulkan* renderer =
-            mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
-        if (renderer == nullptr) {
-            continue;
-        }
-        LAppTextureManager::TextureInfo* texture = mTextureManager.CreateTextureFromPngFile(
-            texturePath.GetRawString(), VulkanManager::GetInstance()->GetImageFormat(),
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                VK_IMAGE_USAGE_SAMPLED_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, renderer->GetAnisotropy());
-        if (texture) {
-            CubismImageVulkan image;
-            if (mTextureManager.GetTexture(texture->id, image)) {
-                renderer->BindTexture(image);
+        if (Common::Backend::IsVulkan()) {
+            Rendering::CubismRenderer_Vulkan* renderer =
+                mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
+            if (renderer == nullptr) {
+                continue;
+            }
+            LAppTextureManager::TextureInfo* texture = mTextureManager.CreateTextureFromPngFile(
+                texturePath.GetRawString(),
+                VulkanManager::GetInstance()->GetImageFormat(),
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                    VK_IMAGE_USAGE_SAMPLED_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                renderer->GetAnisotropy());
+            if (texture) {
+                CubismImageVulkan image;
+                if (mTextureManager.GetTexture(texture->id, image)) {
+                    renderer->BindTexture(image);
+                }
             }
         }
 #endif
 
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-        LAppTextureManager::TextureInfo* texture =
-            mTextureManager.CreateTextureFromPngFile(texturePath.GetRawString());
-        if (texture == nullptr) {
-            continue;
+        if (Common::Backend::IsOpenGL()) {
+            LAppTextureManager::TextureInfo* texture =
+                mTextureManager.CreateTextureFromPngFile(texturePath.GetRawString());
+            if (texture == nullptr) {
+                continue;
+            }
+            const csmInt32 glTextueNumber = texture->id;
+            // OpenGL
+            mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->BindTexture(
+                modelTextureNumber, glTextueNumber);
         }
-        const csmInt32 glTextueNumber = texture->id;
-        // OpenGL
-        mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->BindTexture(modelTextureNumber,
-                                                                               glTextueNumber);
 #endif
     }
 
 
 #ifdef PREMULTIPLIED_ALPHA_ENABLE
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(true);
+    if (Common::Backend::IsOpenGL()) {
+        mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(true);
+    }
 #endif
 
 #ifdef CSM_TARGET_VULKAN
-    if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
+    if (Common::Backend::IsVulkan()) {
         mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()->IsPremultipliedAlpha(true);
     }
 #endif
 #else
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(false);
+    if (Common::Backend::IsOpenGL()) {
+        mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(false);
+    }
 #endif
 
 #ifdef CSM_TARGET_VULKAN
-    if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
+    if (Common::Backend::IsVulkan()) {
         mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()->IsPremultipliedAlpha(false);
     }
 #endif
@@ -1451,8 +1475,8 @@ void Model::PreloadMotionGroup(const csmChar* group) {
         LOGI("load motion: %s => [%s_%d] ", path.GetRawString(), group, i);
 
         LoadAssets(path.GetRawString(), [&](csmByte* buffer, csmInt32 size) {
-            CubismMotion* tmpMotion = static_cast<CubismMotion*>(mProxy.LoadMotion(
-                buffer, size, name.GetRawString(), mModelSetting, group, i));
+            CubismMotion* tmpMotion = static_cast<CubismMotion*>(
+                mProxy.LoadMotion(buffer, size, name.GetRawString(), mModelSetting, group, i));
             if (tmpMotion) {
                 tmpMotion->SetEffectIds(mEyeBlinkIds, mLipSyncIds);
 

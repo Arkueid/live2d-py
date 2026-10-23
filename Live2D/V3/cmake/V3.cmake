@@ -1,17 +1,9 @@
 set(V3_TARGET V3)
 
-if(${GR_BACKEND} MATCHES "Vulkan")
-  set(CSM_TARGET CSM_TARGET_VULKAN)
-  add_compile_definitions(CSM_TARGET_VULKAN=1)
-endif()
 message("[GR_BACKEND] ${GR_BACKEND}")
 
 include(${CMAKE_CURRENT_LIST_DIR}/Core.cmake)
-if (${GR_BACKEND} MATCHES "Vulkan")
-  include(${CMAKE_CURRENT_LIST_DIR}/Framework.Vulkan.cmake)
-else()
-  include(${CMAKE_CURRENT_LIST_DIR}/Framework.OpenGL.cmake)
-endif()
+include(${CMAKE_CURRENT_LIST_DIR}/Framework.cmake)
 
 add_subdirectory(${LIVE2D_ROOT}/V3/src)
 

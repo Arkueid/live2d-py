@@ -112,7 +112,8 @@ public:
                                           VkImageTiling tiling, VkImageUsageFlags usage,
                                           VkMemoryPropertyFlags imageProperties,
                                           Csm::csmFloat32 anisotropy);
-#else
+#endif
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_MAC_GL) || defined(CSM_TARGET_LINUX_GL)
     /**
      * @brief 画像読み込み
      *

@@ -7,7 +7,7 @@
 # （local 文件用非 CACHE 的 set，在 include 之后对整个 configure 生效）
 
 # backend - Vulkan | OpenGL
-set(GR_BACKEND OpenGL CACHE STRING "Graphics backend: Vulkan or OpenGL")
+set(GR_BACKEND OpenGL CACHE STRING "Graphics backend: Vulkan | OpenGL | Dual")
 
 set(VIEWER off CACHE BOOL "enable viewer and disable wrapper")
 

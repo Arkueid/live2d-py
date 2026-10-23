@@ -12,10 +12,6 @@ add_library(${V2_TARGET} STATIC
     Core/WarpDeformer.cpp
     Core/Drawable.cpp
     Core/UtInterpolate.cpp
-    $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/GLRenderer.cpp>
-    $<$<STREQUAL:${GR_BACKEND},OpenGL>:Renderer/ClippingManagerOpenGL.cpp>
-    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/VkRenderer.cpp>
-    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Renderer/ClippingManagerVulkan.cpp>
     Framework/TargetPoint.cpp
     Framework/EyeBlink.cpp
     Framework/Pose.cpp
@@ -27,4 +23,18 @@ add_library(${V2_TARGET} STATIC
     Framework/Motion.cpp
     Model.cpp
 )
+
+if(${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
+    target_sources(${V2_TARGET} PRIVATE
+        Renderer/GLRenderer.cpp
+        Renderer/ClippingManagerOpenGL.cpp
+    )
+endif()
+if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
+    target_sources(${V2_TARGET} PRIVATE
+        Renderer/VkRenderer.cpp
+        Renderer/ClippingManagerVulkan.cpp
+    )
+endif()
+
 

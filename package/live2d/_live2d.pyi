@@ -179,6 +179,38 @@ def vkDestroy() -> None:
     """Destroy Vulkan resources."""
     ...
 
+def vkGetHandles() -> dict[str, int]:
+    """取 Vulkan 运行时句柄（vkInit 成功后调用）。
+
+    返回映射：
+      physical_device  int  VkPhysicalDevice 指针
+      device           int  VkDevice 指针
+      color_format     int  交换链图像格式 (VkFormat)
+      frames_in_flight int  帧在飞数量（in-flight fence 数）
+    """
+    ...
+
+def vkBeginFrame() -> tuple[int, int, int, int] | None:
+    """开始一帧：acquire 图像、打开渲染区间并清屏。
+
+    返回 (cmd_buffer, image_index, width, height)；cmd_buffer 为当前帧命令
+    缓冲指针，Draw() 会向其中录制命令。交换链失效/重建时返回 None，本帧应
+    跳过。
+    """
+    ...
+
+def vkEndFrame() -> None:
+    """结束一帧：关闭渲染区间 → 提交 → 等待 imageAvailable → present。"""
+    ...
+
+def vkSubmitOnce(callback: Callable[[int], None]) -> None:
+    """在 rendering 区间外的一次性命令缓冲上执行 callback(cmd_buffer)。
+
+    cmd_buffer 为长整型指针，适合纹理上传等一次性 GPU 操作；提交后等待完成。
+    未调用 vkInit 时抛 RuntimeError；回调抛出的异常向上传递。
+    """
+    ...
+
 def enableLog(enable: bool) -> None:
     """Enable/disable log output."""
     ...

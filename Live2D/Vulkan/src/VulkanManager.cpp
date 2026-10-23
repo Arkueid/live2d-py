@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <vector>
 
 #include "Log.hpp"
 
@@ -353,16 +354,27 @@ void VulkanManager::PickPhysicalDevice()
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
 
-    // 一番最初に取得した物理デバイスを使用する
+    VkPhysicalDeviceProperties properties{};
+    VkPhysicalDevice bestMatch = VK_NULL_HANDLE;
+    // 遍历所有物理设备，选择符合条件的设备
     for (uint32_t i = 0; i < devices.size(); i++)
     {
         if (IsDeviceSuitable(devices[i]))
         {
-            _physicalDevice = devices[i];
-            break;
+            // 优先使用独立显卡
+            vkGetPhysicalDeviceProperties(devices[i], &properties);
+            if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+                bestMatch = devices[i];
+                break;
+            }
+            // 默认选择第一个符合条件的设备，走原逻辑
+            if (bestMatch == VK_NULL_HANDLE) {
+                bestMatch = devices[i];
+            }
         }
     }
-
+    _physicalDevice = bestMatch;
+    LOGI("Device: %s", properties.deviceName);
     if (_physicalDevice == VK_NULL_HANDLE)
     {
         LOGE("failed to find a suitable GPU!");

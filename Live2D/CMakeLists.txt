@@ -42,7 +42,7 @@ endif()
 add_subdirectory(Common)
 
 # Vulkan 共通库（VulkanManager / SwapchainManager / VkUtil），V2、V3 共用
-if(${GR_BACKEND} MATCHES "Vulkan")
+if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
   add_subdirectory(Vulkan)
 endif()
 
@@ -60,6 +60,5 @@ target_include_directories(${LIVE2D_TARGET} PUBLIC ${LIVE2D_ROOT})
 target_link_libraries(${LIVE2D_TARGET} PUBLIC
     Live2D::V2
     Live2D::V3
-    $<$<STREQUAL:${GR_BACKEND},Vulkan>:Live2D::Vulkan>
 )
 add_library(Live2D::Live2D ALIAS ${LIVE2D_TARGET})

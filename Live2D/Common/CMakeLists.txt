@@ -6,6 +6,7 @@ add_library(${LIVE2D_COMMON} STATIC
     ${LIVE2D_ROOT}/Common/MatrixManager.cpp
     ${LIVE2D_ROOT}/Common/FileUtils.cpp
     ${LIVE2D_ROOT}/Common/stb_impl.cpp
+    ${LIVE2D_ROOT}/Common/GraphicsBackend.cpp
 )
 
 target_include_directories(${LIVE2D_COMMON} PUBLIC ${LIVE2D_ROOT}/Common)

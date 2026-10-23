@@ -34,6 +34,24 @@ include(cmake/Config.cmake)
 include(cmake/Config.local.cmake OPTIONAL)
 include(cmake/VersionCheck.cmake)
 
+# ---- backend target ----
+if(${GR_BACKEND} MATCHES "OpenGL" OR ${GR_BACKEND} MATCHES "Dual")
+  if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+      set(CSM_TARGET CSM_TARGET_LINUX_GL)
+  elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
+      set(CSM_TARGET CSM_TARGET_WIN_GL) # on windows, use msvc only
+  elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+      set(CSM_TARGET CSM_TARGET_MAC_GL)
+  elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
+      set(CSM_TARGET CSM_TARGET_ANDROID_ES2)
+  endif()
+  add_compile_definitions(${CSM_TARGET}=1)
+endif()
+if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
+  set(CSM_TARGET CSM_TARGET_VULKAN)
+  add_compile_definitions(CSM_TARGET_VULKAN=1)
+endif()
+
 # ---- Cubism Native SDK ----
 if (DEBUG_ENABLE_ASAN)
   message("[Asan] on")

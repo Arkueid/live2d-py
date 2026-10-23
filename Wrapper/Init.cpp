@@ -1,3 +1,4 @@
+#include "GraphicsBackend.hpp"
 #if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 #include <GL/glew.h>
 #endif
@@ -82,6 +83,7 @@ static PyObject* live2d_glInit() {
         LOGE("Can't initilize glad.");
     }
     sGLInitialized = true;
+    Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_OPENGL);
 
 #ifdef DEBUG_ENABLE_CALLSTACK
     glEnable(GL_DEBUG_OUTPUT);
@@ -175,6 +177,7 @@ static PyObject* live2d_vk_init(PyObject* /*self*/, PyObject* args) {
         vkManager->GetSwapchainImageView(),
         swapchain->GetSwapchainImageFormat(),
         vkManager->GetDepthFormat());
+    Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_VULKAN);
 #else
     LOGE("vkInit called but Vulkan backend is not enabled in this build");
     std::abort();
@@ -210,12 +213,15 @@ static PyObject* live2d_vk_get_handles(PyObject* /*self*/, PyObject* /*args*/) {
         return NULL;
     }
     SwapchainManager* swapchain = vkManager->GetSwapchainManager();
-    return Py_BuildValue(
-        "{s:K,s:K,s:i,s:I}",
-        "physical_device", (unsigned long long)vkManager->GetPhysicalDevice(),
-        "device", (unsigned long long)vkManager->GetDevice(),
-        "color_format", (int)swapchain->GetSwapchainImageFormat(),
-        "frames_in_flight", (unsigned int)vkManager->GetFramesInFlight());
+    return Py_BuildValue("{s:K,s:K,s:i,s:I}",
+                         "physical_device",
+                         (unsigned long long)vkManager->GetPhysicalDevice(),
+                         "device",
+                         (unsigned long long)vkManager->GetDevice(),
+                         "color_format",
+                         (int)swapchain->GetSwapchainImageFormat(),
+                         "frames_in_flight",
+                         (unsigned int)vkManager->GetFramesInFlight());
 #else
     LOGE("vkGetHandles called but Vulkan backend is not enabled in this build");
     std::abort();
@@ -229,12 +235,11 @@ static PyObject* live2d_vk_begin_frame(PyObject* /*self*/, PyObject* /*args*/) {
         Py_RETURN_NONE;   // 交换链失效/重建，本帧跳过
     }
     VkExtent2D extent = vkManager->GetSwapchainManager()->GetExtent();
-    return Py_BuildValue(
-        "(KIII)",
-        (unsigned long long)vkManager->GetFrameCommandBuffer(),
-        (unsigned int)vkManager->GetCurrentImageIndex(),
-        (unsigned int)extent.width,
-        (unsigned int)extent.height);
+    return Py_BuildValue("(KIII)",
+                         (unsigned long long)vkManager->GetFrameCommandBuffer(),
+                         (unsigned int)vkManager->GetCurrentImageIndex(),
+                         (unsigned int)extent.width,
+                         (unsigned int)extent.height);
 #else
     LOGE("vkBeginFrame called but Vulkan backend is not enabled in this build");
     std::abort();

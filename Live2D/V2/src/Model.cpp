@@ -3,6 +3,7 @@
 #include "ExpressionMotion.hpp"
 #include "EyeBlink.hpp"
 #include "GLRenderer.hpp"
+#include "GraphicsBackend.hpp"
 #include "IModel.hpp"
 #include "Id.hpp"
 #include "MotionManager.hpp"
@@ -120,8 +121,8 @@ void Model::LoadModelJsonImpl(const std::string& jsonText, const std::string& ho
     }
     LoadModelData(mocData, 0);
     // 画布适配参数在模型生命周期内不变，加载时设置一次
-    mMatrixManager.SetFit({(float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight(), true,
-                          true});
+    mMatrixManager.SetFit(
+        {(float)mMoc->GetCanvasWidth(), (float)mMoc->GetCanvasHeight(), true, true});
     LOGI("Load model: %s", mocPath.c_str());
 
     // Load texture paths from JSON
@@ -705,11 +706,57 @@ void Model::CreateRenderer(int maskBufferCount) {
         return;
     }
 #ifdef CSM_TARGET_VULKAN
-    // 与 V3 一致：Vulkan 已初始化时创建 Vulkan
-    // 渲染器；未初始化则跳过（无头模式安全）
-    if (VulkanManager::GetInstance()->IsInitialized()) {
-        auto* vkRenderer = new VkRenderer(mMoc.get(), (int)mTexturePaths.size());
-        mRenderer.reset(vkRenderer);
+    if (Common::Backend::IsVulkan()) {
+        // 与 V3 一致：Vulkan 已初始化时创建 Vulkan
+        // 渲染器；未初始化则跳过（无头模式安全）
+        if (VulkanManager::GetInstance()->IsInitialized()) {
+            auto* vkRenderer = new VkRenderer(mMoc.get(), (int)mTexturePaths.size());
+            mRenderer.reset(vkRenderer);
+            for (size_t i = 0; i < mTexturePaths.size(); i++) {
+                std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
+                int w, h, n;
+                auto texData = readFile(texPath);
+                unsigned char* pixels =
+                    texData.empty()
+                        ? nullptr
+                        : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
+                if (!pixels)
+                    continue;
+                LOGD("Load texture[%zu/%zu]: %s",
+                     i + 1,
+                     mTexturePaths.size(),
+                     mTexturePaths[i].c_str());
+
+                VkImage image = VK_NULL_HANDLE;
+                VkDeviceMemory memory = VK_NULL_HANDLE;
+                VkImageView view = VK_NULL_HANDLE;
+                VkSampler sampler = VK_NULL_HANDLE;
+                if (VkUtil::CreateTextureFromPixels(
+                        VulkanManager::GetInstance()->GetDevice(),
+                        VulkanManager::GetInstance()->GetPhysicalDevice(),
+                        pixels,
+                        w,
+                        h,
+                        &image,
+                        &memory,
+                        &view,
+                        &sampler,
+                        1.0f)) {
+                    vkRenderer->SetTexture((int)i, image, memory, view, sampler);
+                } else {
+                    LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
+                }
+                stbi_image_free(pixels);
+            }
+            return;
+        }
+        LOGW("Vulkan is not initialized, skipping renderer creation");
+        return;
+    }
+#endif
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
+    if (Common::Backend::IsOpenGL()) {
+        mRenderer = std::make_unique<GLRenderer>(mMoc.get(), (int)mTexturePaths.size());
         for (size_t i = 0; i < mTexturePaths.size(); i++) {
             std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
             int w, h, n;
@@ -723,57 +770,19 @@ void Model::CreateRenderer(int maskBufferCount) {
             LOGD(
                 "Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
 
-            VkImage image = VK_NULL_HANDLE;
-            VkDeviceMemory memory = VK_NULL_HANDLE;
-            VkImageView view = VK_NULL_HANDLE;
-            VkSampler sampler = VK_NULL_HANDLE;
-            if (VkUtil::CreateTextureFromPixels(VulkanManager::GetInstance()->GetDevice(),
-                                                VulkanManager::GetInstance()->GetPhysicalDevice(),
-                                                pixels,
-                                                w,
-                                                h,
-                                                &image,
-                                                &memory,
-                                                &view,
-                                                &sampler,
-                                                1.0f)) {
-                vkRenderer->SetTexture((int)i, image, memory, view, sampler);
-            } else {
-                LOGE("Failed to create Vulkan texture: %s", texPath.c_str());
-            }
+            GLuint texId;
+            glGenTextures(1, &texId);
+            glBindTexture(GL_TEXTURE_2D, texId);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            static_cast<GLRenderer*>(mRenderer.get())->SetTexture((int)i, (int)texId);
             stbi_image_free(pixels);
         }
-        return;
-    }
-    LOGW("Vulkan is not initialized, skipping renderer creation");
-    return;
-#endif
-#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
-    mRenderer = std::make_unique<GLRenderer>(mMoc.get(), (int)mTexturePaths.size());
-    for (size_t i = 0; i < mTexturePaths.size(); i++) {
-        std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);
-        int w, h, n;
-        auto texData = readFile(texPath);
-        unsigned char* pixels =
-            texData.empty()
-                ? nullptr
-                : stbi_load_from_memory(texData.data(), (int)texData.size(), &w, &h, &n, 4);
-        if (!pixels)
-            continue;
-        LOGD("Load texture[%zu/%zu]: %s", i + 1, mTexturePaths.size(), mTexturePaths[i].c_str());
-
-        GLuint texId;
-        glGenTextures(1, &texId);
-        glBindTexture(GL_TEXTURE_2D, texId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        static_cast<GLRenderer*>(mRenderer.get())->SetTexture((int)i, (int)texId);
-        stbi_image_free(pixels);
     }
 #endif
 }

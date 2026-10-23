@@ -16,17 +16,13 @@ if (NOT CMAKE_SYSTEM_NAME MATCHES "Android")
 endif()
 
 target_link_libraries(${V2_TARGET} PUBLIC Common)
-if (${GR_BACKEND} MATCHES "Vulkan")
+if (${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
     # Vulkan 渲染后端（VkRenderer 依赖 VulkanManager / VkUtil）
     target_link_libraries(${V2_TARGET} PUBLIC Live2D::Vulkan)
+    include(${CMAKE_CURRENT_LIST_DIR}/V2Shaders.cmake)
+    add_dependencies(${V2_TARGET} V2Shaders)
 endif()
 target_compile_definitions(${V2_TARGET} PRIVATE MODULE_LOG_TAG="v2")
-
-# Vulkan 后端下，v2 库构建时同时编译自身 shader(.spv)
-if (${GR_BACKEND} MATCHES "Vulkan")
-  include(${CMAKE_CURRENT_LIST_DIR}/V2Shaders.cmake)
-  add_dependencies(${V2_TARGET} V2Shaders)
-endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(${V2_TARGET} PRIVATE stdc++fs)
