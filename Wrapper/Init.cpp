@@ -1,4 +1,4 @@
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 #include <GL/glew.h>
 #endif
 
@@ -8,8 +8,9 @@
 #include <vulkan/vulkan.h>
 #include <VulkanManager.hpp>
 #include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
-#include <vector>
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
 #endif
 #include <cstdlib>
@@ -28,7 +29,7 @@ using namespace Live2D;
 using namespace Live2D::Common::Log;
 
 #ifdef DEBUG_ENABLE_CALLSTACK
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 static void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                        GLsizei length, const GLchar* message,
                                        const void* userParam) {
@@ -70,7 +71,7 @@ static PyObject* live2d_dispose() {
 
 
 static PyObject* live2d_glInit() {
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     static bool sGLInitialized = false;
     if (sGLInitialized) {
         LOGE("live2d.glInit double called");
@@ -101,7 +102,7 @@ static PyObject* live2d_glInit() {
 }
 
 static PyObject* live2d_glRelease() {
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     Csm::Rendering::CubismRenderer::StaticRelease();
 #else
     LOGE("live2d.glRelease Vulkan build not supported");
@@ -111,7 +112,7 @@ static PyObject* live2d_glRelease() {
 }
 
 static PyObject* live2d_clear_buffer(PyObject* self, PyObject* args) {
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     // 默认为黑色
     float r = 0.0, g = 0.0, b = 0.0, a = 0.0;
 

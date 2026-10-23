@@ -21,7 +21,9 @@
 #ifdef __ANDROID__
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 #include <GL/glew.h>
 #endif
 #include <cmath>
@@ -745,7 +747,8 @@ void Model::CreateRenderer(int maskBufferCount) {
     }
     LOGW("Vulkan is not initialized, skipping renderer creation");
     return;
-#else
+#endif
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     mRenderer = std::make_unique<GLRenderer>(mMoc.get(), (int)mTexturePaths.size());
     for (size_t i = 0; i < mTexturePaths.size(); i++) {
         std::string texPath = JoinPath(mModelHomeDir, mTexturePaths[i]);

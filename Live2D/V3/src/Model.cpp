@@ -1,6 +1,7 @@
 ﻿#include "V3/Model.hpp"
 #include "IModel.hpp"
 #include "Motion/ACubismMotion.hpp"
+#include "Rendering/CubismRenderer.hpp"
 
 #include <CubismDefaultParameterId.hpp>
 #include <CubismModelSettingJson.hpp>
@@ -9,9 +10,10 @@
 #include <Math/CubismMatrix44.hpp>
 #include <Model/CubismMoc.hpp>
 #include <Motion/CubismMotion.hpp>
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_MAC_GL) || defined(CSM_TARGET_LINUX_GL)
 #include <Rendering/OpenGL/CubismShader_OpenGLES2.hpp>
-#else
+#endif
+#ifdef CSM_TARGET_VULKAN
 #include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
 #include <Rendering/Vulkan/CubismRendererFrameDecouple.hpp>
 #include <Rendering/Vulkan/CubismDeviceInfo_Vulkan.hpp>
@@ -486,12 +488,14 @@ void Model::SaveParameters() {
 
 void Model::Resize(int width, int height) {
     mMatrixManager.OnResize(width, height);
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
     if (renderer) {
         renderer->SetRenderTargetSize(width, height);
     }
-#else
+#endif
+
+#ifdef CSM_TARGET_VULKAN
     auto renderer = mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
     if (renderer) {
         renderer->SetRenderTargetSize(width, height);
@@ -961,13 +965,15 @@ void Model::Drag(float x, float y) {
 }
 
 void Model::CreateRenderer(int maskBufferCount) {
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     if (mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()) {
         LOGW("Renderer already exists, skipping creation");
         return;
     }
     LOGI("Creating OpenGL ES2 renderer");
-#else
+#endif
+
+#ifdef CSM_TARGET_VULKAN
     if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
         LOGW("Renderer already exists, skipping creation");
         return;
@@ -1012,7 +1018,7 @@ void Model::Draw() {
     mvp.SetMatrix(const_cast<csmFloat32*>(mMatrixManager.GetMvp()));
     CubismMatrix44& matrix = mvp;
 
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     Rendering::CubismRenderer_OpenGLES2* renderer =
         mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
     if (renderer == nullptr) {
@@ -1022,7 +1028,9 @@ void Model::Draw() {
     renderer->SetMvpMatrix(&matrix);
 
     renderer->DrawModel();
-#else
+#endif
+
+#ifdef CSM_TARGET_VULKAN
     Rendering::CubismRenderer_Vulkan* renderer =
         mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>();
     VulkanManager* vkManager = VulkanManager::GetInstance();
@@ -1387,7 +1395,9 @@ void Model::SetupTextures() {
                 renderer->BindTexture(image);
             }
         }
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
         LAppTextureManager::TextureInfo* texture =
             mTextureManager.CreateTextureFromPngFile(texturePath.GetRawString());
         if (texture == nullptr) {
@@ -1402,17 +1412,21 @@ void Model::SetupTextures() {
 
 
 #ifdef PREMULTIPLIED_ALPHA_ENABLE
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(true);
-#else
+#endif
+
+#ifdef CSM_TARGET_VULKAN
     if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
         mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()->IsPremultipliedAlpha(true);
     }
 #endif
 #else
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     mProxy.GetRenderer<Rendering::CubismRenderer_OpenGLES2>()->IsPremultipliedAlpha(false);
-#else
+#endif
+
+#ifdef CSM_TARGET_VULKAN
     if (mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()) {
         mProxy.GetRenderer<Rendering::CubismRenderer_Vulkan>()->IsPremultipliedAlpha(false);
     }

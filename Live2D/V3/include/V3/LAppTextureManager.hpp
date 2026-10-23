@@ -11,13 +11,13 @@
 #ifdef CSM_TARGET_ANDROID_ES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#elif defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_MAC_GL) || defined(CSM_TARGET_LINUX_GL)
+#endif
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_MAC_GL) || defined(CSM_TARGET_LINUX_GL)
 #include <GL/glew.h>
-#elif defined(CSM_TARGET_VULKAN)
+#endif
+#ifdef CSM_TARGET_VULKAN
 #include <vulkan/vulkan.h>
 #include <Rendering/Vulkan/CubismClass_Vulkan.hpp>
-#else
-#error "csm target is not set"
 #endif
 #include <Type/csmVector.hpp>
 namespace Live2D {

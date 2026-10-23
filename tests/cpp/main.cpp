@@ -14,11 +14,9 @@
 
 #include <chrono>
 #include <cstdio>
-#include <cstdlib>
 #include <filesystem>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 #ifdef _WIN32
 #include <Windows.h>
@@ -34,7 +32,9 @@
 #include <GLFW/glfw3native.h>
 #include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
 #include <VulkanManager.hpp>
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 #include <GL/glew.h>   // glad OpenGL 4.6 core loader
 #include <GLFW/glfw3.h>
 #endif
@@ -501,7 +501,9 @@ int main(int argc, char* argv[]) {
 #ifdef CSM_TARGET_VULKAN
     // No GL context — rendering goes through Vulkan
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     // Use Compatibility profile — v2cpp shaders are GLSL 1.20 (attribute/varying)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -513,7 +515,9 @@ int main(int argc, char* argv[]) {
     static int winW = 800, winH = 800;
 #ifdef CSM_TARGET_VULKAN
     const char* backendName = "Vulkan";
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     const char* backendName = "OpenGL";
 #endif
     const std::string winTitleBase = std::string("Live2D Test — ") + backendName + " — " +
@@ -530,7 +534,7 @@ int main(int argc, char* argv[]) {
         if (sModelForResize) {
             winW = width;
             winH = height;
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
             glViewport(0, 0, width, height);
 #endif
             sModelForResize->Resize(width, height);
@@ -571,7 +575,9 @@ int main(int argc, char* argv[]) {
             swapchain->GetSwapchainImageFormat(),
             vkManager->GetDepthFormat());
     }
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
@@ -609,7 +615,9 @@ int main(int argc, char* argv[]) {
                model->IsV2() ? "v2" : "v3",
 #ifdef CSM_TARGET_VULKAN
                "Vulkan"
-#else
+#endif
+
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
                "OpenGL"
 #endif
         );
@@ -650,12 +658,13 @@ int main(int argc, char* argv[]) {
         auto fpsWindowStart = std::chrono::steady_clock::now();
         while (!glfwWindowShouldClose(window)) {
             model->Update();
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
             glViewport(0, 0, winW, winH);
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             model->Draw();
-#else
+#endif
+#ifdef CSM_TARGET_VULKAN
             // 帧解耦：帧流程由 BeginFrame/EndFrame 驱动，Draw 仅录制命令
             if (VulkanManager::GetInstance()->BeginFrame()) {
                 model->Draw();
@@ -664,7 +673,7 @@ int main(int argc, char* argv[]) {
 #endif
             frameCount++;
             fpsFrames++;
-#ifndef CSM_TARGET_VULKAN
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
             glfwSwapBuffers(window);
 #endif
             glfwPollEvents();

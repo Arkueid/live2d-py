@@ -23,10 +23,9 @@ using namespace Live2D::Cubism::Framework;
 LAppTextureManager::LAppTextureManager()
 #ifdef CSM_TARGET_VULKAN
     : mSequenceId(0)
-    , mMipLevels(0) {}
-#else
-    {}
+    , mMipLevels(0)
 #endif
+    {}
 
 LAppTextureManager::~LAppTextureManager() {
     ReleaseTextures();
@@ -320,8 +319,9 @@ bool LAppTextureManager::GetTexture(Csm::csmUint32 textureId, CubismImageVulkan&
 
     return false;
 }
+#endif
 
-#else
+#if defined(CSM_TARGET_WIN_GL) || defined(CSM_TARGET_LINUX_GL) || defined(CSM_TARGET_MAC_GL)
 LAppTextureManager::TextureInfo* LAppTextureManager::CreateTextureFromPngFile(
     std::string fileName) {
     // search loaded texture already.
