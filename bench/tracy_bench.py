@@ -654,9 +654,9 @@ def main():
     results = []
     with open(out_dir / "run.log", "w", encoding="utf-8") as log:
         log.write(f"models={[str(m) for m in models]}\nbackends={backends}\n")
-        for model in models:
+        for i, model in enumerate(models):
             for backend in backends:
-                print(f"[run] {model_label(model)} / {backend} ...", flush=True)
+                print(f"[run] {i + 1}/{len(models)} {model_label(model)} / {backend} ...", flush=True)
                 results.append(run_case(
                     backend, model, out_dir, args.duration, args.warmup,
                     args.size, capture, csvexport, log,

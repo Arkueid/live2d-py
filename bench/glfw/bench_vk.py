@@ -13,6 +13,10 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "package"))
 
+# 默认 MAILBOX 会按显示器垂直同步节流（本机 165Hz -> ~330 FPS），压测需要真实吞吐，
+# 因此与 bench_gl.py 的 swap_interval(0) 对齐，关闭呈现节流
+os.environ.setdefault("LIVE2D_VK_PRESENT_MODE", "immediate")
+
 import glfw
 from glfw.GLFW import _glfw as _glfw_lib
 

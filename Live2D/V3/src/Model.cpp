@@ -1037,6 +1037,13 @@ void Model::CreateRenderer(int maskBufferCount) {
 }
 
 void Model::DestroyRenderer() {
+#ifdef CSM_TARGET_VULKAN
+    if (Common::Backend::IsVulkan()) {
+        // 命令缓冲仍引用着渲染器/纹理的 buffer 与 image，先等 GPU 空闲并重置命令池，
+        // 再销毁这些资源，否则校验层会在退出时报资源仍被 VkCommandBuffer 使用
+        VulkanManager::GetInstance()->ResetCommandBuffers();
+    }
+#endif
     mTextureManager.ReleaseTextures();
     mProxy.DeleteRenderer();
 #ifdef CSM_TARGET_VULKAN

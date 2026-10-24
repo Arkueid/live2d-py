@@ -1,4 +1,5 @@
 #include "VulkanManager.hpp"
+#include <climits>
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -11,43 +12,40 @@
 #endif
 
 #if defined(_WIN32)
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-    #include <vulkan/vulkan_win32.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <vulkan/vulkan_win32.h>
 #endif
 
 /**
  * @brief   平台标准的 surface 创建（未设置外部钩子时使用）
  *          仅支持 Windows；其他平台编译期直接报错
  */
-static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCreateContext* ctx)
-{
+static VkSurfaceKHR createSurfaceInternal(VkInstance instance, const SurfaceCreateContext* ctx) {
 #if defined(_WIN32)
     VkWin32SurfaceCreateInfoKHR createInfo{};
-    createInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     createInfo.hinstance = GetModuleHandle(nullptr);
-    createInfo.hwnd      = static_cast<HWND>(ctx->window);
+    createInfo.hwnd = static_cast<HWND>(ctx->window);
 
     VkSurfaceKHR surface = VK_NULL_HANDLE;
-    if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS)
-    {
+    if (vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS) {
         LOGE("failed to create Win32 surface!");
         return VK_NULL_HANDLE;
     }
     return surface;
 #else
-#error "createSurfaceInternal: only Windows is implemented; implement vkCreate*Surface for this platform"
+#error \
+    "createSurfaceInternal: only Windows is implemented; implement vkCreate*Surface for this platform"
 #endif
 }
 
 /**
 * @brief   デバッグ用コールバック
 */
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
-                                                    VkDebugUtilsMessageTypeFlagsEXT,
-                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                    void*)
-{
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT,
+              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
     std::cout << "validation layer: " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
 }
@@ -55,17 +53,15 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 /**
 * @brief   デバッグ用拡張関数を使えるようにする
 */
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
-                                      VkDebugUtilsMessengerEXT* pDebugMessenger)
-{
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr)
-    {
+                                      VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+        instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    }
-    else
-    {
+    } else {
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
@@ -74,11 +70,10 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 * @brief   デバッグメッセンジャーの破棄
 */
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
-                                   const VkAllocationCallbacks* pAllocator)
-{
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr)
-    {
+                                   const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+        instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
         func(instance, debugMessenger, pAllocator);
     }
 }
@@ -92,49 +87,36 @@ VulkanManager* VulkanManager::GetInstance() {
     return sInstance;
 }
 
-VulkanManager::VulkanManager(void* wind):
-                                              _instance(VK_NULL_HANDLE)
-                                              , _physicalDevice(VK_NULL_HANDLE)
-                                              , _device(VK_NULL_HANDLE)
-                                              , _swapchainManager()
-                                              , _surface()
-                                              , _graphicQueue(VK_NULL_HANDLE)
-                                              , _presentQueue(VK_NULL_HANDLE)
-                                              , _commandPool(VK_NULL_HANDLE)
-                                              , _debugMessenger()
-{
+VulkanManager::VulkanManager(void* wind) :
+    _instance(VK_NULL_HANDLE), _physicalDevice(VK_NULL_HANDLE), _device(VK_NULL_HANDLE),
+    _swapchainManager(), _surface(), _graphicQueue(VK_NULL_HANDLE), _presentQueue(VK_NULL_HANDLE),
+    _commandPool(VK_NULL_HANDLE), _debugMessenger() {
     _window = wind;
     _surfaceCtx.window = wind;
 }
 
-VulkanManager::~VulkanManager()
-{
+VulkanManager::~VulkanManager() {
     Destroy();
 }
 
-bool VulkanManager::CheckValidationLayerSupport()
-{
+bool VulkanManager::CheckValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : validationLayers)
-    {
+    for (const char* layerName : validationLayers) {
         bool layerFound = false;
 
-        for (uint32_t i = 0; i < availableLayers.size(); i++)
-        {
-            if (strcmp(layerName, availableLayers[i].layerName) == 0)
-            {
+        for (uint32_t i = 0; i < availableLayers.size(); i++) {
+            if (strcmp(layerName, availableLayers[i].layerName) == 0) {
                 layerFound = true;
                 break;
             }
         }
 
-        if (!layerFound)
-        {
+        if (!layerFound) {
             return false;
         }
     }
@@ -142,66 +124,61 @@ bool VulkanManager::CheckValidationLayerSupport()
     return true;
 }
 
-void VulkanManager::SetInstanceExtensions(const char** extensions, uint32_t count)
-{
+void VulkanManager::SetInstanceExtensions(const char** extensions, uint32_t count) {
     _instanceExtensions.clear();
-    for (uint32_t i = 0; i < count; i++)
-    {
+    for (uint32_t i = 0; i < count; i++) {
         _instanceExtensions.push_back(extensions[i]);
     }
 }
 
-std::vector<const char*> VulkanManager::GetRequiredExtensions()
-{
+std::vector<const char*> VulkanManager::GetRequiredExtensions() {
     std::vector<const char*> extensions;
-    for (uint32_t i = 0; i < _instanceExtensions.size(); i++)
-    {
+    for (uint32_t i = 0; i < _instanceExtensions.size(); i++) {
         extensions.push_back(_instanceExtensions[i]);
     }
 
     // 自动追加平台 surface 扩展（排除外部已注入的重复项）
     auto hasExt = [&](const char* name) {
-        return std::find(extensions.begin(), extensions.end(), std::string(name)) != extensions.end();
+        return std::find(extensions.begin(), extensions.end(), std::string(name)) !=
+               extensions.end();
     };
 
-    if (!hasExt(VK_KHR_SURFACE_EXTENSION_NAME))
-    {
+    if (!hasExt(VK_KHR_SURFACE_EXTENSION_NAME)) {
         extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     }
 
 #if defined(_WIN32)
-    if (!hasExt(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
-    {
+    if (!hasExt(VK_KHR_WIN32_SURFACE_EXTENSION_NAME)) {
         extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     }
 #else
-#error "GetRequiredExtensions: only Windows is implemented; append the platform surface extension for this platform"
+#error \
+    "GetRequiredExtensions: only Windows is implemented; append the platform surface extension for this platform"
 #endif
 
-    if (_enableValidationLayers)
-    {
+    if (_enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     return extensions;
 }
 
-void VulkanManager::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
-{
+void VulkanManager::populateDebugMessengerCreateInfo(
+    VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
 }
 
-void VulkanManager::CreateInstance()
-{
+void VulkanManager::CreateInstance() {
     //検証レイヤーが有効のときに使えるか確認
-    if (_enableValidationLayers && !CheckValidationLayerSupport())
-    {
+    if (_enableValidationLayers && !CheckValidationLayerSupport()) {
         //検証レイヤーをサポートしていないのでログを出して使えないようにする
         LOGE("validation layers requested, but not available!");
         _enableValidationLayers = false;
@@ -223,120 +200,102 @@ void VulkanManager::CreateInstance()
     createInfo.ppEnabledExtensionNames = extensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    if (_enableValidationLayers)
-    {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(sizeof(validationLayers) / sizeof(validationLayers[0]));
+    if (_enableValidationLayers) {
+        createInfo.enabledLayerCount =
+            static_cast<uint32_t>(sizeof(validationLayers) / sizeof(validationLayers[0]));
         createInfo.ppEnabledLayerNames = validationLayers;
         // vkDestroyInstanceでデバッグコールが呼ばれるために次の行が必要
         populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-    }
-    else
-    {
+    } else {
         createInfo.enabledLayerCount = 0;
     }
-    if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS)
-    {
+    if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
         LOGE("failed to create _instance!");
     }
 }
 
-void VulkanManager::SetupDebugMessenger()
-{
-    if (!_enableValidationLayers) return;
+void VulkanManager::SetupDebugMessenger() {
+    if (!_enableValidationLayers)
+        return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS)
-    {
+    if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) !=
+        VK_SUCCESS) {
         LOGE("failed to set up debug messenger!");
     }
 }
 
-bool VulkanManager::CheckDeviceExtensionSupport(VkPhysicalDevice physicalDevice)
-{
+bool VulkanManager::CheckDeviceExtensionSupport(VkPhysicalDevice physicalDevice) {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
 
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
+    vkEnumerateDeviceExtensionProperties(
+        physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
-    for (uint32_t i = 0; i < sizeof(deviceExtensions) / sizeof(deviceExtensions[0]); i++)
-    {
+    for (uint32_t i = 0; i < sizeof(deviceExtensions) / sizeof(deviceExtensions[0]); i++) {
         bool found = false;
-        for (uint32_t j = 0; j < availableExtensions.size(); j++)
-        {
-            if (strcmp(deviceExtensions[i], availableExtensions[j].extensionName) == 0)
-            {
+        for (uint32_t j = 0; j < availableExtensions.size(); j++) {
+            if (strcmp(deviceExtensions[i], availableExtensions[j].extensionName) == 0) {
                 found = true;
                 break;
             }
         }
-        if (found == false)
-        {
+        if (found == false) {
             return false;
         }
     }
     return true;
 }
 
-void VulkanManager::CreateSurface()
-{
-    if (_createSurfaceFunc != nullptr)
-    {
+void VulkanManager::CreateSurface() {
+    if (_createSurfaceFunc != nullptr) {
         _surface = _createSurfaceFunc(_instance, &_surfaceCtx);
-    }
-    else
-    {
+    } else {
         _surface = createSurfaceInternal(_instance, &_surfaceCtx);
     }
 
-    if (_surface == VK_NULL_HANDLE)
-    {
+    if (_surface == VK_NULL_HANDLE) {
         LOGE("failed to create window surface!");
     }
 }
 
-void VulkanManager::FindQueueFamilies(VkPhysicalDevice device)
-{
+void VulkanManager::FindQueueFamilies(VkPhysicalDevice device) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-    for (uint32_t i = 0; i < queueFamilies.size(); i++)
-    {
-        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-        {
+    for (uint32_t i = 0; i < queueFamilies.size(); i++) {
+        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphicsFamily = i;
         }
 
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _surface, &presentSupport);
-        if (presentSupport)
-        {
+        if (presentSupport) {
             indices.presentFamily = i;
         }
 
-        if (indices.isComplete())
-        {
+        if (indices.isComplete()) {
             break;
         }
     }
 }
 
-bool VulkanManager::IsDeviceSuitable(VkPhysicalDevice device)
-{
+bool VulkanManager::IsDeviceSuitable(VkPhysicalDevice device) {
     FindQueueFamilies(device);
     bool extensionsSupported = CheckDeviceExtensionSupport(device);
     bool swapChainAdequate = false;
     //デバイスの拡張機能がサポートされていたら、スワップチェインをサポートしているか確認する
-    if (extensionsSupported)
-    {
-        SwapchainManager::SwapchainSupportDetails swapchainSupport = SwapchainManager::QuerySwapchainSupport(
-            device, _surface);
-        swapChainAdequate = swapchainSupport.formats.size() != 0 && swapchainSupport.presentModes.size() != 0;
+    if (extensionsSupported) {
+        SwapchainManager::SwapchainSupportDetails swapchainSupport =
+            SwapchainManager::QuerySwapchainSupport(device, _surface);
+        swapChainAdequate =
+            swapchainSupport.formats.size() != 0 && swapchainSupport.presentModes.size() != 0;
     }
 
     VkPhysicalDeviceFeatures supportedFeatures;
@@ -345,13 +304,11 @@ bool VulkanManager::IsDeviceSuitable(VkPhysicalDevice device)
     return indices.isComplete() && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-void VulkanManager::PickPhysicalDevice()
-{
+void VulkanManager::PickPhysicalDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
 
-    if (deviceCount == 0)
-    {
+    if (deviceCount == 0) {
         LOGE("failed to find GPUs with Vulkan support!");
     }
 
@@ -361,10 +318,8 @@ void VulkanManager::PickPhysicalDevice()
     VkPhysicalDeviceProperties properties{};
     VkPhysicalDevice bestMatch = VK_NULL_HANDLE;
     // 遍历所有物理设备，选择符合条件的设备
-    for (uint32_t i = 0; i < devices.size(); i++)
-    {
-        if (IsDeviceSuitable(devices[i]))
-        {
+    for (uint32_t i = 0; i < devices.size(); i++) {
+        if (IsDeviceSuitable(devices[i])) {
             // 优先使用独立显卡
             vkGetPhysicalDeviceProperties(devices[i], &properties);
             if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
@@ -379,31 +334,25 @@ void VulkanManager::PickPhysicalDevice()
     }
     _physicalDevice = bestMatch;
     LOGI("Device: %s", properties.deviceName);
-    if (_physicalDevice == VK_NULL_HANDLE)
-    {
+    if (_physicalDevice == VK_NULL_HANDLE) {
         LOGE("failed to find a suitable GPU!");
     }
 }
 
-void VulkanManager::CreateLogicalDevice()
-{
+void VulkanManager::CreateLogicalDevice() {
     FindQueueFamilies(_physicalDevice);
 
     std::vector<int32_t> uniqueQueueFamilies;
-    if (indices.graphicsFamily == indices.presentFamily)
-    {
+    if (indices.graphicsFamily == indices.presentFamily) {
         uniqueQueueFamilies.push_back(indices.graphicsFamily);
-    }
-    else
-    {
+    } else {
         uniqueQueueFamilies.push_back(indices.graphicsFamily);
         uniqueQueueFamilies.push_back(indices.presentFamily);
     }
 
     float queuePriority = 1.0f;
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    for (uint32_t i = 0; i < uniqueQueueFamilies.size(); i++)
-    {
+    for (uint32_t i = 0; i < uniqueQueueFamilies.size(); i++) {
         VkDeviceQueueCreateInfo queueCreateInfo{};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo.queueFamilyIndex = uniqueQueueFamilies[i];
@@ -419,13 +368,10 @@ void VulkanManager::CreateLogicalDevice()
     createInfo.enabledExtensionCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
     createInfo.ppEnabledExtensionNames = deviceExtensions;
 
-    if (_enableValidationLayers)
-    {
+    if (_enableValidationLayers) {
         createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
         createInfo.ppEnabledLayerNames = validationLayers;
-    }
-    else
-    {
+    } else {
         createInfo.enabledLayerCount = 0;
     }
 
@@ -446,8 +392,7 @@ void VulkanManager::CreateLogicalDevice()
     vkGetPhysicalDeviceFeatures2(_physicalDevice, &deviceFeatures2);
     createInfo.pNext = &deviceFeatures2;
 
-    if (vkCreateDevice(_physicalDevice, &createInfo, nullptr, &_device) != VK_SUCCESS)
-    {
+    if (vkCreateDevice(_physicalDevice, &createInfo, nullptr, &_device) != VK_SUCCESS) {
         LOGE("failed to create logical _device!");
     }
 
@@ -456,23 +401,18 @@ void VulkanManager::CreateLogicalDevice()
     vkGetDeviceQueue(_device, indices.presentFamily, 0, &_presentQueue);
 }
 
-void VulkanManager::ChooseSupportedDepthFormat()
-{
-    VkFormat depthFormats[5] = {
-        VK_FORMAT_D32_SFLOAT_S8_UINT,
-        VK_FORMAT_D32_SFLOAT,
-        VK_FORMAT_D24_UNORM_S8_UINT,
-        VK_FORMAT_D16_UNORM_S8_UINT,
-        VK_FORMAT_D16_UNORM
-    };
+void VulkanManager::ChooseSupportedDepthFormat() {
+    VkFormat depthFormats[5] = {VK_FORMAT_D32_SFLOAT_S8_UINT,
+                                VK_FORMAT_D32_SFLOAT,
+                                VK_FORMAT_D24_UNORM_S8_UINT,
+                                VK_FORMAT_D16_UNORM_S8_UINT,
+                                VK_FORMAT_D16_UNORM};
 
-    for (int32_t i = 0; i < sizeof(depthFormats) / sizeof(depthFormats[0]); i++)
-    {
+    for (int32_t i = 0; i < sizeof(depthFormats) / sizeof(depthFormats[0]); i++) {
         VkFormatProperties formatProps;
         vkGetPhysicalDeviceFormatProperties(_physicalDevice, depthFormats[i], &formatProps);
 
-        if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        {
+        if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
             _depthFormat = depthFormats[i];
             return;
         }
@@ -481,43 +421,89 @@ void VulkanManager::ChooseSupportedDepthFormat()
     _depthFormat = depthFormats[0];
 }
 
-void VulkanManager::CreateCommandPool()
-{
+void VulkanManager::CreateCommandPool() {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = indices.graphicsFamily;
 
-    if (vkCreateCommandPool(_device, &poolInfo, nullptr, &_commandPool) != VK_SUCCESS)
-    {
+    if (vkCreateCommandPool(_device, &poolInfo, nullptr, &_commandPool) != VK_SUCCESS) {
         LOGE("failed to create graphics command pool!");
     }
 }
 
-void VulkanManager::CreateSyncObjects()
-{
+void VulkanManager::RecreateFinishSemaphores() {
+    for (auto sem : _imageFinishDrawSemaphores) {
+        if (sem != VK_NULL_HANDLE) {
+            vkDestroySemaphore(_device, sem, nullptr);
+        }
+    }
+
+    const int newCount = _swapchainManager->GetImageCount();
+    if (!_imageFinishDrawSemaphores.empty() &&
+        (int)_imageFinishDrawSemaphores.size() != newCount) {
+        LOGW("swapchain image count changed (%d -> %d); renderer per-image resource "
+             "counts are not rebuilt this frame",
+             (int)_imageFinishDrawSemaphores.size(), newCount);
+    }
+
+    _imageFinishDrawSemaphores.assign(newCount, VK_NULL_HANDLE);
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &_imageAvailableSemaphore);
+    for (auto& sem : _imageFinishDrawSemaphores) {
+        vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &sem);
+    }
 }
 
-void VulkanManager::Initialize()
-{
+void VulkanManager::CreateSyncObjects() {
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    RecreateFinishSemaphores();
+
+    _imageAvailableSemaphores.resize(MAX_FRAME_IN_FLIGHT);
+    _frameFences.resize(MAX_FRAME_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAME_IN_FLIGHT; i++) {
+        vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]);
+        vkCreateFence(_device, &fenceInfo, nullptr, &_frameFences[i]);
+    }
+
+    // per-slot 常驻命令缓冲（槽位由 fence 串行化，重录前必已等待该槽完成）
+    _frameCmds.assign(MAX_FRAME_IN_FLIGHT, VK_NULL_HANDLE);
+    _uploadCmds.assign(MAX_FRAME_IN_FLIGHT, VK_NULL_HANDLE);
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = _commandPool;
+    allocInfo.commandBufferCount = 1;
+    for (int i = 0; i < MAX_FRAME_IN_FLIGHT; i++) {
+        if (vkAllocateCommandBuffers(_device, &allocInfo, &_frameCmds[i]) != VK_SUCCESS) {
+            LOGE("failed to allocate frame command buffer!");
+        }
+        if (vkAllocateCommandBuffers(_device, &allocInfo, &_uploadCmds[i]) != VK_SUCCESS) {
+            LOGE("failed to allocate upload command buffer!");
+        }
+    }
+}
+
+void VulkanManager::Initialize() {
     CreateInstance();
     SetupDebugMessenger();
     CreateSurface();
     PickPhysicalDevice();
     CreateLogicalDevice();
     ChooseSupportedDepthFormat();
-    _swapchainManager = new SwapchainManager(_window, _physicalDevice, _device, _surface, indices.graphicsFamily,
-                                            indices.presentFamily);
+    _swapchainManager = new SwapchainManager(
+        _window, _physicalDevice, _device, _surface, indices.graphicsFamily, indices.presentFamily);
     CreateCommandPool();
     _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
     CreateSyncObjects();
 }
 
-VkCommandBuffer VulkanManager::BeginSingleTimeCommands()
-{
+VkCommandBuffer VulkanManager::BeginSingleTimeCommands() {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -536,29 +522,14 @@ VkCommandBuffer VulkanManager::BeginSingleTimeCommands()
     return commandBuffer;
 }
 
-void VulkanManager::SubmitCommand(VkCommandBuffer commandBuffer, bool isFirstDraw)
-{
+void VulkanManager::SubmitCommand(VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
-
-    if(isFirstDraw)
     {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &_imageAvailableSemaphore;
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        submitInfo.pWaitDstStageMask = waitStages;
-        vkQueueSubmit(_graphicQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    }
-    else
-    {
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT  };
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_VERTEX_INPUT_BIT};
         submitInfo.pWaitDstStageMask = waitStages;
         vkQueueSubmit(_graphicQueue, 1, &submitInfo, VK_NULL_HANDLE);
     }
@@ -568,64 +539,64 @@ void VulkanManager::SubmitCommand(VkCommandBuffer commandBuffer, bool isFirstDra
     vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
 }
 
-void VulkanManager::UpdateDrawFrame()
-{
-    VkResult result = vkAcquireNextImageKHR(_device, _swapchainManager->GetSwapchain(), UINT64_MAX,
-        _imageAvailableSemaphore, VK_NULL_HANDLE,
-        &_imageIndex);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
-    {
+void VulkanManager::UpdateDrawFrame() {
+    // 只等待不重置：fence 的重置推迟到 EndFrame 提交前。
+    // 若 acquire 失败（OUT_OF_DATE 等）本帧不会提交，fence 保持 signaled，
+    // 下一帧同槽等待立即通过，避免“已 reset 但永不 submit”的死锁。
+    vkWaitForFences(_device, 1, &_frameFences[_frameIndex], VK_TRUE, UINT_MAX);
+    VkResult result = vkAcquireNextImageKHR(_device,
+                                            _swapchainManager->GetSwapchain(),
+                                            UINT64_MAX,
+                                            _imageAvailableSemaphores[_frameIndex],
+                                            VK_NULL_HANDLE,
+                                            &_imageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         _isSwapchainInvalid = true;
-    }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    {
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         LOGE("failed to acquire swap chain image!");
     }
 }
 
-void VulkanManager::PostDraw()
-{
-    VkResult result = _swapchainManager->QueuePresent(_presentQueue, _imageIndex);
+void VulkanManager::PostDraw() {
+    VkResult result = _swapchainManager->QueuePresent(
+        _presentQueue, _imageIndex, _imageFinishDrawSemaphores[_imageIndex]);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _framebufferResized) {
         _framebufferResized = false;
         _isSwapchainInvalid = true;
-    }
-    else if (result != VK_SUCCESS) {
+    } else if (result != VK_SUCCESS) {
         LOGE("failed to present swap chain image!");
     }
+    _frameIndex = (_frameIndex + 1) % MAX_FRAME_IN_FLIGHT;
 }
 
-void VulkanManager::RecreateSwapchain()
-{
+void VulkanManager::RecreateSwapchain() {
     vkDeviceWaitIdle(_device);
     _swapchainManager->Cleanup(_device);
-    _swapchainManager->CreateSwapchain(_window, _physicalDevice, _device, _surface, indices.graphicsFamily,
-                                      indices.presentFamily);
+    _swapchainManager->CreateSwapchain(
+        _window, _physicalDevice, _device, _surface, indices.graphicsFamily, indices.presentFamily);
     _swapchainManager->ChangeLayout(_device, _commandPool, _graphicQueue);
+    // 图像数量可能变化，per-image 呈现完成信号量必须随之重建
+    RecreateFinishSemaphores();
 }
 
 // ---- 帧解耦接口实现 ----
 
-bool VulkanManager::BeginFrame()
-{
+bool VulkanManager::BeginFrame() {
 #if defined(TRACY_ENABLE)
     ZoneScopedN("vk/BeginFrame");
 #endif
-    if (!IsInitialized())
-    {
+    if (!IsInitialized()) {
         LOGE("VulkanManager is not initialized");
         return false;
     }
 
-    if (_frameActive)
-    {
+    if (_frameActive) {
         LOGE("BeginFrame called while a frame is already active");
         return false;
     }
 
     // 上一帧 present 后标记的失效：先重建，让调用方本帧跳过
-    if (_isSwapchainInvalid)
-    {
+    if (_isSwapchainInvalid) {
         RecreateSwapchain();
         _isSwapchainInvalid = false;
         return false;
@@ -638,48 +609,24 @@ bool VulkanManager::BeginFrame()
 #endif
         UpdateDrawFrame();
     }
-    if (_isSwapchainInvalid)
-    {
+    if (_isSwapchainInvalid) {
         _isSwapchainInvalid = false;
         RecreateSwapchain();
         return false;
     }
 
-    // 常驻帧命令缓冲：分配一次，每帧重置复用
-    if (_frameCmd == VK_NULL_HANDLE)
-    {
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = _commandPool;
-        allocInfo.commandBufferCount = 1;
-        if (vkAllocateCommandBuffers(_device, &allocInfo, &_frameCmd) != VK_SUCCESS)
-        {
-            LOGE("failed to allocate frame command buffer!");
-        }
-    }
-
-    // 常驻传输命令缓冲：只有渲染区间之外才允许录制的命令（vkCmdCopyBuffer 等）走这里
-    if (_uploadCmd == VK_NULL_HANDLE)
-    {
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = _commandPool;
-        allocInfo.commandBufferCount = 1;
-        if (vkAllocateCommandBuffers(_device, &allocInfo, &_uploadCmd) != VK_SUCCESS)
-        {
-            LOGE("failed to allocate upload command buffer!");
-        }
-    }
-
-    vkResetCommandBuffer(_frameCmd, 0);
-    vkResetCommandBuffer(_uploadCmd, 0);
+    // per-slot 常驻命令缓冲（CreateSyncObjects 已分配）。
+    // 本槽 fence 已在 UpdateDrawFrame 等待过（该槽上一帧 GPU 工作已完成），
+    // 此时 reset/re-record 本槽缓冲是安全的
+    VkCommandBuffer frameCmd = _frameCmds[_frameIndex];
+    VkCommandBuffer uploadCmd = _uploadCmds[_frameIndex];
+    vkResetCommandBuffer(frameCmd, 0);
+    vkResetCommandBuffer(uploadCmd, 0);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    vkBeginCommandBuffer(_frameCmd, &beginInfo);
-    vkBeginCommandBuffer(_uploadCmd, &beginInfo);
+    vkBeginCommandBuffer(frameCmd, &beginInfo);
+    vkBeginCommandBuffer(uploadCmd, &beginInfo);
 
     // 布局迁移：UNDEFINED → COLOR_ATTACHMENT_OPTIMAL（present 后布局视为 UNDEFINED）
     VkImageMemoryBarrier barrier{};
@@ -694,9 +641,16 @@ bool VulkanManager::BeginFrame()
     barrier.subresourceRange.layerCount = 1;
     barrier.srcAccessMask = 0;
     barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    vkCmdPipelineBarrier(_frameCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
-                         0, nullptr, 0, nullptr, 1, &barrier);
+    vkCmdPipelineBarrier(frameCmd,
+                         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         0,
+                         0,
+                         nullptr,
+                         0,
+                         nullptr,
+                         1,
+                         &barrier);
 
     // 开始主 rendering 区间：清屏为透明（premultiplied-alpha 下正确叠加模型）
     VkRenderingAttachmentInfo colorAttachment{};
@@ -715,26 +669,27 @@ bool VulkanManager::BeginFrame()
     renderingInfo.layerCount = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments = &colorAttachment;
-    vkCmdBeginRendering(_frameCmd, &renderingInfo);
+    vkCmdBeginRendering(frameCmd, &renderingInfo);
 
     _frameActive = true;
     return true;
 }
 
-void VulkanManager::EndFrame()
-{
+void VulkanManager::EndFrame() {
 #if defined(TRACY_ENABLE)
     ZoneScopedN("vk/EndFrame");
 #endif
-    if (!_frameActive)
-    {
+    if (!_frameActive) {
         LOGE("EndFrame called without an active frame");
         return;
     }
     _frameActive = false;
 
+    VkCommandBuffer frameCmd = _frameCmds[_frameIndex];
+    VkCommandBuffer uploadCmd = _uploadCmds[_frameIndex];
+
     // 结束主 rendering 区间
-    vkCmdEndRendering(_frameCmd);
+    vkCmdEndRendering(frameCmd);
 
     // 布局迁移：COLOR_ATTACHMENT_OPTIMAL → PRESENT_SRC_KHR
     VkImageMemoryBarrier barrier{};
@@ -749,40 +704,60 @@ void VulkanManager::EndFrame()
     barrier.subresourceRange.layerCount = 1;
     barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     barrier.dstAccessMask = 0;
-    vkCmdPipelineBarrier(_frameCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0,
-                         0, nullptr, 0, nullptr, 1, &barrier);
+    vkCmdPipelineBarrier(frameCmd,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0,
+                         0,
+                         nullptr,
+                         0,
+                         nullptr,
+                         1,
+                         &barrier);
 
-    vkEndCommandBuffer(_frameCmd);
+    vkEndCommandBuffer(frameCmd);
 
     // 传输缓冲结束前补一条可见性屏障：帧缓冲里的顶点/索引读取要看到这里的拷贝结果
     {
         VkMemoryBarrier memoryBarrier{};
         memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
-        vkCmdPipelineBarrier(_uploadCmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0,
-                             1, &memoryBarrier, 0, nullptr, 0, nullptr);
+        memoryBarrier.dstAccessMask =
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
+        vkCmdPipelineBarrier(uploadCmd,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                             0,
+                             1,
+                             &memoryBarrier,
+                             0,
+                             nullptr,
+                             0,
+                             nullptr);
     }
-    vkEndCommandBuffer(_uploadCmd);
+    vkEndCommandBuffer(uploadCmd);
 
     // 提交：等待帧首 acquire 发出的 imageAvailable 信号量
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     // 传输缓冲先于帧缓冲执行（同队列按顺序）
-    VkCommandBuffer submitBuffers[] = {_uploadCmd, _frameCmd};
+    VkCommandBuffer submitBuffers[] = {uploadCmd, frameCmd};
     submitInfo.commandBufferCount = 2;
     submitInfo.pCommandBuffers = submitBuffers;
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &_imageAvailableSemaphore;
+    submitInfo.pWaitSemaphores = &_imageAvailableSemaphores[_frameIndex];
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &_imageFinishDrawSemaphores[_imageIndex];
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.pWaitDstStageMask = waitStages;
     {
 #if defined(TRACY_ENABLE)
         ZoneScopedN("vk/submit");
 #endif
-        vkQueueSubmit(_graphicQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        // 确认本槽 fence 已由上一帧置位后（UpdateDrawFrame 已等待），
+        // 在提交前重置，本帧 submit 完成时再次置位
+        vkResetFences(_device, 1, &_frameFences[_frameIndex]);
+        vkQueueSubmit(_graphicQueue, 1, &submitInfo, _frameFences[_frameIndex]);
     }
 
     {
@@ -792,33 +767,21 @@ void VulkanManager::EndFrame()
         PostDraw();
     }
 
-    // 与原逐段提交行为保持一致：帧末等待 GPU 完成，
-    // 保证下一帧帧首复位 arena / 复用 mask 图像内容时无竞争
-    {
-#if defined(TRACY_ENABLE)
-        ZoneScopedN("vk/waitIdle");
-#endif
-        vkQueueWaitIdle(_graphicQueue);
-    }
 #if defined(TRACY_ENABLE)
     FrameMark;
 #endif
 }
 
-void VulkanManager::SuspendMainRegion()
-{
-    if (!_frameActive)
-    {
+void VulkanManager::SuspendMainRegion() {
+    if (!_frameActive) {
         LOGE("SuspendMainRegion called without an active frame");
         return;
     }
-    vkCmdEndRendering(_frameCmd);
+    vkCmdEndRendering(_frameCmds[_frameIndex]);
 }
 
-void VulkanManager::ResumeMainRegion()
-{
-    if (!_frameActive)
-    {
+void VulkanManager::ResumeMainRegion() {
+    if (!_frameActive) {
         LOGE("ResumeMainRegion called without an active frame");
         return;
     }
@@ -840,42 +803,58 @@ void VulkanManager::ResumeMainRegion()
     renderingInfo.layerCount = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments = &colorAttachment;
-    vkCmdBeginRendering(_frameCmd, &renderingInfo);
+    vkCmdBeginRendering(_frameCmds[_frameIndex], &renderingInfo);
 }
 
-uint32_t VulkanManager::GetFramesInFlight() const
-{
-    if (_swapchainManager == nullptr)
-    {
+uint32_t VulkanManager::GetFramesInFlight() const {
+    if (_swapchainManager == nullptr) {
         return 0;
     }
-    return static_cast<uint32_t>(_swapchainManager->GetImageCount());
+    return static_cast<uint32_t>(MAX_FRAME_IN_FLIGHT);
 }
 
-void VulkanManager::Destroy()
-{
-    if (!IsInitialized())
-    {
+void VulkanManager::ResetCommandBuffers() {
+    // 帧录制中重置命令池属于非法操作（会破坏正在录制的缓冲）
+    if (!IsInitialized() || _frameActive) {
+        return;
+    }
+    // 先等 GPU 完成所有已提交工作，再重置：重置会把池内所有命令缓冲恢复到
+    // initial 状态，从而解除它们对 buffer/image 的引用
+    vkDeviceWaitIdle(_device);
+    vkResetCommandPool(_device, _commandPool, 0);
+}
+
+void VulkanManager::Destroy() {
+    if (!IsInitialized()) {
         return;
     }
     vkDeviceWaitIdle(_device);
+    vkQueueWaitIdle(_graphicQueue);
 
     // 释放帧解耦模式的常驻命令缓冲（随 command pool 一并销毁，仅复位指针）
-    _frameCmd = VK_NULL_HANDLE;
-    _uploadCmd = VK_NULL_HANDLE;
+    _frameCmds.clear();
+    _uploadCmds.clear();
     _frameActive = false;
 
-    if (_swapchainManager != NULL)
-    {
+    if (_swapchainManager != NULL) {
         _swapchainManager->Cleanup(_device);
         delete _swapchainManager;
         _swapchainManager = NULL;
     }
 
-    vkDestroySemaphore(_device, _imageAvailableSemaphore, nullptr);
+    const int size = (int)_imageFinishDrawSemaphores.size();
+    for (int i = 0; i < size; i++) {
+        vkDestroySemaphore(_device, _imageFinishDrawSemaphores[i], nullptr);
+    }
+    for (int i = 0; i < MAX_FRAME_IN_FLIGHT; i++) {
+        vkDestroySemaphore(_device, _imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(_device, _frameFences[i], nullptr);
+    }
+    _imageAvailableSemaphores.clear();
+    _imageFinishDrawSemaphores.clear();
+    _frameFences.clear();
 
-    if (_enableValidationLayers)
-    {
+    if (_enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
     }
 

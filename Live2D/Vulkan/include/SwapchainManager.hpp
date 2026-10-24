@@ -82,9 +82,10 @@ public:
      *
      * @param[in]   queue          ->  キュー
      * @param[in]   imageIndex     ->  イメージのインデックス
+     * @param[in]   finishSemaphore ->  表示コマンドが完了したときに通知するsemaphore
      * @return  成功したか
      */
-    VkResult QueuePresent(VkQueue& queue, uint32_t imageIndex);
+    VkResult QueuePresent(VkQueue& queue, uint32_t imageIndex, VkSemaphore finishSemaphore);
 
     /**
      * @brief    スワップチェーンのレイアウトの変更

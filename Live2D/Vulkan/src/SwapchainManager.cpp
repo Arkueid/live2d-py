@@ -1,6 +1,10 @@
 #include "SwapchainManager.hpp"
 #include "Log.hpp"
 
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+
 SwapchainManager::SwapchainManager(void* _window, VkPhysicalDevice physicalDevice, VkDevice device,
                                    VkSurfaceKHR surface, uint32_t graphicsFamily, uint32_t presentFamily)
 {
@@ -50,12 +54,35 @@ VkSurfaceFormatKHR SwapchainManager::ChooseSwapSurfaceFormat(const std::vector<V
 
 VkPresentModeKHR SwapchainManager::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
-    for (uint32_t i = 0; i < availablePresentModes.size(); i++)
+    // 默认 MAILBOX（无撕裂、跟随刷新率），发布构建恒定此模式。
+    // 仅 Tracy 构建（压测/录制）允许用环境变量关闭呈现节流：
+    //   LIVE2D_VK_PRESENT_MODE=immediate | mailbox | fifo | fifo_relaxed
+#if defined(TRACY_ENABLE)
+    VkPresentModeKHR preferred = VK_PRESENT_MODE_MAILBOX_KHR;
+    if (const char* requested = std::getenv("LIVE2D_VK_PRESENT_MODE"))
     {
-        if (availablePresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-        {
-            return availablePresentModes[i];
-        }
+        if (std::strcmp(requested, "immediate") == 0) preferred = VK_PRESENT_MODE_IMMEDIATE_KHR;
+        else if (std::strcmp(requested, "fifo") == 0) preferred = VK_PRESENT_MODE_FIFO_KHR;
+        else if (std::strcmp(requested, "fifo_relaxed") == 0) preferred = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+        else if (std::strcmp(requested, "mailbox") == 0) preferred = VK_PRESENT_MODE_MAILBOX_KHR;
+        else LOGW("unknown LIVE2D_VK_PRESENT_MODE: %s, fallback to MAILBOX", requested);
+    }
+#else
+    const VkPresentModeKHR preferred = VK_PRESENT_MODE_MAILBOX_KHR;
+#endif
+
+    const auto supports = [&availablePresentModes](VkPresentModeKHR mode) {
+        return std::find(availablePresentModes.begin(), availablePresentModes.end(), mode) !=
+               availablePresentModes.end();
+    };
+
+    if (supports(preferred))
+    {
+        return preferred;
+    }
+    if (supports(VK_PRESENT_MODE_MAILBOX_KHR))
+    {
+        return VK_PRESENT_MODE_MAILBOX_KHR;
     }
     return VK_PRESENT_MODE_FIFO_KHR;
 }
@@ -147,6 +174,13 @@ void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDe
         LOGE("failed to create swap chain");
     }
 
+    LOGI("swapchain: presentMode=%d imageCount=%u (min=%u max=%u) format=%d colorSpace=%d "
+         "extent=%ux%u sharing=%d",
+         (int)presentMode, imageCount, swapChainSupport.capabilities.minImageCount,
+         swapChainSupport.capabilities.maxImageCount, (int)surfaceFormat.format,
+         (int)surfaceFormat.colorSpace, extent.width, extent.height,
+         (int)createInfo.imageSharingMode);
+
     // swapchain imageを取得する
     vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
     images.resize(imageCount);
@@ -177,7 +211,7 @@ void SwapchainManager::CreateSwapchain(void* window, VkPhysicalDevice physicalDe
     }
 }
 
-VkResult SwapchainManager::QueuePresent(VkQueue& queue, uint32_t imageIndex)
+VkResult SwapchainManager::QueuePresent(VkQueue& queue, uint32_t imageIndex, VkSemaphore finishSemaphore)
 {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -186,6 +220,8 @@ VkResult SwapchainManager::QueuePresent(VkQueue& queue, uint32_t imageIndex)
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &finishSemaphore;
     return vkQueuePresentKHR(queue, &presentInfo);
 }
 

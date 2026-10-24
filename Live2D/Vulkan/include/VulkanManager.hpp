@@ -27,6 +27,7 @@ struct SurfaceCreateContext {
 class VulkanManager
 {
 public:
+    static const int MAX_FRAME_IN_FLIGHT = 3;
     // キューファミリの情報を格納する構造体
     struct QueueFamilyIndices
     {
@@ -175,6 +176,9 @@ public:
      */
     void CreateSyncObjects();
 
+    /// 按当前 swapchain 图像数重建 per-image 呈现完成信号量（交换链重建后调用）
+    void RecreateFinishSemaphores();
+
     /**
      * @brief   初期化する
      */
@@ -186,12 +190,11 @@ public:
     VkCommandBuffer BeginSingleTimeCommands();
 
     /**
-     * @brief   コマンドを提出する
+     * @brief   提交单帧命令缓冲区
      *
-     * @param[in]   commandBuffer     ->  コマンドバッファ
-     * @param[in]   isFirstDraw       ->  最初の描画コマンドか
+     * @param[in]   commandBuffer     ->  命令缓冲区
      */
-    void SubmitCommand(VkCommandBuffer commandBuffer, bool isFirstDraw = false);
+    void SubmitCommand(VkCommandBuffer commandBuffer);
 
     /**
      * @brief   描画する
@@ -243,14 +246,14 @@ public:
     /**
      * @brief   获取当前帧命令缓冲（纯录制模式用）
      */
-    VkCommandBuffer GetFrameCommandBuffer() const { return _frameCmd; }
+    VkCommandBuffer GetFrameCommandBuffer() const { return _frameCmds[_frameIndex]; }
 
     /**
      * @brief   获取当前帧传输命令缓冲（纯录制模式用）
      *          渲染区间之外才能录制的命令（vkCmdCopyBuffer 等）只能进这个缓冲；
      *          由 EndFrame 在帧命令缓冲之前提交
      */
-    VkCommandBuffer GetUploadCommandBuffer() const { return _uploadCmd; }
+    VkCommandBuffer GetUploadCommandBuffer() const { return _uploadCmds[_frameIndex]; }
 
     /**
      * @brief   本帧获取到的 swapchain 图像索引
@@ -258,7 +261,7 @@ public:
     uint32_t GetCurrentImageIndex() const { return _imageIndex; }
 
     /**
-     * @brief   可同时飞行的帧数（swapchain 图像数量）
+     * @brief   可同时飞行的帧数（CPU 提交流水深度，槽位数）
      */
     uint32_t GetFramesInFlight() const;
 
@@ -290,6 +293,13 @@ public:
      * @return  コマンドプール
      */
     VkCommandPool GetCommandPool() { return _commandPool; }
+
+    /**
+     * @brief   等待 GPU 空闲并重置命令池，清除命令缓冲对各类资源的引用
+     *          销毁渲染资源（缓冲/图像）之前调用，否则校验层会报
+     *          "can't be called on VkBuffer/VkImage ... in use by VkCommandBuffer"
+     */
+    void ResetCommandBuffers();
 
     /**
      * @brief   スワップチェーンマネージャーを取得する
@@ -354,7 +364,9 @@ private:
     VkQueue _graphicQueue;                                      // 描画コマンドを積むキュー
     VkQueue _presentQueue;                                      // 表示コマンドに使用するキュー
     VkCommandPool _commandPool;                                 // コマンドバッファの作成に必要なコマンドプール
-    VkSemaphore _imageAvailableSemaphore;                       // セマフォ
+    std::vector<VkSemaphore> _imageAvailableSemaphores;
+    std::vector<VkSemaphore> _imageFinishDrawSemaphores;
+    int _frameIndex = 0;
     SwapchainManager* _swapchainManager;                        // スワップチェーンの管理を行うスワップチェーンマネージャー
     bool _isSwapchainInvalid = false;                           // ウィンドウサイズが変更されたかのフラグ
     VkDebugUtilsMessengerEXT _debugMessenger;                   // デバッグメッセージを出力するオブジェクト
@@ -362,8 +374,11 @@ private:
     VkFormat _depthFormat;                                      // 深度フォーマット
     const VkFormat _surfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;   // イメージフォーマット
     bool _framebufferResized = false;                           // フレームバッファのサイズが変わったか
-    VkCommandBuffer _frameCmd = VK_NULL_HANDLE;                 // 帧解耦模式的常驻命令缓冲
-    VkCommandBuffer _uploadCmd = VK_NULL_HANDLE;                // 帧解耦模式的常驻传输命令缓冲（渲染区间外提交）
+    std::vector<VkFence> _frameFences;
+    // per-slot 常驻命令缓冲：槽位由 fence 串行化，等待该槽 fence 完成后才允许
+    // reset/re-record 该槽缓冲，避免重置仍在 GPU 上执行的命令缓冲（UB）
+    std::vector<VkCommandBuffer> _frameCmds;                    // 帧解耦模式的常驻命令缓冲（每槽一份）
+    std::vector<VkCommandBuffer> _uploadCmds;                   // 常驻传输命令缓冲（渲染区间外命令，每槽一份）
     bool _frameActive = false;                                  // 是否处于 BeginFrame~EndFrame 之间
 #if defined(LIVE2D_VK_VALIDATION)
     bool _enableValidationLayers = true;                        // 検証レイヤーを有効にするか
