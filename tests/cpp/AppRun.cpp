@@ -164,7 +164,7 @@ void RenderFrame(GLFWwindow* window, Live2D::IModel& model) {
 #endif
     glfwPollEvents();
     if (model.IsMotionFinished()) {
-        model.StartRandomMotion("", 3);
+        // model.StartRandomMotion(3);
     }
 }
 
