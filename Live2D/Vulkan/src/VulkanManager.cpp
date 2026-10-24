@@ -659,11 +659,27 @@ bool VulkanManager::BeginFrame()
         }
     }
 
+    // 常驻传输命令缓冲：只有渲染区间之外才允许录制的命令（vkCmdCopyBuffer 等）走这里
+    if (_uploadCmd == VK_NULL_HANDLE)
+    {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = _commandPool;
+        allocInfo.commandBufferCount = 1;
+        if (vkAllocateCommandBuffers(_device, &allocInfo, &_uploadCmd) != VK_SUCCESS)
+        {
+            LOGE("failed to allocate upload command buffer!");
+        }
+    }
+
     vkResetCommandBuffer(_frameCmd, 0);
+    vkResetCommandBuffer(_uploadCmd, 0);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(_frameCmd, &beginInfo);
+    vkBeginCommandBuffer(_uploadCmd, &beginInfo);
 
     // 布局迁移：UNDEFINED → COLOR_ATTACHMENT_OPTIMAL（present 后布局视为 UNDEFINED）
     VkImageMemoryBarrier barrier{};
@@ -739,11 +755,25 @@ void VulkanManager::EndFrame()
 
     vkEndCommandBuffer(_frameCmd);
 
+    // 传输缓冲结束前补一条可见性屏障：帧缓冲里的顶点/索引读取要看到这里的拷贝结果
+    {
+        VkMemoryBarrier memoryBarrier{};
+        memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+        memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
+        vkCmdPipelineBarrier(_uploadCmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0,
+                             1, &memoryBarrier, 0, nullptr, 0, nullptr);
+    }
+    vkEndCommandBuffer(_uploadCmd);
+
     // 提交：等待帧首 acquire 发出的 imageAvailable 信号量
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &_frameCmd;
+    // 传输缓冲先于帧缓冲执行（同队列按顺序）
+    VkCommandBuffer submitBuffers[] = {_uploadCmd, _frameCmd};
+    submitInfo.commandBufferCount = 2;
+    submitInfo.pCommandBuffers = submitBuffers;
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = &_imageAvailableSemaphore;
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -832,6 +862,7 @@ void VulkanManager::Destroy()
 
     // 释放帧解耦模式的常驻命令缓冲（随 command pool 一并销毁，仅复位指针）
     _frameCmd = VK_NULL_HANDLE;
+    _uploadCmd = VK_NULL_HANDLE;
     _frameActive = false;
 
     if (_swapchainManager != NULL)

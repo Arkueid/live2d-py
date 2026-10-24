@@ -246,6 +246,13 @@ public:
     VkCommandBuffer GetFrameCommandBuffer() const { return _frameCmd; }
 
     /**
+     * @brief   获取当前帧传输命令缓冲（纯录制模式用）
+     *          渲染区间之外才能录制的命令（vkCmdCopyBuffer 等）只能进这个缓冲；
+     *          由 EndFrame 在帧命令缓冲之前提交
+     */
+    VkCommandBuffer GetUploadCommandBuffer() const { return _uploadCmd; }
+
+    /**
      * @brief   本帧获取到的 swapchain 图像索引
      */
     uint32_t GetCurrentImageIndex() const { return _imageIndex; }
@@ -356,6 +363,7 @@ private:
     const VkFormat _surfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;   // イメージフォーマット
     bool _framebufferResized = false;                           // フレームバッファのサイズが変わったか
     VkCommandBuffer _frameCmd = VK_NULL_HANDLE;                 // 帧解耦模式的常驻命令缓冲
+    VkCommandBuffer _uploadCmd = VK_NULL_HANDLE;                // 帧解耦模式的常驻传输命令缓冲（渲染区间外提交）
     bool _frameActive = false;                                  // 是否处于 BeginFrame~EndFrame 之间
 #if defined(LIVE2D_VK_VALIDATION)
     bool _enableValidationLayers = true;                        // 検証レイヤーを有効にするか

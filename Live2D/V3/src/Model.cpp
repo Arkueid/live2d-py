@@ -1121,6 +1121,7 @@ void Model::Draw() {
         // 注册外部帧录制：帧命令缓冲 + 主区间挂起/恢复钩子（每次 Draw 刷新）
         Rendering::SetExternalFrameRecording(
             vkManager->GetFrameCommandBuffer(),
+            vkManager->GetUploadCommandBuffer(),
             [](VkCommandBuffer) { VulkanManager::GetInstance()->SuspendMainRegion(); },
             [](VkCommandBuffer) { VulkanManager::GetInstance()->ResumeMainRegion(); });
 
