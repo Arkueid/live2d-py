@@ -17,6 +17,10 @@ add_subdirectory(glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
 # ---- Live2DTest executable ---------------------------------------------------
 add_executable(Live2DTest
   main.cpp
+  AppRun.cpp
+  Cli.cpp
+  ModelCatalog.cpp
+  SmokeTest.cpp
 )
 
 target_link_libraries(Live2DTest PRIVATE
