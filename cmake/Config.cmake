@@ -17,6 +17,10 @@ set(FORMAT_UTIL off CACHE BOOL "format source code by batch")
 
 set(DEBUG_ENABLE_ASAN off CACHE BOOL "detect memory corruption")
 
+# Vulkan 校验层（VK_LAYER_KHRONOS_validation）：开启后带上 VK_EXT_debug_utils，
+# 所有违反 spec 的调用（信号量复用、present 未挂信号量等）打印到 stdout。
+set(LIVE2D_VK_VALIDATION off CACHE BOOL "enable Vulkan validation layers")
+
 # build the C++ test app (tests/cpp, needs the glfw submodule)
 set(LIVE2D_CPP_TEST off CACHE BOOL "build Live2DTest in tests/cpp")
 

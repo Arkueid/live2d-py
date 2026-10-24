@@ -357,9 +357,9 @@ private:
     bool _framebufferResized = false;                           // フレームバッファのサイズが変わったか
     VkCommandBuffer _frameCmd = VK_NULL_HANDLE;                 // 帧解耦模式的常驻命令缓冲
     bool _frameActive = false;                                  // 是否处于 BeginFrame~EndFrame 之间
-#ifdef CSM_DEBUG
+#if defined(LIVE2D_VK_VALIDATION)
     bool _enableValidationLayers = true;                        // 検証レイヤーを有効にするか
 #else
     bool _enableValidationLayers = false;
-#endif // CSM_DEBUG
+#endif // LIVE2D_VK_VALIDATION
 };

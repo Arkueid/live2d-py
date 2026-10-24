@@ -50,6 +50,10 @@ endif()
 if(${GR_BACKEND} MATCHES "Vulkan" OR ${GR_BACKEND} MATCHES "Dual")
   set(CSM_TARGET CSM_TARGET_VULKAN)
   add_compile_definitions(CSM_TARGET_VULKAN=1)
+  if (LIVE2D_VK_VALIDATION)
+    message("[Vulkan] validation layers on")
+    add_compile_definitions(LIVE2D_VK_VALIDATION=1)
+  endif()
 endif()
 
 # ---- Cubism Native SDK ----
