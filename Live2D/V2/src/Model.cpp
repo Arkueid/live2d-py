@@ -17,6 +17,9 @@
 #endif
 #include "Motion.hpp"
 #include "Log.hpp"
+#if defined(TRACY_ENABLE)
+#include <tracy/Tracy.hpp>
+#endif
 #include "Moc.hpp"
 #include "nlohmann/json.hpp"
 #ifdef __ANDROID__
@@ -308,6 +311,9 @@ void Model::SetPartOpacity(int index, float val) {
     mMoc->SetPartsOpacity(index, val);
 }
 void Model::Update(float deltaSecs) {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("v2/Update");
+#endif
     // Model 是唯一读墙钟的地方，且只做一件事: 每帧算一次 dt
     float dt;
     if (deltaSecs < 0.0f) {
@@ -324,25 +330,45 @@ void Model::Update(float deltaSecs) {
     float dtMs = dt * 1000.0f;
     mBreathTimeMs += dtMs;
 
-    mDragMgr.Update(dt);
-    SetDrag(mDragMgr.GetX(), mDragMgr.GetY());
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/UpdateDrag");
+#endif
+        mDragMgr.Update(dt);
+        SetDrag(mDragMgr.GetX(), mDragMgr.GetY());
+    }
 
     // Match v2 Python Update() flow
     bool updated = false;
-    if (mClearFlag) {
-        mMainMotionMgr->StopAllMotions();
-        mClearFlag = false;
-    } else {
-        mMoc->LoadParam();
-        updated = mMainMotionMgr->UpdateParam(mMoc.get(), dtMs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/UpdateMotion");
+#endif
+        if (mClearFlag) {
+            mMainMotionMgr->StopAllMotions();
+            mClearFlag = false;
+        } else {
+            mMoc->LoadParam();
+            updated = mMainMotionMgr->UpdateParam(mMoc.get(), dtMs);
+        }
+        mMoc->SaveParam();
     }
-    mMoc->SaveParam();
 
-    // Python suppresses eye-blink while a main motion is active
-    if (!updated && mAutoBlink && mEyeBlink)
-        mEyeBlink->UpdateParam(mMoc.get(), dtMs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/UpdateBlink");
+#endif
+        // Python suppresses eye-blink while a main motion is active
+        if (!updated && mAutoBlink && mEyeBlink)
+            mEyeBlink->UpdateParam(mMoc.get(), dtMs);
+    }
 
-    UpdateExpression(dt);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/UpdateExpression");
+#endif
+        UpdateExpression(dt);
+    }
 
     // Drag-based parameter updates (match v2 Python)
     auto addParam = [&](const char* id, float value, float weight) {
@@ -371,10 +397,20 @@ void Model::Update(float deltaSecs) {
             mMoc->SetParamValue(breathIdx, 0.5f + 0.5f * sinf(t / 3.2345f));
     }
 
-    if (mPhysics)
-        mPhysics->UpdateParam(mMoc.get(), (long long)dtMs);
-    if (mPose)
-        mPose->UpdateParam(mMoc.get(), dt);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/UpdatePhysics");
+#endif
+        if (mPhysics)
+            mPhysics->UpdateParam(mMoc.get(), (long long)dtMs);
+    }
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/UpdatePose");
+#endif
+        if (mPose)
+            mPose->UpdateParam(mMoc.get(), dt);
+    }
 
 #ifdef CSM_TARGET_VULKAN
     // 本帧参数发生过变化，裁剪遮罩内容需重渲
@@ -383,11 +419,19 @@ void Model::Update(float deltaSecs) {
 #endif
 }
 void Model::Draw() {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("v2/Draw");
+#endif
     // Match v2 Python: process deformer chain in Draw(), not Update()
     // This allows SetParameterValue between Update() and Draw() to take effect
-    mMoc->Update();
-    // 解析渲染派生数据（opacity/可见性/渲染序列），供 Moc 数据面 getter 使用
-    mMoc->Resolve();
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/ModelUpdate");
+#endif
+        mMoc->Update();
+        // 解析渲染派生数据（opacity/可见性/渲染序列），供 Moc 数据面 getter 使用
+        mMoc->Resolve();
+    }
 
     if (!mRenderer) {
         LOGE("Renderer not initialized");
@@ -403,8 +447,13 @@ void Model::Draw() {
             return;
     }
 #endif
-    mRenderer->PreDraw(mMoc.get());
-    mRenderer->Draw(mMoc.get());
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v2/DrawModel");
+#endif
+        mRenderer->PreDraw(mMoc.get());
+        mRenderer->Draw(mMoc.get());
+    }
 }
 void Model::screenToModel(float* x, float* y) {
     // 像素 → ndc → 完整 mvp 逆变换（含旋转/缩放/平移）

@@ -3,6 +3,9 @@
 #include <V3/Model.hpp>
 #include <V2/Model.hpp>
 #include <Log.hpp>
+#if defined(TRACY_ENABLE)
+#include <tracy/Tracy.hpp>
+#endif
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -115,6 +118,9 @@ static PyObject* PyModel_IsV3(PyModelObject* self, PyObject* args, PyObject* kwa
 }
 
 static PyObject* PyModel_Update(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("py/Update");
+#endif
     // 可选 dt: 不传 = 内部自计时（哨兵 -1），传入 = delta 驱动
     float deltaTimeSeconds = -1.0f;
     if (!PyArg_ParseTuple(args, "|f", &deltaTimeSeconds)) {
@@ -667,6 +673,9 @@ static PyObject* PyModel_DestroyRenderer(PyModelObject* self, PyObject* args, Py
     Py_RETURN_NONE;
 }
 static PyObject* PyModel_Draw(PyModelObject* self, PyObject* args, PyObject* kwargs) {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("py/Draw");
+#endif
     self->model->Draw();
     Py_RETURN_NONE;
 }

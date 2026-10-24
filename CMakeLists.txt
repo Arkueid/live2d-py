@@ -64,6 +64,19 @@ if (DEBUG_ENABLE_CALLSTACK)
   add_compile_definitions(DEBUG_ENABLE_CALLSTACK)
 endif()
 
+# ---- Tracy profiler（可选，源码固定为 submodule: tracy/）----
+if (LIVE2D_TRACY)
+  set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
+  set(TRACY_ON_DEMAND ON CACHE BOOL "" FORCE)
+  set(TRACY_STATIC ON CACHE BOOL "" FORCE)
+  add_subdirectory(tracy)
+  # 消费者 TU 必须看到与 TracyClient 一致的宏：
+  # TRACY_ENABLE 才会展开 ZoneScopedN/FrameMark，ON_DEMAND 影响类布局（必须一致）
+  add_compile_definitions(TRACY_ENABLE TRACY_ON_DEMAND)
+  # 各后端目标（V2/V3/LVulkan）都会编译带 zone 的源码，统一给 include 路径
+  include_directories(tracy/public)
+endif()
+
 add_subdirectory(Live2D)
 
 if(VIEWER)

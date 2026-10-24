@@ -25,6 +25,9 @@
 
 #include <FileUtils.hpp>
 #include <Log.hpp>
+#if defined(TRACY_ENABLE)
+#include <tracy/Tracy.hpp>
+#endif
 
 
 #include <algorithm>
@@ -124,6 +127,9 @@ int Model::Version() const {
 }
 
 void Model::Update(float deltaSecs) {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("v3/Update");
+#endif
     if (deltaSecs < 0.0f) {
         // 哨兵: 未传入 delta，内部自计时（clamp 0.1）
         auto now = std::chrono::steady_clock::now();
@@ -136,26 +142,46 @@ void Model::Update(float deltaSecs) {
         mLastUpdatePoint = now;
     }
 
-    mProxy._dragManager->Update(deltaSecs);
-    mDragX = mProxy._dragManager->GetX();
-    mDragY = mProxy._dragManager->GetY();
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdateDrag");
+#endif
+        mProxy._dragManager->Update(deltaSecs);
+        mDragX = mProxy._dragManager->GetX();
+        mDragY = mProxy._dragManager->GetY();
+    }
 
     bool motionUpdated = false;
-    LoadParameters();
-    if (!mProxy._motionManager->IsFinished()) {
-        motionUpdated = mProxy._motionManager->UpdateMotion(mProxy.GetModel(), deltaSecs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdateMotion");
+#endif
+        LoadParameters();
+        if (!mProxy._motionManager->IsFinished()) {
+            motionUpdated = mProxy._motionManager->UpdateMotion(mProxy.GetModel(), deltaSecs);
+        }
+        SaveParameters();
     }
-    SaveParameters();
 
     mProxy.SetOpacity(mProxy->GetModelOpacity());
 
-    if (!motionUpdated) {
-        if (mProxy._eyeBlink != NULL && autoBlink) {
-            mProxy._eyeBlink->UpdateParameters(mProxy.GetModel(), deltaSecs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdateBlink");
+#endif
+        if (!motionUpdated) {
+            if (mProxy._eyeBlink != NULL && autoBlink) {
+                mProxy._eyeBlink->UpdateParameters(mProxy.GetModel(), deltaSecs);
+            }
         }
     }
 
-    UpdateExpression(deltaSecs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdateExpression");
+#endif
+        UpdateExpression(deltaSecs);
+    }
 
     mProxy->AddParameterValue(mParamAngleXi, mDragX * 30);
     mProxy->AddParameterValue(mParamAngleYi, mDragY * 30);
@@ -166,16 +192,31 @@ void Model::Update(float deltaSecs) {
     mProxy->AddParameterValue(mParamEyeBallXi, mDragX);
     mProxy->AddParameterValue(mParamEyeBallYi, mDragY);
 
-    if (mProxy._breath != NULL && autoBreath) {
-        mProxy._breath->UpdateParameters(mProxy.GetModel(), deltaSecs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdateBreath");
+#endif
+        if (mProxy._breath != NULL && autoBreath) {
+            mProxy._breath->UpdateParameters(mProxy.GetModel(), deltaSecs);
+        }
     }
 
-    if (mProxy._physics != NULL) {
-        mProxy._physics->Evaluate(mProxy.GetModel(), deltaSecs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdatePhysics");
+#endif
+        if (mProxy._physics != NULL) {
+            mProxy._physics->Evaluate(mProxy.GetModel(), deltaSecs);
+        }
     }
 
-    if (mProxy._pose != NULL) {
-        mProxy._pose->UpdateParameters(mProxy.GetModel(), deltaSecs);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/UpdatePose");
+#endif
+        if (mProxy._pose != NULL) {
+            mProxy._pose->UpdateParameters(mProxy.GetModel(), deltaSecs);
+        }
     }
 }
 
@@ -1013,11 +1054,19 @@ void Model::DestroyRenderer() {
 }
 
 void Model::Draw() {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("v3/Draw");
+#endif
     if (mProxy.GetModel() == nullptr) {
         return;
     }
 
-    mProxy->Update();
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/ModelUpdate");
+#endif
+        mProxy->Update();
+    }
 
     // renderer 的 SetMvpMatrix 内部会拷贝矩阵，CubismMatrix44 仅作转换壳（无需成员缓存）
     // SetMatrix 签名为非 const（实际只读取内容）
@@ -1035,6 +1084,9 @@ void Model::Draw() {
 
         renderer->SetMvpMatrix(&matrix);
 
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/DrawModel");
+#endif
         renderer->DrawModel();
         return;
     }
@@ -1077,6 +1129,9 @@ void Model::Draw() {
             Rendering::CubismDeviceInfo_Vulkan::GetDeviceInfo(vkManager->GetDevice());
         deviceInfo->GetOffscreenManager()->BeginFrameProcess();
 
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("v3/DrawModel");
+#endif
         renderer->DrawModel();
 
         deviceInfo->GetOffscreenManager()->EndFrameProcess();

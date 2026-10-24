@@ -6,6 +6,10 @@
 
 #include "Log.hpp"
 
+#if defined(TRACY_ENABLE)
+#include <tracy/Tracy.hpp>
+#endif
+
 #if defined(_WIN32)
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
@@ -604,6 +608,9 @@ void VulkanManager::RecreateSwapchain()
 
 bool VulkanManager::BeginFrame()
 {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("vk/BeginFrame");
+#endif
     if (!IsInitialized())
     {
         LOGE("VulkanManager is not initialized");
@@ -625,7 +632,12 @@ bool VulkanManager::BeginFrame()
     }
 
     // 获取 swapchain 图像；失效时先重建，让调用方本帧跳过
-    UpdateDrawFrame();
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("vk/acquire");
+#endif
+        UpdateDrawFrame();
+    }
     if (_isSwapchainInvalid)
     {
         _isSwapchainInvalid = false;
@@ -695,6 +707,9 @@ bool VulkanManager::BeginFrame()
 
 void VulkanManager::EndFrame()
 {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("vk/EndFrame");
+#endif
     if (!_frameActive)
     {
         LOGE("EndFrame called without an active frame");
@@ -733,13 +748,31 @@ void VulkanManager::EndFrame()
     submitInfo.pWaitSemaphores = &_imageAvailableSemaphore;
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.pWaitDstStageMask = waitStages;
-    vkQueueSubmit(_graphicQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("vk/submit");
+#endif
+        vkQueueSubmit(_graphicQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    }
 
-    PostDraw();
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("vk/present");
+#endif
+        PostDraw();
+    }
 
     // 与原逐段提交行为保持一致：帧末等待 GPU 完成，
     // 保证下一帧帧首复位 arena / 复用 mask 图像内容时无竞争
-    vkQueueWaitIdle(_graphicQueue);
+    {
+#if defined(TRACY_ENABLE)
+        ZoneScopedN("vk/waitIdle");
+#endif
+        vkQueueWaitIdle(_graphicQueue);
+    }
+#if defined(TRACY_ENABLE)
+    FrameMark;
+#endif
 }
 
 void VulkanManager::SuspendMainRegion()

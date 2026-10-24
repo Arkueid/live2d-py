@@ -5,6 +5,9 @@
 
 #include <Init.hpp>
 #include <Log.hpp>
+#if defined(TRACY_ENABLE)
+#include <tracy/Tracy.hpp>
+#endif
 #ifdef CSM_TARGET_VULKAN
 #include <vulkan/vulkan.h>
 #include <VulkanManager.hpp>
@@ -108,6 +111,8 @@ static PyObject* live2d_glInit() {
     }
     Common::Backend::SetBackend(Live2D::Common::Backend::BACKEND_OPENGL);
 
+    const unsigned char* renderer = glGetString(GL_RENDERER);
+    LOGI("Device: %s", renderer);
 #ifdef DEBUG_ENABLE_CALLSTACK
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -277,6 +282,9 @@ static PyObject* live2d_vk_get_handles(PyObject* /*self*/, PyObject* /*args*/) {
 }
 
 static PyObject* live2d_vk_begin_frame(PyObject* /*self*/, PyObject* /*args*/) {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("py/vkBeginFrame");
+#endif
 #ifdef CSM_TARGET_VULKAN
     if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkBeginFrame")) {
         return NULL;
@@ -298,6 +306,9 @@ static PyObject* live2d_vk_begin_frame(PyObject* /*self*/, PyObject* /*args*/) {
 }
 
 static PyObject* live2d_vk_end_frame(PyObject* /*self*/, PyObject* /*args*/) {
+#if defined(TRACY_ENABLE)
+    ZoneScopedN("py/vkEndFrame");
+#endif
 #ifdef CSM_TARGET_VULKAN
     if (!RequireBackend(Live2D::Common::Backend::BACKEND_VULKAN, "vkEndFrame")) {
         return NULL;

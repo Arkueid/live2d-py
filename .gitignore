@@ -79,3 +79,6 @@ raw/
 examples/live2d
 
 tools/
+
+bench/traces/*
+!bench/traces/.gitkeep

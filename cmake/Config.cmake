@@ -19,3 +19,7 @@ set(DEBUG_ENABLE_ASAN off CACHE BOOL "detect memory corruption")
 
 # build the C++ test app (tests/cpp, needs the glfw submodule)
 set(LIVE2D_CPP_TEST off CACHE BOOL "build Live2DTest in tests/cpp")
+
+# Tracy 可视化分析（可选）：记录 V2/V3 Draw 与 Vulkan 各阶段的 zone。
+# 源码来自 submodule tracy/（git submodule update --init tracy）；需用 Tracy GUI 连接。
+set(LIVE2D_TRACY off CACHE BOOL "enable Tracy profiler instrumentation")

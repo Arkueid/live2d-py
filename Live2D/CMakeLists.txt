@@ -61,4 +61,7 @@ target_link_libraries(${LIVE2D_TARGET} PUBLIC
     Live2D::V2
     Live2D::V3
 )
+if (LIVE2D_TRACY AND TARGET Tracy::TracyClient)
+    target_link_libraries(${LIVE2D_TARGET} PUBLIC Tracy::TracyClient)
+endif()
 add_library(Live2D::Live2D ALIAS ${LIVE2D_TARGET})
